@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Company Dashboard</title>
+  <style>
+    /* Reset & Global Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      min-height: 100vh;
+      color: #333;
+    }
+    /* Navigation Bar */
+    nav {
+      background-color: white;
+      padding: 1rem 5%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+    nav ul {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      list-style: none;
+    }
+    nav ul li a {
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+    nav ul li a:hover {
+      color: #6366f1;
+    }
+    /* Dashboard Container */
+    .dashboard-container {
+      max-width: 1000px;
+      margin: 6rem auto 2rem;
+      padding: 2rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      color: #333;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      text-align: center;
+      color: #6366f1;
+    }
+    .info-section {
+      background: #f8f9fa;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      transition: transform 0.3s ease;
+      position: relative;
+    }
+    .info-section:hover {
+      transform: translateY(-3px);
+    }
+    .info-section h2 {
+      color: #6366f1;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .company-logo {
+      float: right;
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      margin-left: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .edit-form {
+      background: #f8f9fa;
+      padding: 2rem;
+      border-radius: 8px;
+      margin-top: 2rem;
+    }
+    .edit-form label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #333;
+      font-weight: bold;
+    }
+    .edit-form input,
+    .edit-form textarea {
+      width: 100%;
+      padding: 0.8rem;
+      margin-bottom: 1.5rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 5px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    .edit-form input:focus,
+    .edit-form textarea:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    }
+    .edit-form button {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      font-size: 1rem;
+    }
+    .edit-form button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    }
+    pre {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin-top: 1.5rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      border: 2px solid #e2e8f0;
+    }
+    @media (max-width: 768px) {
+      nav ul {
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .dashboard-container {
+        margin: 6rem 20px 2rem;
+        padding: 1.5rem;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      .edit-form {
+        padding: 1.5rem;
+      }
+      .company-logo {
+        float: none;
+        display: block;
+        margin: 0 auto 1rem auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="/static/index.html">Home</a></li>
+      <li><a href="/static/profile.html">Profile</a></li>
+      <li><a href="/static/chatbot_builder.html">Chatbot Builder</a></li>
+      <li><a href="/static/admin.html">Admin</a></li>
+      <li><a href="/static/dashboard.html">Dashboard</a></li>
+      <li><a href="/static/test.html">Test Chatbot</a></li>
+      <li><a href="/static/pricing.html">Pricing</a></li>
+    </ul>
+  </nav>
+  
+  <div class="dashboard-container">
+      <h1>Company Dashboard</h1>
+      <div id="dashboardDisplay" class="info-section">
+        <!-- User details will be shown here -->
+      </div>
+      
+      <h2>Edit Profile</h2>
+      <form id="updateProfileForm" class="edit-form">
+          <label for="user_name">Name:</label>
+          <input type="text" id="user_name" name="user_name">
+          
+          <label for="user_phone">Phone:</label>
+          <input type="text" id="user_phone" name="user_phone">
+          
+          <label for="company_name">Company Name:</label>
+          <input type="text" id="company_name" name="company_name">
+          
+          <label for="company_phone">Company Phone:</label>
+          <input type="text" id="company_phone" name="company_phone">
+          
+          <label for="business_address">Business Address:</label>
+          <textarea id="business_address" name="business_address"></textarea>
+          
+          <label for="company_website">Company Website:</label>
+          <input type="text" id="company_website" name="company_website">
+          
+          <label for="niche">Niche:</label>
+          <input type="text" id="niche" name="niche">
+          
+          <label for="subscription_plan">Current Plan:</label>
+          <input type="text" id="subscription_plan" name="subscription_plan" readonly style="background-color: #e5e5e5;">          
+          <button type="submit">Update Profile</button>
+      </form>
+      <pre id="updateResult"></pre>
+      
+      <h2>Upload Company Logo</h2>
+      <form id="uploadLogoForm" class="edit-form" enctype="multipart/form-data">
+          <label for="logo">Choose Logo (PNG/JPG):</label>
+          <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg" required>
+          <button type="submit">Upload Logo</button>
+      </form>
+      <pre id="uploadLogoResult"></pre>
+      <div id="subscriptionExpirySection" style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 5px;">
+        <p>Your current subscription expires on: <strong id="subscriptionExpiry">--/--/----</strong></p>
+        <p>Please renew your plan to avoid service interruptions.</p>
+      </div>
+      
+  </div>
+  
+  <script>
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/users/profile', { method: 'GET', credentials: 'include' });
+        if (!res.ok) throw new Error("Unauthorized");
+        const data = await res.json();
+        if (!data.user) throw new Error("No user data");
+        return true;
+      } catch (err) {
+        console.error("Authentication error:", err);
+        window.location.href = "/static/login.html";
+        return false;
+      }
+    }
+    
+    async function fetchProfile() {
+      try {
+        const response = await fetch('/api/users/profile', { method: 'GET', credentials: 'include' });
+        const data = await response.json();
+        if (data.user) {
+          displayUser(data.user);
+          populateForm(data.user);
+        } else {
+          document.getElementById("dashboardDisplay").innerText = JSON.stringify(data, null, 2);
+        }
+      } catch (err) {
+        document.getElementById("dashboardDisplay").innerText = "Error fetching profile: " + err;
+      }
+    }
+    
+    function displayUser(u) {
+      const dashDiv = document.getElementById("dashboardDisplay");
+      let logoHtml = "";
+      if (u.company_logo) {
+        logoHtml = `<img src="${u.company_logo}" class="company-logo" alt="Logo">`;
+      }
+      dashDiv.innerHTML = `
+        <h2>User & Company Details</h2>
+        ${logoHtml}
+        <p><strong>Name:</strong> ${u.user_name || 'N/A'}</p>
+        <p><strong>Email:</strong> ${u.user_email || 'N/A'}</p>
+        <p><strong>Phone:</strong> ${u.user_phone || 'N/A'}</p>
+        <p><strong>Company ID:</strong> ${u.company_id || 'N/A'}</p>
+        <p><strong>Company Name:</strong> ${u.company_name || 'N/A'}</p>
+        <p><strong>Company Phone:</strong> ${u.company_phone || 'N/A'}</p>
+        <p><strong>Business Address:</strong> ${u.business_address || 'N/A'}</p>
+        <p><strong>Company Website:</strong> ${u.company_website || 'N/A'}</p>
+        <p><strong>Niche:</strong> ${u.niche || 'N/A'}</p>
+        <p><strong>Subscription Plan:</strong> ${u.subscription_plan || 'N/A'}</p>
+      `;
+  
+      const expiryElement = document.getElementById("subscriptionExpiry");
+      if (u.subscription_expires_at) {
+        const expiryDate = new Date(u.subscription_expires_at);
+        expiryElement.textContent = expiryDate.toLocaleDateString();
+      } else {
+        expiryElement.textContent = "Not available";
+      }
+  
+      if (!u.subscription_plan || u.subscription_plan === "N/A" || u.subscription_plan === "free_trial") {
+        dashDiv.innerHTML += `
+          <div style="margin-top: 1.5rem; padding: 1rem; background: #f0f0ff; border-radius: 8px;">
+            <h3>Become a Pro User</h3>
+            <p>Enjoy unlimited benefits, advanced features, and dedicated support.
+               Upgrade your plan now to unlock everything we have to offer!</p>
+            <a href="/static/pricing.html">
+              <button style="padding: 0.8rem 1.5rem; font-weight: bold; background-color: #6366f1; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
+                Go to Pricing
+              </button>
+            </a>
+          </div>
+        `;
+      }
+    }
+    
+    function populateForm(u) {
+      document.getElementById('user_name').value = u.user_name || "";
+      document.getElementById('user_phone').value = u.user_phone || "";
+      document.getElementById('company_name').value = u.company_name || "";
+      document.getElementById('company_phone').value = u.company_phone || "";
+      document.getElementById('business_address').value = u.business_address || "";
+      document.getElementById('company_website').value = u.company_website || "";
+      document.getElementById('niche').value = u.niche || "";
+      document.getElementById('subscription_plan').value = u.subscription_plan || "N/A";
+    }
+    
+    document.getElementById('updateProfileForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const payload = {
+        user_name: document.getElementById('user_name').value,
+        user_phone: document.getElementById('user_phone').value,
+        company_name: document.getElementById('company_name').value,
+        company_phone: document.getElementById('company_phone').value,
+        business_address: document.getElementById('business_address').value,
+        company_website: document.getElementById('company_website').value,
+        niche: document.getElementById('niche').value
+      };
+      try {
+        const response = await fetch('/api/users/update_profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        document.getElementById('updateResult').innerText = JSON.stringify(data, null, 2);
+        if (data.user) {
+          displayUser(data.user);
+          populateForm(data.user);
+        }
+      } catch (err) {
+        document.getElementById('updateResult').innerText = "Error: " + err;
+      }
+    });
+    
+    document.getElementById('uploadLogoForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formEl = document.getElementById('uploadLogoForm');
+      const formData = new FormData(formEl);
+      try {
+        const response = await fetch('/api/users/upload_logo', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        });
+        const data = await response.json();
+        document.getElementById('uploadLogoResult').innerText = JSON.stringify(data, null, 2);
+        if (data.user) {
+          displayUser(data.user);
+          populateForm(data.user);
+        }
+      } catch (err) {
+        document.getElementById('uploadLogoResult').innerText = "Error: " + err;
+      }
+    });
+    
+    (async function initDashboard() {
+      if (!(await checkAuth())) return;
+      fetchProfile();
+    })();
+  </script>
+</body>
+</html>

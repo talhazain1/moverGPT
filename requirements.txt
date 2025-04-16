@@ -1,0 +1,24 @@
+# Flask and related extensions for building the API
+Flask==2.3.2
+Flask-SQLAlchemy==3.0.3
+
+# PostgreSQL driver for SQLAlchemy
+psycopg2-binary==2.9.6
+
+# Stripe API integration
+stripe==11.6.0
+
+# JSON Web Token handling
+PyJWT==2.6.0
+
+# Secure password hashing utilities (Werkzeug is bundled with Flask, but specifying it can help ensure consistency)
+Werkzeug==2.3.6
+
+# Machine learning library for the chatbot training (TF-IDF vectorizer)
+scikit-learn==1.3.2
+
+# Prometheus client for monitoring metrics
+prometheus_client==0.21.1
+
+# Production WSGI server (optional, but useful for production deployment)
+gunicorn==20.1.0

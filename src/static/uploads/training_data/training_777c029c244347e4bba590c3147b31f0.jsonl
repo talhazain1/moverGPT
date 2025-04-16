@@ -1,0 +1,44 @@
+{
+  "faqs": [
+    {
+      "answer": "We offer a wide range of jewelry including gold, silver, diamond, platinum, and gemstone pieces.",
+      "question": "What types of jewelry do you sell?"
+    },
+    {
+      "answer": "Yes, we provide custom design services for engagement rings, wedding bands, and other jewelry items.",
+      "question": "Do you offer customization or bespoke jewelry services?"
+    },
+    {
+      "answer": "Yes, we offer professional repair and resizing services. Bring your item to the store or contact us online.",
+      "question": "Can I get my jewelry repaired or resized?"
+    },
+    {
+      "answer": "All our diamonds and gemstones come with proper certification and authenticity guarantees.",
+      "question": "Is your jewelry certified?"
+    },
+    {
+      "answer": "Yes, we offer complimentary cleaning and maintenance checks for jewelry purchased from our store.",
+      "question": "Do you offer cleaning and maintenance services?"
+    },
+    {
+      "answer": "Returns are accepted within 14 days for unworn items in original packaging along with the receipt.",
+      "question": "What is your return policy?"
+    },
+    {
+      "answer": "Yes, we offer flexible payment plans and financing options. Please inquire in-store or online.",
+      "question": "Do you offer financing or installment plans?"
+    },
+    {
+      "answer": "Yes, our online store is available 24/7 with secure checkout and insured shipping.",
+      "question": "Can I shop online?"
+    },
+    {
+      "answer": "Yes, we provide professional appraisals for insurance and valuation purposes.",
+      "question": "Do you provide appraisals for insurance purposes?"
+    },
+    {
+      "answer": "You can reach us at support@jewelstore.com or call (123) 456-7890 during business hours.",
+      "question": "How can I contact customer support?"
+    }
+  ]
+}

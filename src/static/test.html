@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Test Chatbot with Manual Token Input</title>
+  <style>
+    /* Basic Reset and Styling */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      min-height: 100vh;
+      color: #333;
+      padding-top: 60px;
+    }
+    nav {
+      background-color: #fff;
+      padding: 1rem 5%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+    nav ul {
+      display: flex;
+      justify-content: space-around;
+      list-style: none;
+    }
+    nav ul li a {
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+    nav ul li a:hover {
+      color: #6366f1;
+    }
+    .container {
+      max-width: 800px;
+      margin: 100px auto 40px;
+      padding: 2rem;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .input-group {
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    #chatWindow {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 1rem;
+      height: 300px;
+      overflow-y: auto;
+      background: #fafafa;
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+    .message {
+      margin-bottom: 0.75rem;
+      padding: 0.5rem;
+      border-radius: 5px;
+    }
+    .message.user {
+      background: #e0f7fa;
+      text-align: right;
+    }
+    .message.bot {
+      background: #fff3e0;
+      text-align: left;
+    }
+    .timestamp {
+      font-size: 0.8rem;
+      color: #777;
+    }
+    .btn {
+      padding: 0.5rem 1rem;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+      margin-top: 0.5rem;
+    }
+    .btn:hover {
+      background: #4f46e5;
+    }
+    .chat-input {
+      width: 80%;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    .debug {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      background: #f0f0f0;
+      padding: 0.5rem;
+      border-radius: 5px;
+      text-align: left;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    /* Shaking animation for invalid login */
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-10px); }
+      40% { transform: translateX(10px); }
+      60% { transform: translateX(-10px); }
+      80% { transform: translateX(10px); }
+      100% { transform: translateX(0); }
+    }
+    .shake {
+      animation: shake 0.5s;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="/static/index.html">Home</a></li>
+      <li><a href="/static/profile.html">Profile</a></li>
+      <li><a href="/static/chatbot_builder.html">Chatbot Builder</a></li>
+      <li><a href="/static/admin.html">Admin</a></li>
+      <li><a href="/static/pricing.html">Pricing</a></li>
+    </ul>
+  </nav>
+  
+  <div class="container">
+    <h1>Test Chatbot with Manual Token Input</h1>
+    
+    <!-- Token Input Section -->
+    <div class="input-group">
+      <label for="tokenInput">Paste Your Valid Token:</label>
+      <input type="text" id="tokenInput" placeholder="Paste JWT token here">
+    </div>
+    <button class="btn" id="setTokenBtn">Set Token</button>
+    
+    <!-- Company ID Input Section -->
+    <div class="input-group">
+      <label for="company_id">Enter Company ID:</label>
+      <input type="number" id="company_id" placeholder="e.g., 7" required>
+    </div>
+    <button class="btn" id="loadChatbotBtn">Load Chatbot</button>
+    
+    <!-- Chat Interface -->
+    <div id="chatInterface" style="display:none; margin-top:2rem;">
+      <div id="chatWindow"></div>
+      <div class="input-group">
+        <input type="text" id="userMessage" class="chat-input" placeholder="Type your message...">
+      </div>
+      <button class="btn" id="sendMessageBtn">Send Message</button>
+      <button class="btn" id="endChatBtn" style="margin-top:1rem;">End Chat</button>
+    </div>
+    
+    <!-- Debug Log -->
+    <div class="debug" id="debugLog"></div>
+  </div>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", async function() {
+      // Helper: Log debug messages.
+      function logDebug(message) {
+        console.log(message);
+        const debugDiv = document.getElementById('debugLog');
+        debugDiv.innerHTML += "<p>" + message + "</p>";
+      }
+      
+      // Helper: Decode JWT payload (for debugging purposes only).
+      function decodeJWT(token) {
+        try {
+          const payloadBase64 = token.split('.')[1];
+          const payloadDecoded = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+          return JSON.parse(payloadDecoded);
+        } catch (e) {
+          logDebug("Error decoding JWT: " + e.message);
+          return null;
+        }
+      }
+      
+      // Helper: Get token from localStorage.
+      function getToken() {
+        const t = localStorage.getItem('token');
+        logDebug("Current token from localStorage: " + t);
+        return t;
+      }
+      
+      // Authentication check: Try to load profile. If not valid, redirect to login.
+      async function checkAuth() {
+        try {
+          const res = await fetch('/api/users/profile', { method: 'GET', credentials: 'include' });
+          if (!res.ok) {
+            throw new Error("Unauthorized");
+          }
+          const data = await res.json();
+          if (!data.user) {
+            throw new Error("No user data");
+          }
+          logDebug("User authenticated.");
+          return true;
+        } catch (err) {
+          logDebug("Authentication error: " + err.message);
+          window.location.href = "/static/login.html";
+          return false;
+        }
+      }
+      
+      // Set token manually.
+      function setToken() {
+        const token = document.getElementById('tokenInput').value.trim();
+        if (token) {
+          localStorage.setItem('token', token);
+          logDebug("Token set manually to: " + token);
+          const payload = decodeJWT(token);
+          if (payload && payload.company_id) {
+            logDebug("Token payload company_id: " + payload.company_id);
+          }
+        } else {
+          // Shake the token input field for invalid entry.
+          const tokenInput = document.getElementById('tokenInput');
+          tokenInput.classList.add('shake');
+          setTimeout(() => tokenInput.classList.remove('shake'), 500);
+          alert("Please paste a valid token.");
+        }
+      }
+      
+      // Global variables.
+      let session_id = null;
+      let conversation = [];
+      
+      // Load chatbot configuration using company ID.
+      async function loadChatbot() {
+        const company_id_input = document.getElementById('company_id').value.trim();
+        if (!company_id_input) {
+          alert("Please enter a valid Company ID.");
+          return;
+        }
+        const token = getToken();
+        const payload = decodeJWT(token);
+        if (!payload) {
+          alert("Invalid token. Please set a valid token.");
+          return;
+        }
+        // Check if entered company ID matches token's company_id.
+        if (String(payload.company_id) !== company_id_input) {
+          alert("Entered Company ID (" + company_id_input +
+                ") does not match the token's company ID (" + payload.company_id + ").");
+          return;
+        }
+        try {
+          logDebug("Loading chatbot config for company_id: " + company_id_input);
+          const response = await fetch(`/api/admin/chatbots?client_id=${company_id_input}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error("Failed to load chatbot config: " + response.status + " " + errorText);
+          }
+          const config = await response.json();
+          logDebug("Chatbot config loaded: " + JSON.stringify(config));
+          // Display chat interface and create a new chat session.
+          document.getElementById('chatInterface').style.display = 'block';
+          await createChatSession();
+          // Automatically add a greeting message from the bot.
+          const greeting = "Hello, welcome to our chatbot! How can I assist you today? 😊";
+          conversation.push({
+            sender: "bot",
+            message: greeting,
+            timestamp: new Date().toISOString()
+          });
+          renderConversation();
+        } catch (err) {
+          console.error(err);
+          alert("Error loading chatbot config: " + err.message);
+        }
+      }
+      
+      // Create a new chat session.
+      async function createChatSession() {
+        const token = getToken();
+        try {
+          logDebug("Creating chat session using token: " + token);
+          const response = await fetch('/api/chatbot/session', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error("Session creation failed: " + response.status + " " + errorText);
+          }
+          const data = await response.json();
+          if (data.session_id) {
+            session_id = data.session_id;
+            localStorage.setItem('chat_session_id', session_id);
+            logDebug("New session created with session_id: " + session_id);
+          }
+        } catch (err) {
+          console.error("Error creating chat session:", err);
+          logDebug("Error creating chat session: " + err.message);
+        }
+      }
+      
+      // Fetch chat history.
+      async function fetchChatHistory() {
+        if (!session_id) {
+          logDebug("No session_id available to fetch history.");
+          return;
+        }
+        const token = getToken();
+        try {
+          logDebug("Fetching chat history for session: " + session_id);
+          const response = await fetch(`/api/chatbot/session/${session_id}/messages`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error("Failed to fetch chat history: " + response.status + " " + errorText);
+          }
+          const data = await response.json();
+          conversation = data.messages || [];
+          renderConversation();
+        } catch (err) {
+          console.error("Error fetching chat history:", err);
+          logDebug("Error fetching chat history: " + err.message);
+        }
+      }
+      
+      // Render conversation in chat window.
+      function renderConversation() {
+        const chatWindow = document.getElementById('chatWindow');
+        chatWindow.innerHTML = "";
+        conversation.forEach(msg => {
+          const div = document.createElement('div');
+          div.className = 'message ' + msg.sender;
+          const time = msg.timestamp ? `<span class="timestamp">${new Date(msg.timestamp).toLocaleTimeString()}</span>` : "";
+          div.innerHTML = `<strong>${msg.sender === 'user' ? 'You' : 'Bot'}:</strong> ${msg.message} ${time}`;
+          chatWindow.appendChild(div);
+        });
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+      }
+      
+      // Send a message.
+      async function sendMessage() {
+        if (!session_id) {
+          logDebug("No session_id available. Cannot send message.");
+          return;
+        }
+        const company_id = document.getElementById('company_id').value.trim();
+        if (!company_id) {
+          alert("Please enter a valid Company ID.");
+          return;
+        }
+        const messageInput = document.getElementById('userMessage');
+        const text = messageInput.value.trim();
+        if (!text) return;
+        
+        conversation.push({
+          sender: "user",
+          message: text,
+          timestamp: new Date().toISOString()
+        });
+        renderConversation();
+        messageInput.value = "";
+        
+        const token = getToken();
+        try {
+          logDebug("Sending message with token: " + token);
+          const response = await fetch('/api/chatbot/inference', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+              company_id: Number(company_id),
+              query: text,
+              history: conversation
+            })
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error("Failed to send message: " + response.status + " " + errorText);
+          }
+          const data = await response.json();
+          logDebug("Chatbot inference response: " + JSON.stringify(data));
+          conversation.push({
+            sender: "bot",
+            message: data.response || "No reply",
+            timestamp: new Date().toISOString()
+          });
+          renderConversation();
+        } catch (err) {
+          console.error("Error sending message:", err);
+          alert("Error sending message: " + err.message);
+        }
+      }
+      
+      // End the chat session.
+      async function endChatSession() {
+        if (!session_id) {
+          logDebug("No session_id available to end session.");
+          return;
+        }
+        const token = getToken();
+        try {
+          const response = await fetch(`/api/chatbot/session/${session_id}/end`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error("Failed to end session: " + response.status + " " + errorText);
+          }
+          const data = await response.json();
+          logDebug("Session ended: " + JSON.stringify(data));
+          localStorage.removeItem('chat_session_id');
+          session_id = null;
+          conversation = [];
+          renderConversation();
+          await createChatSession();
+        } catch (err) {
+          console.error("Error ending session:", err);
+          logDebug("Error ending session: " + err.message);
+        }
+      }
+      
+      // Attach event listeners safely.
+      const setTokenBtn = document.getElementById('setTokenBtn');
+      if (setTokenBtn) {
+        setTokenBtn.addEventListener('click', setToken);
+      } else {
+        logDebug("setTokenBtn not found");
+      }
+      
+      const loadChatbotBtn = document.getElementById('loadChatbotBtn');
+      if (loadChatbotBtn) {
+        loadChatbotBtn.addEventListener('click', loadChatbot);
+      } else {
+        logDebug("loadChatbotBtn not found");
+      }
+      
+      const sendMessageBtn = document.getElementById('sendMessageBtn');
+      if (sendMessageBtn) {
+        sendMessageBtn.addEventListener('click', sendMessage);
+      } else {
+        logDebug("sendMessageBtn not found");
+      }
+      
+      const endChatBtn = document.getElementById('endChatBtn');
+      if (endChatBtn) {
+        endChatBtn.addEventListener('click', endChatSession);
+      } else {
+        logDebug("endChatBtn not found");
+      }
+      
+      // On initialization, perform an authentication check.
+      if (await checkAuth()) {
+        // If authenticated, try to load any existing chat session.
+        session_id = localStorage.getItem('chat_session_id');
+        if (session_id) {
+          await fetchChatHistory();
+        }
+      }
+    });
+  </script>
+</body>
+</html>

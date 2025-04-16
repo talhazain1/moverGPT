@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Landing Page</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+    body {
+      background-color: #f8f9fa;
+    }
+    nav {
+      background-color: white;
+      padding: 1rem 5%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: fixed;
+      width: 100%;
+    }
+    nav ul {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      list-style: none;
+    }
+    nav ul li a {
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+    }
+    .admin-icon {
+      color: #6366f1;
+      font-size: 1.2rem;
+      margin-left: 1rem;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .admin-icon:hover {
+      color: #4f46e5;
+    }
+
+    /* Hero Section */
+    .hero {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+    .hero-content {
+      max-width: 600px;
+      margin-right: 2rem;
+    }
+    .hero-content h1 {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .hero-content p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    .cta-button {
+      padding: 1rem 2rem;
+      background-color: white;
+      color: #6366f1;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      margin-right: 1rem;
+    }
+    .cta-button:hover {
+      transform: translateY(-3px);
+    }
+    .hero-image {
+      max-width: 500px;
+      width: 100%;
+      height: auto;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%   { transform: translateY(0px); }
+      50%  { transform: translateY(-20px); }
+      100% { transform: translateY(0px); }
+    }
+
+    /* Features Section */
+    .features {
+      padding: 5rem 10%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      background-color: white;
+    }
+    .feature-card {
+      padding: 2rem;
+      text-align: center;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      background-color: white;
+      position: relative;
+      top: 0;
+    }
+    .feature-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+    .feature-card:hover h3 {
+      color: white;
+    }
+    .feature-card:hover p {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Our Clients Section with Purple Gradient */
+    .clients {
+      padding: 5rem 10%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      text-align: center;
+      color: white;
+    }
+    .clients-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .clients-content h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .clients-content p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav>
+    <ul id="navLinks">
+      <!-- Navigation links will be rendered dynamically -->
+    </ul>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="home">
+    <div class="hero-content">
+      <h1>Welcome to Our Website</h1>
+      <p>Create something amazing with our powerful platform. Start your journey today and discover endless possibilities.</p>
+      <div id="heroButtonContainer">
+        <!-- Hero buttons will be rendered dynamically based on login status -->
+      </div>
+    </div>
+    <img src="assets/1.avif" alt="Platform illustration" class="hero-image">
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="feature-card">
+      <h3>Easy to Use</h3>
+      <p>Simple and intuitive interface designed for the best user experience.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Fast & Reliable</h3>
+      <p>Built with performance in mind to ensure smooth operation.</p>
+    </div>
+    <div class="feature-card">
+      <h3>24/7 Support</h3>
+      <p>Our dedicated team is always here to help you succeed.</p>
+    </div>
+  </section>
+
+  <!-- Our Clients Section -->
+  <section class="clients" id="clients">
+    <div class="clients-content">
+      <h2>Our Global Clients</h2>
+      <p>
+        We proudly serve a diverse set of clients from all over the world.  
+        Whether you run a small startup or a large enterprise, our platform  
+        offers the flexibility and power to help you reach your goals.
+        Join thousands of businesses spanning multiple continents who trust us  
+        to deliver exceptional results every day.
+      </p>
+      <a href="/static/pricing.html">
+        <button class="cta-button">See Our Pricing</button>
+      </a>
+    </div>
+  </section>
+
+  <script>
+    // Check authentication by calling the profile endpoint.
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/users/profile', { method: 'GET', credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          return data.user;
+        } else {
+          return null;
+        }
+      } catch (err) {
+        console.error("Auth check error:", err);
+        return null;
+      }
+    }
+
+    // Check admin authentication
+    async function checkAdminAuth() {
+      try {
+        const res = await fetch('/api/admin/check-auth', { method: 'GET', credentials: 'include' });
+        return res.ok;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    // Render the navigation menu based on authentication
+    async function renderNav() {
+      const navLinks = document.getElementById("navLinks");
+      let baseLinks = `<li><a href="/static/index.html">Home</a></li>
+                       <li><a href="/static/chatbot_builder.html">Chatbot Builder</a></li>
+                       <li><a href="/static/dashboard.html">Dashboard</a></li>
+                       <li><a href="/static/test.html">Test Chatbot</a></li>
+                       <li><a href="/static/pricing.html">Pricing</a></li>`;
+      
+      const user = await checkAuth();
+      const isAdmin = await checkAdminAuth();
+
+      if (user) {
+        baseLinks += `<li><a href="#" id="logoutLink">Log Out</a></li>`;
+      } else {
+        baseLinks += `<li><a href="/static/register.html">Get Started</a></li>
+                       <li><a href="/static/login.html">Login</a></li>`;
+      }
+
+      // Add admin icon if user is authenticated
+      if (isAdmin) {
+        baseLinks += `<li><a href="/admin/dashboard.html" class="admin-icon"><i class="fas fa-user-shield"></i></a></li>`;
+      } else if (user) {
+        baseLinks += `<li><a href="/admin/login.html" class="admin-icon"><i class="fas fa-user-shield"></i></a></li>`;
+      }
+
+      navLinks.innerHTML = baseLinks;
+
+      if (user) {
+        document.getElementById("logoutLink").addEventListener("click", async function(e) {
+          e.preventDefault();
+          try {
+            await fetch('/api/users/logout', { method: 'POST', credentials: 'include' });
+          } catch (err) {
+            console.error("Logout error:", err);
+          }
+          window.location.href = "/static/index.html";
+        });
+      }
+    }
+
+    // Render hero buttons based on authentication
+    async function renderHeroButtons() {
+      const container = document.getElementById("heroButtonContainer");
+      const user = await checkAuth();
+      if (user) {
+        container.innerHTML = `<a href="/static/profile.html"><button class="cta-button">Profile</button></a>
+                               <a href="#" id="heroLogoutLink"><button class="cta-button">Log Out</button></a>`;
+        document.getElementById("heroLogoutLink").addEventListener("click", async function(e) {
+          e.preventDefault();
+          try {
+            await fetch('/api/users/logout', { method: 'POST', credentials: 'include' });
+          } catch (err) {
+            console.error("Logout error:", err);
+          }
+          window.location.href = "/static/index.html";
+        });
+      } else {
+        container.innerHTML = `<a href="/static/register.html"><button class="cta-button">Get Started</button></a>
+                               <a href="/static/login.html"><button class="cta-button">Login</button></a>`;
+      }
+    }
+
+    // Initialize navigation and hero buttons
+    renderNav();
+    renderHeroButtons();
+  </script>
+</body>
+</html>

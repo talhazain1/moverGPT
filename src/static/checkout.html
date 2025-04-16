@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Subscribe to a Product</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://js.stripe.com/v3/"></script>
+  </head>
+  <body>
+    <section>
+      <div class="product">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14px" height="16px" viewBox="0 0 14 16">
+          <defs/>
+          <g fill="#E184DF">
+            <path d="M127,50 L126,50 C123.24,50 121,47.76 121,45 C121,42.24 123.24,40 126,40 L135,40 L135,56 L133,56 L133,42 L129,42 L129,56 L127,56 L127,50 Z M127,48 L127,42 L126,42 C124.34,42 123,43.34 123,45 C123,46.66 124.34,48 126,48 L127,48 Z"/>
+          </g>
+        </svg>
+        <div class="description">
+          <h3>Starter Plan</h3>
+          <h5>$20.00 / month</h5>
+        </div>
+      </div>
+      <form action="/create-checkout-session" method="POST">
+        <!-- Use the correct lookup key for your Price -->
+        <input type="hidden" name="lookup_key" value="price_lookup_key_here" />
+        <button id="checkout-and-portal-button" type="submit">Checkout</button>
+      </form>
+    </section>
+  </body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Thanks for subscribing!</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      // Extract the session_id from the URL
+      let urlParams = new URLSearchParams(window.location.search);
+      const session_id = urlParams.get("session_id");
+      
+      if (session_id) {
+        try {
+          // Call our endpoint to update the subscription plan using the cookie for auth.
+          const response = await fetch('/api/payments/update_subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ session_id: session_id })
+          });
+          const data = await response.json();
+          console.log("Subscription update response:", data);
+        } catch (err) {
+          console.error("Failed to update subscription:", err);
+        }
+      }
+      
+      // After 3 seconds, redirect to the dashboard.
+      setTimeout(() => {
+        window.location.href = '/static/dashboard.html';
+      }, 3000);
+    });
+  </script>
+</head>
+<body>
+  <section>
+    <div class="product">
+      <h3>Subscription Successful!</h3>
+      <p>Your payment has been processed and the trial period is active.
+         You will be redirected to your dashboard shortly.</p>
+    </div>
+  </section>
+</body>
+</html>

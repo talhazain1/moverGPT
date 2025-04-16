@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Global Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      min-height: 100vh;
+    }
+    nav {
+      background-color: white;
+      padding: 1rem 5%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: fixed;
+      width: 100%;
+      z-index: 1000;
+    }
+    nav ul {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      list-style: none;
+      margin: 0;
+    }
+    nav ul li a {
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+    nav ul li a:hover {
+      color: #6366f1;
+    }
+    .container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 100px 20px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: white;
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .card {
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      width: 100%;
+    }
+    .support-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 1rem 2rem;
+      background-color: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      z-index: 1000;
+    }
+    .support-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+    }
+    .support-btn i {
+      margin-right: 0.5rem;
+    }
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin-bottom: 2rem;
+    }
+    .stats-card {
+      background-color: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .stats-card h3 {
+      color: #6366f1;
+      margin-bottom: 1rem;
+    }
+    .stats-card .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #333;
+    }
+    .stats-card .stat-label {
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav>
+    <ul>
+      <li><a href="/static/index.html">Home</a></li>
+      <li><a href="/static/profile.html">Profile</a></li>
+      <li><a href="/static/chatbot_builder.html">Chatbot Builder</a></li>
+      <li><a href="/static/admin.html">Admin</a></li>
+      <li><a href="/static/dashboard.html">Dashboard</a></li>
+      <li><a href="/static/test.html">Test Chatbot</a></li>
+      <li><a href="/static/pricing.html">Pricing</a></li>
+    </ul>
+  </nav>
+  
+  <div class="container">
+    <h1>Admin Panel</h1>
+
+    <!-- Chatbot Statistics -->
+    <div class="card">
+      <h2 class="mb-4">Chatbot Statistics</h2>
+      <div class="row">
+        <div class="col-md-3">
+          <div class="stats-card">
+            <h3>Total Conversations</h3>
+            <div class="stat-value" id="total-conversations">0</div>
+            <div class="stat-label">Last 30 days</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card">
+            <h3>Success Rate</h3>
+            <div class="stat-value" id="success-rate">0%</div>
+            <div class="stat-label">Resolved queries</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card">
+            <h3>Average Response Time</h3>
+            <div class="stat-value" id="avg-response">0s</div>
+            <div class="stat-label">Per conversation</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card">
+            <h3>User Satisfaction</h3>
+            <div class="stat-value" id="user-satisfaction">0%</div>
+            <div class="stat-label">Positive feedback</div>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="chart-container">
+            <canvas id="conversationsChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="chart-container">
+            <canvas id="topicsChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- List Chatbots -->
+    <div class="card">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Chatbots</h2>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Company Name</th>
+              <th>Chatbot Name</th>
+              <th>Version</th>
+              <th>Plan</th>
+              <th>Role</th>
+              <th>Purpose</th>
+              <th>Goal</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="chatbots-table">
+            <!-- Chatbots will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Knowledge Base -->
+    <div class="card">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Knowledge Base</h2>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Last Updated</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="knowledge-base-table">
+            <!-- Knowledge base items will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Support Tickets -->
+    <div class="card">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Support Tickets</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#supportModal">
+          <i class="bi bi-plus-circle"></i> New Ticket
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Ticket Number</th>
+              <th>Subject</th>
+              <th>Description</th>
+              <th>Status</th>
+              <th>Created At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="support-tickets-table">
+            <!-- Support tickets will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Support Button -->
+    <button class="support-btn" data-bs-toggle="modal" data-bs-target="#supportModal">
+      <i class="bi bi-headset"></i> Contact Support
+    </button>
+
+    <!-- Support Modal -->
+    <div class="modal fade" id="supportModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Contact Support</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="supportForm">
+              <div class="mb-3">
+                <label class="form-label">Subject</label>
+                <input type="text" class="form-control" name="subject" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Category</label>
+                <select class="form-select" name="category" required>
+                  <option value="">Select a category</option>
+                  <option value="technical">Technical Issue</option>
+                  <option value="billing">Billing</option>
+                  <option value="feature">Feature Request</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Priority</label>
+                <select class="form-select" name="priority" required>
+                  <option value="low">Low</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="description" rows="5" required></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Attachments</label>
+                <input type="file" class="form-control" name="attachments" multiple accept="image/*,.pdf,.doc,.docx">
+                <div class="form-text">You can upload images, PDFs, and documents</div>
+              </div>
+              <div id="attachmentPreviews" class="d-flex flex-wrap gap-2"></div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="submitSupportTicket()">Submit Ticket</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Initialize charts
+    let conversationsChart, topicsChart;
+
+    // Load chatbot statistics
+    async function loadChatbotStats() {
+      try {
+        const response = await fetch('/api/admin/panel/chatbot/stats', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Update stats cards with proper formatting
+          document.getElementById('total-conversations').textContent = data.totalConversations || 0;
+          document.getElementById('success-rate').textContent = `${data.successRate || 0}%`;
+          document.getElementById('avg-response').textContent = `${data.avgResponseTime || 0}s`;
+          document.getElementById('user-satisfaction').textContent = `${data.userSatisfaction || 0}%`;
+          
+          // Update charts with proper data validation
+          if (data.conversationsData && data.conversationsData.labels && data.conversationsData.values) {
+            updateConversationsChart(data.conversationsData);
+          } else {
+            updateConversationsChart({ labels: [], values: [] });
+          }
+          
+          if (data.topicsData && data.topicsData.labels && data.topicsData.values) {
+            updateTopicsChart(data.topicsData);
+          } else {
+            updateTopicsChart({ labels: [], values: [] });
+          }
+        } else {
+          const error = await response.json();
+          console.error('Error loading stats:', error);
+          showError('Failed to load chatbot statistics');
+        }
+      } catch (error) {
+        console.error('Error loading chatbot stats:', error);
+        showError('Failed to load chatbot statistics');
+      }
+    }
+
+    // Update conversations chart
+    function updateConversationsChart(data) {
+      const ctx = document.getElementById('conversationsChart').getContext('2d');
+      
+      if (conversationsChart) {
+        conversationsChart.destroy();
+      }
+      
+      conversationsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            label: 'Conversations',
+            data: data.values,
+            borderColor: '#6366f1',
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Conversations Over Time'
+            }
+          }
+        }
+      });
+    }
+
+    // Update topics chart
+    function updateTopicsChart(data) {
+      const ctx = document.getElementById('topicsChart').getContext('2d');
+      
+      if (topicsChart) {
+        topicsChart.destroy();
+      }
+      
+      topicsChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            data: data.values,
+            backgroundColor: [
+              '#6366f1',
+              '#8b5cf6',
+              '#ec4899',
+              '#f43f5e',
+              '#f97316'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Top Conversation Topics'
+            }
+          }
+        }
+      });
+    }
+
+    // Load chatbots
+    async function loadChatbots() {
+      try {
+        console.log('Fetching user profile...');
+        // First get the user's profile to get company_id and company_name
+        const profileResponse = await fetch('/api/users/profile', {
+          credentials: 'include'
+        });
+        
+        if (!profileResponse.ok) {
+          console.error('Profile response not OK:', profileResponse.status);
+          throw new Error('Failed to fetch user profile');
+        }
+        
+        const profileData = await profileResponse.json();
+        console.log('Profile data:', profileData);
+        
+        const company_id = profileData.user.company_id || profileData.user.id;
+        const company_name = profileData.user.company_name || 'N/A';
+        console.log('Using company_id:', company_id);
+        console.log('Using company_name:', company_name);
+        
+        // Now fetch chatbots using the company_id
+        console.log('Fetching chatbots...');
+        const response = await fetch(`/api/admin/chatbots?client_id=${company_id}`, {
+          credentials: 'include'
+        });
+        
+        console.log('Chatbot response status:', response.status);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Chatbot data:', data);
+          
+          // Handle both array and object responses
+          const chatbots = Array.isArray(data) ? data : [data];
+          console.log('Processed chatbots:', chatbots);
+          
+          if (chatbots.length > 0) {
+            // Add company_name to each chatbot if not present
+            chatbots.forEach(chatbot => {
+              if (!chatbot.company_name) {
+                chatbot.company_name = company_name;
+              }
+            });
+            displayChatbots(chatbots);
+          } else {
+            displayChatbots([]);
+            showInfo('No chatbots found.');
+          }
+        } else {
+          const error = await response.json();
+          console.error('Error loading chatbots:', error);
+          showError('Failed to load chatbots');
+        }
+      } catch (error) {
+        console.error('Error in loadChatbots:', error);
+        showError('Failed to load chatbots');
+      }
+    }
+
+    // Display chatbots
+    function displayChatbots(chatbots) {
+      const tableBody = document.getElementById('chatbots-table');
+      if (!tableBody) return;
+      
+      if (!Array.isArray(chatbots)) {
+        chatbots = [];
+      }
+      
+      if (chatbots.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center">
+              <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No chatbots found.
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      tableBody.innerHTML = chatbots.map(chatbot => `
+        <tr>
+          <td>${chatbot.company_name || 'N/A'}</td>
+          <td>${chatbot.bot_name || 'Unnamed'}</td>
+          <td>${chatbot.version || '1.0'}</td>
+          <td><span class="badge bg-primary">${chatbot.subscription_plan || 'basic'}</span></td>
+          <td>${chatbot.role || 'Assistant'}</td>
+          <td>${chatbot.purpose || 'Not specified'}</td>
+          <td>${chatbot.goal || 'Not specified'}</td>
+          <td>
+            <button class="btn btn-sm btn-info me-1" onclick="viewChatbot(${chatbot.id})">
+              <i class="bi bi-eye"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Load knowledge base
+    async function loadKnowledgeBase() {
+      try {
+        console.log('Fetching user profile for knowledge base...');
+        // First get the user's profile to get company_id
+        const profileResponse = await fetch('/api/users/profile', {
+          credentials: 'include'
+        });
+        
+        if (!profileResponse.ok) {
+          console.error('Profile response not OK:', profileResponse.status);
+          throw new Error('Failed to fetch user profile');
+        }
+        
+        const profileData = await profileResponse.json();
+        console.log('Profile data:', profileData);
+        
+        const company_id = profileData.user.company_id || profileData.user.id;
+        console.log('Using company_id:', company_id);
+        
+        // Now fetch knowledge base using the company_id
+        console.log('Fetching knowledge base...');
+        const response = await fetch(`/api/admin/chatbots?client_id=${company_id}`, {
+          credentials: 'include'
+        });
+        
+        console.log('Knowledge base response status:', response.status);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Knowledge base data:', data);
+          
+          // Handle both array and object responses
+          const chatbots = Array.isArray(data) ? data : [data];
+          console.log('Processed chatbots:', chatbots);
+          
+          if (chatbots.length > 0) {
+            // Get the first chatbot's knowledge base
+            const chatbot = chatbots[0];
+            const knowledgeBase = chatbot.knowledge_base || {};
+            console.log('Knowledge base from chatbot:', knowledgeBase);
+            
+            const items = Object.entries(knowledgeBase).map(([title, content]) => ({
+              id: title, // Using title as ID since we don't have a proper ID
+              title: title,
+              content: content,
+              category: 'General', // Default category
+              last_updated: new Date().toISOString(),
+              status: 'active'
+            }));
+            
+            console.log('Processed knowledge base items:', items);
+            displayKnowledgeBase(items);
+          } else {
+            displayKnowledgeBase([]);
+            showInfo('No knowledge base items found. Add some knowledge to improve your chatbot.');
+          }
+        } else {
+          const error = await response.json();
+          console.error('Error loading knowledge base:', error);
+          showError('Failed to load knowledge base');
+        }
+      } catch (error) {
+        console.error('Error in loadKnowledgeBase:', error);
+        showError('Failed to load knowledge base');
+      }
+    }
+
+    // Display knowledge base
+    function displayKnowledgeBase(items) {
+      const tableBody = document.getElementById('knowledge-base-table');
+      if (!tableBody) return;
+      
+      if (!Array.isArray(items)) {
+        items = [];
+      }
+      
+      if (items.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center">
+              <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No knowledge base items found. 
+                <a href="/static/chatbot_builder.html" class="alert-link">Add knowledge</a> to improve your chatbot.
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      tableBody.innerHTML = items.map(item => `
+        <tr>
+          <td>${item.title || 'Untitled'}</td>
+          <td>${item.category || 'Uncategorized'}</td>
+          <td>${new Date(item.last_updated).toLocaleDateString()}</td>
+          <td><span class="badge ${item.status === 'active' ? 'bg-success' : 'bg-warning'}">${item.status || 'inactive'}</span></td>
+          <td>
+            <button class="btn btn-sm btn-primary me-1" onclick="editKnowledge(${item.id})">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-info me-1" onclick="viewKnowledge(${item.id})">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="deleteKnowledge(${item.id})">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // File preview handling
+    document.querySelector('input[name="attachments"]').addEventListener('change', function(e) {
+      const previewsDiv = document.getElementById('attachmentPreviews');
+      previewsDiv.innerHTML = '';
+      
+      Array.from(e.target.files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'attachment-preview';
+            previewsDiv.appendChild(img);
+          }
+          reader.readAsDataURL(file);
+        } else {
+          const div = document.createElement('div');
+          div.className = 'p-2 border rounded';
+          div.textContent = file.name;
+          previewsDiv.appendChild(div);
+        }
+      });
+    });
+
+    // Submit support ticket
+    async function submitSupportTicket() {
+      const form = document.getElementById('supportForm');
+      const formData = new FormData(form);
+      
+      // Validate required fields
+      const requiredFields = ['subject', 'category', 'priority', 'description'];
+      const missingFields = requiredFields.filter(field => !formData.get(field));
+      
+      if (missingFields.length > 0) {
+        showError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+      
+      try {
+        // First fetch the user's profile to get company_id
+        const profileResponse = await fetch('/api/users/profile', {
+          credentials: 'include'
+        });
+        
+        if (!profileResponse.ok) {
+          throw new Error('Failed to fetch user profile');
+        }
+        
+        const profileData = await profileResponse.json();
+        console.log('Profile data:', profileData);
+        
+        const company_id = parseInt(profileData.user?.company_id);
+        console.log('Company ID:', company_id);
+        
+        if (!company_id || isNaN(company_id)) {
+          showError('Your account is not associated with a valid company. Please contact your administrator.');
+          return;
+        }
+        
+        // Clear any existing company_id
+        formData.delete('company_id');
+        // Add company_id to the form data
+        formData.append('company_id', company_id.toString());
+        
+        // Log the form data before sending
+        console.log('Form data entries:');
+        for (let [key, value] of formData.entries()) {
+          console.log(`${key}: ${value}`);
+        }
+        
+        // Now submit the support ticket
+        const response = await fetch('/api/support/tickets', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        console.log('Response status:', response.status);
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (response.ok) {
+          showInfo(`Ticket created successfully! Ticket number: ${data.ticket_number}`);
+          bootstrap.Modal.getInstance(document.getElementById('supportModal')).hide();
+          form.reset();
+          document.getElementById('attachmentPreviews').innerHTML = '';
+        } else {
+          // Handle specific error cases
+          if (response.status === 401) {
+            showError('Please log in to create a support ticket');
+          } else if (response.status === 400) {
+            if (data.error === 'User does not have an associated company') {
+              showError('Your account is not associated with a company. Please contact your administrator.');
+            } else if (data.details) {
+              // Show detailed validation errors
+              if (data.details.missing_fields) {
+                showError(`Missing required fields: ${data.details.missing_fields.join(', ')}`);
+              } else {
+                const errorMessages = Object.entries(data.details)
+                  .filter(([key]) => key !== 'missing_fields')
+                  .map(([field, message]) => `${field}: ${message}`)
+                  .join('\n');
+                showError(errorMessages);
+              }
+            } else {
+              showError(data.error || 'Failed to create ticket');
+            }
+          } else {
+            showError(data.error || 'Failed to create ticket');
+          }
+        }
+      } catch (error) {
+        console.error('Error creating ticket:', error);
+        showError('Failed to create ticket. Please try again later.');
+      }
+    }
+
+    // Helper functions for showing messages
+    function showError(message) {
+      console.error('Error:', message);
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+      alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.card'));
+      setTimeout(() => alertDiv.remove(), 5000);
+    }
+
+    function showInfo(message) {
+      console.log('Info:', message);
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-success alert-dismissible fade show';
+      alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.card'));
+      setTimeout(() => alertDiv.remove(), 5000);
+    }
+
+    // Add loadSupportTickets function after loadKnowledgeBase
+    async function loadSupportTickets() {
+      try {
+        console.log('Loading support tickets...');
+        const response = await fetch('/api/admin/support/tickets', {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch support tickets');
+        }
+        
+        const data = await response.json();
+        console.log('Support tickets data:', data);
+        
+        const tableBody = document.getElementById('support-tickets-table');
+        if (!tableBody) {
+          console.error('support-tickets-table element not found');
+          return;
+        }
+        
+        if (!data.tickets || data.tickets.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="6" class="text-center">
+                <div class="alert alert-info mb-0">
+                  <i class="bi bi-info-circle"></i> No support tickets found. 
+                  <button class="btn btn-link p-0 align-baseline" data-bs-toggle="modal" data-bs-target="#supportModal">
+                    Create a new ticket
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+        
+        tableBody.innerHTML = data.tickets.map(ticket => `
+          <tr>
+            <td>${ticket.ticket_number}</td>
+            <td>${ticket.subject}</td>
+            <td>
+              <div class="text-truncate" style="max-width: 200px;" title="${ticket.description}">
+                ${ticket.description}
+              </div>
+            </td>
+            <td>
+              <span class="badge ${getTicketStatusBadgeClass(ticket.status)}">
+                ${ticket.status}
+              </span>
+            </td>
+            <td>${new Date(ticket.created_at).toLocaleString()}</td>
+            <td>
+              <button class="btn btn-sm btn-info me-1" onclick="viewTicketDetails(${ticket.id})">
+                <i class="bi bi-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading support tickets:', error);
+        showError('Failed to load support tickets');
+      }
+    }
+
+    // Add getTicketStatusBadgeClass function
+    function getTicketStatusBadgeClass(status) {
+      switch(status?.toLowerCase()) {
+        case 'open': return 'bg-primary';
+        case 'in_progress': return 'bg-warning';
+        case 'resolved': return 'bg-success';
+        case 'closed': return 'bg-secondary';
+        default: return 'bg-secondary';
+      }
+    }
+
+    // Add viewTicketDetails function
+    async function viewTicketDetails(ticketId) {
+      try {
+        const response = await fetch(`/api/admin/support/tickets/${ticketId}`, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch ticket details');
+        }
+        
+        const ticket = await response.json();
+        
+        const modalHtml = `
+          <div class="modal fade" id="ticketDetailsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Ticket Details - ${ticket.ticket_number}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <dl class="row">
+                    <dt class="col-sm-3">Subject</dt>
+                    <dd class="col-sm-9">${ticket.subject}</dd>
+                    
+                    <dt class="col-sm-3">Category</dt>
+                    <dd class="col-sm-9">${ticket.category}</dd>
+                    
+                    <dt class="col-sm-3">Priority</dt>
+                    <dd class="col-sm-9">${ticket.priority}</dd>
+                    
+                    <dt class="col-sm-3">Status</dt>
+                    <dd class="col-sm-9">
+                      <span class="badge ${getTicketStatusBadgeClass(ticket.status)}">
+                        ${ticket.status}
+                      </span>
+                    </dd>
+                    
+                    <dt class="col-sm-3">Created At</dt>
+                    <dd class="col-sm-9">${new Date(ticket.created_at).toLocaleString()}</dd>
+                    
+                    <dt class="col-sm-3">Description</dt>
+                    <dd class="col-sm-9">${ticket.description}</dd>
+                  </dl>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('ticketDetailsModal');
+        if (existingModal) {
+          existingModal.remove();
+        }
+        
+        // Add new modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('ticketDetailsModal'));
+        modal.show();
+      } catch (error) {
+        console.error('Error loading ticket details:', error);
+        showError('Failed to load ticket details');
+      }
+    }
+
+    // Update the initial data loading to include support tickets
+    document.addEventListener('DOMContentLoaded', () => {
+      loadChatbotStats();
+      loadChatbots();
+      loadKnowledgeBase();
+      loadSupportTickets();
+    });
+  </script>
+</body>
+</html>
