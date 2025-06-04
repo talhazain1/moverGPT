@@ -1,362 +1,1023 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Single-Company Chatbot Setup</title>
-  <style>
-    /* Basic styling */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
-    body {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      min-height: 100vh;
-      color: #333;
-    }
-    nav {
-      background-color: white;
-      padding: 1rem 5%;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: 1000;
-    }
-    nav ul {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      list-style: none;
-    }
-    nav ul li a {
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-      transition: color 0.3s ease;
-    }
-    nav ul li a:hover {
-      color: #6366f1;
-    }
-    .container {
-      max-width: 800px;
-      margin: 80px auto 40px;
-      padding: 2rem;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .container:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-    }
-    h1, h2 {
-      color: #6366f1;
-      margin-bottom: 1.5rem;
-      text-align: center;
-    }
-    form {
-      background: #f8f9fa;
-      padding: 1.5rem;
-      border-radius: 8px;
-      margin-bottom: 2rem;
-    }
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      color: #333;
-      font-weight: bold;
-    }
-    input, textarea, select {
-      width: 100%;
-      padding: 0.8rem;
-      margin-bottom: 1rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 5px;
-      font-size: 1rem;
-      transition: border-color 0.3s ease;
-    }
-    input[readonly] {
-      background-color: #e5e5e5;
-      color: #555;
-      cursor: not-allowed;
-    }
-    input[type="file"]::file-selector-button {
-      padding: 0.8rem 1.5rem;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-right: 1rem;
-    }
-    button {
-      width: 100%;
-      padding: 1rem;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(99,102,241,0.3);
-    }
-    pre {
-      background: #f8f9fa;
-      padding: 1rem;
-      border-radius: 5px;
-      margin-top: 1rem;
-      font-family: Courier, monospace;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      overflow-x: auto;
-      border: 1px solid #e2e8f0;
-    }
-    .hidden { 
-      display: none; 
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot Builder - Admin Panel</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
 </head>
 <body>
-  <nav>
-    <ul>
-      <li><a href="/static/index.html">Home</a></li>
-      <li><a href="/static/chatbot_builder.html">Chatbot Builder</a></li>
-      <li><a href="/static/admin.html">Admin</a></li>
-      <li><a href="/static/dashboard.html">Dashboard</a></li>
-      <li><a href="/static/test.html">Test Chatbot</a></li>
-      <li><a href="/static/pricing.html">Pricing</a></li>
-    </ul>
-  </nav>
+  <div class="alert-container"></div>
 
-  <div class="container">
-    <h1>Single-Company Chatbot Setup</h1>
-    
-    <!-- Create Section -->
-    <div id="createSection">
-      <h2>Create Chatbot</h2>
-      <form id="createForm" enctype="multipart/form-data">
-        <!-- Hidden field for company_id -->
-        <input type="hidden" id="createCompanyId" name="company_id">
-        <label>Bot Name:</label>
-        <input type="text" id="botNameCreate" name="bot_name" required>
-        <label>Purpose:</label>
-        <input type="text" id="purposeCreate" name="purpose" required>
-        <label>Goal:</label>
-        <input type="text" id="goalCreate" name="goal" required>
-        <label>Role:</label>
-        <input type="text" id="roleCreate" name="role" required>
-        <label>Configuration (JSON):</label>
-        <textarea id="configCreate" name="configuration" rows="3">{ "custom_setting": "value" }</textarea>
-        <!-- Fixed, read-only subscription plan field -->
-        <label>Subscription Plan:</label>
-        <input type="text" id="subscriptionPlanCreate" name="subscription_plan" readonly style="background-color: #e5e5e5;">
-        <label>Knowledge Base (JSON text):</label>
-        <textarea id="kbCreate" name="knowledge_base" rows="5"></textarea>
-        <label>Or Upload File (JSONL or CSV):</label>
-        <input type="file" id="fileCreate" name="file" />
-        <button type="submit">Create Chatbot</button>
-      </form>
-      <pre id="createResult"></pre>
-    </div>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <img id="sidebarLogo" src="https://ui-avatars.com/api/?name=Company&background=random" alt="Logo" class="sidebar-logo" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px;">
+          <span id="sidebarCompanyName">Loading...</span>
+        </div>
+        <button class="sidebar-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li class="sidebar-item">
+          <a href="/static/dashboard.html" class="sidebar-link">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/profile.html" class="sidebar-link">
+            <i class="fas fa-user-circle"></i>
+            <span>Profile</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chatbot_builder.html" class="sidebar-link active">
+            <i class="fas fa-robot"></i>
+            <span>Chatbot Builder</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/test.html" class="sidebar-link">
+            <i class="fas fa-vial"></i>
+            <span>Test Chatbot</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/cost_calculator.html" class="sidebar-link">
+            <i class="fas fa-calculator"></i>
+            <span>Moving Cost Calculator</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/moving_parameters.html" class="sidebar-link">
+            <i class="fas fa-sliders-h"></i>
+            <span>Moving Parameters</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chat_analysis.html" class="sidebar-link">
+            <i class="fas fa-comments-dollar"></i>
+            <span>Chat Analysis</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/pricing.html" class="sidebar-link">
+            <i class="fas fa-tag"></i>
+            <span>Pricing Plans</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="#" id="logoutBtn" class="sidebar-link">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="main-header">
+        <div class="header-left">
+          <!-- <button class="header-toggle d-lg-none">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h4>Chatbot Builder</h4> -->
+        </div>
+        
+        <div class="header-right">
+          <div class="user-dropdown">
+            <div class="user-info">
+              <div>
+                <div class="user-name">User</div>
+                <div class="user-role">Member</div>
+              </div>
+              <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" class="user-avatar">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Page Container -->
+      <div class="page-container">
+        <div class="card">
+          <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h5 class="card-title mb-0" id="chatbotTitle">Loading...</h5>
+              <button type="button" id="refreshChatbotBtn" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-sync-alt"></i> Refresh
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <form id="chatbotForm">
+              <div class="form-group">
+                <label for="bot_name">Chatbot Name</label>
+                <input type="text" id="bot_name" name="bot_name" class="form-control" placeholder="Enter a name for your chatbot" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" class="form-control" rows="3" placeholder="Describe what your chatbot does" required></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label for="welcome_message">Welcome Message</label>
+                <textarea id="welcome_message" name="welcome_message" class="form-control" rows="3" placeholder="Enter the welcome message users will see when they first interact with your chatbot" required></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label for="purpose">Purpose</label>
+                <textarea id="purpose" name="purpose" class="form-control" rows="3" placeholder="What is the main purpose of your chatbot? (e.g., customer support, information sharing)" required></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label for="goal">Goal</label>
+                <textarea id="goal" name="goal" class="form-control" rows="3" placeholder="What goals should your chatbot achieve? (e.g., answer FAQs, guide users through processes)" required></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label for="role">Role</label>
+                <input type="text" id="role" name="role" class="form-control" placeholder="What role does your chatbot play? (e.g., assistant, guide, expert)" required>
+              </div>
 
-    <!-- Update Section -->
-    <div id="updateSection" class="hidden">
-      <h2>Update Chatbot</h2>
-      <form id="updateForm" enctype="multipart/form-data">
-        <input type="hidden" id="updateChatbotId" name="chatbot_id">
-        <label>Bot Name:</label>
-        <input type="text" id="botNameUpdate" name="bot_name">
-        <label>Purpose:</label>
-        <input type="text" id="purposeUpdate" name="purpose">
-        <label>Goal:</label>
-        <input type="text" id="goalUpdate" name="goal">
-        <label>Role:</label>
-        <input type="text" id="roleUpdate" name="role">
-        <label>Configuration (JSON):</label>
-        <textarea id="configUpdate" name="configuration" rows="3">{ "custom_setting": "updated_value" }</textarea>
-        <!-- Fixed, read-only subscription plan field -->
-        <label>Subscription Plan:</label>
-        <input type="text" id="subscriptionPlanUpdate" name="subscription_plan" readonly style="background-color: #e5e5e5;">
-        <label>Knowledge Base (JSON text):</label>
-        <textarea id="kbUpdate" name="knowledge_base" rows="5"></textarea>
-        <label>Or Upload File (JSONL or CSV):</label>
-        <input type="file" id="fileUpdate" name="file" />
-        <button type="submit">Update Chatbot</button>
-      </form>
-      <pre id="updateResult"></pre>
+              <div class="form-group">
+                <label for="knowledge_base">Knowledge Base (Raw Data):</label>
+                <textarea class="form-control" id="knowledge_base" name="knowledge_base" rows="4" placeholder="This field contains raw knowledge base data in JSON format. It's recommended to use the FAQs section below for adding Q&A pairs."></textarea>
+                <small class="form-text text-muted">This field shows the raw knowledge base data and is typically managed automatically. Most users should use the FAQs section below instead.</small>
+              </div>
+              
+              <div class="form-group mt-3">
+                <label for="knowledge_file">Upload Knowledge Base File:</label>
+                <div class="custom-file">
+                  <input type="file" class="custom-file-input" id="knowledge_file" accept=".txt,.csv,.json,.jsonl">
+                  <label class="custom-file-label" for="knowledge_file">Choose file</label>
+                </div>
+                <small class="form-text text-muted">Upload a knowledge base file in TXT, CSV, JSON, or JSONL format.</small>
+                <div class="mt-2">
+                  <button type="button" id="upload_knowledge_btn" class="btn btn-secondary">Upload Knowledge Base</button>
+                </div>
+                <div id="upload_result" class="mt-2" style="display: none;">
+                  <div class="alert alert-success" role="alert"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="faqs">FAQs (Frequently Asked Questions):</label>
+                <textarea class="form-control" id="faqs" name="faqs" rows="6" placeholder="Enter your FAQs in Q&A format, e.g.:&#10;&#10;Q: What is your return policy?&#10;A: You can return items within 30 days.&#10;&#10;Q: How do I contact support?&#10;A: You can email support@example.com or call us at 555-1234."></textarea>
+                <small class="form-text text-muted">Add FAQ pairs in Q: and A: format, with a blank line between each pair.</small>
+              </div>
+              
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> <span id="submitButtonText">Create Chatbot</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
+  <script src="/static/assets/auth.js"></script>
   <script>
-    // Fetch user profile first, set company_id and subscription plan, then fetch chatbot info.
-    (async function checkAuthAndFetchChatbot() {
+    // Function to check if a chatbot already exists and update UI accordingly
+    async function checkExistingChatbot() {
       try {
-        const res = await fetch('/api/users/profile', { method: 'GET', credentials: 'include' });
-        if (!res.ok) {
-          alert("Please log in first.");
-          window.location.href = "/static/login.html";
+        // Set default UI for new chatbot
+        document.getElementById('chatbotTitle').textContent = 'Create Your Chatbot';
+        document.getElementById('submitButtonText').textContent = 'Create Chatbot';
+        
+        // Check if a chatbot exists
+        const response = await fetch('/api/chatbot/info', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+        console.log('Chatbot info response:', data);
+        
+        if (data.status === 'success' && data.data) {
+          const chatbot = data.data;
+          console.log('Existing chatbot found:', chatbot);
+          
+          // Update UI for existing chatbot
+          document.getElementById('chatbotTitle').textContent = 'Update Your Chatbot';
+          document.getElementById('submitButtonText').textContent = 'Update Chatbot';
+          
+          // Populate form fields with existing chatbot data
+          document.getElementById('bot_name').value = chatbot.bot_name || '';
+          document.getElementById('description').value = chatbot.description || '';
+          document.getElementById('welcome_message').value = chatbot.welcome_message || 'Welcome! How can I help you today?';
+          document.getElementById('purpose').value = chatbot.purpose || '';
+          document.getElementById('goal').value = chatbot.goal || '';
+          document.getElementById('role').value = chatbot.role || '';
+          
+          // Display raw knowledge base data if available
+          if (chatbot.knowledge_base && typeof chatbot.knowledge_base === 'object') {
+            // Format the knowledge base data as pretty JSON for better readability
+            try {
+              const knowledgeBaseContent = JSON.stringify(chatbot.knowledge_base, null, 2);
+              document.getElementById('knowledge_base').value = knowledgeBaseContent;
+            } catch (e) {
+              console.error('Error stringifying knowledge base:', e);
+            }
+          }
+          
+          // Populate FAQs if available
+          if (chatbot.knowledge_base) {
+            try {
+              const kb = typeof chatbot.knowledge_base === 'string' 
+                ? JSON.parse(chatbot.knowledge_base) 
+                : chatbot.knowledge_base;
+              
+              const faqs = kb.faqs || [];
+              if (Array.isArray(faqs)) {
+                // Handle different possible structures of FAQs
+                if (faqs.length > 0 && typeof faqs[0] === 'object') {
+                  // If FAQs are objects with question/answer format
+                  const formattedFaqs = faqs.map(faq => {
+                    if (faq.question && faq.answer) {
+                      return `Q: ${faq.question}\nA: ${faq.answer}`;
+                    } else {
+                      return JSON.stringify(faq);
+                    }
+                  });
+                  document.getElementById('faqs').value = formattedFaqs.join('\n\n');
+                } else {
+                  // If FAQs are simple strings
+                  document.getElementById('faqs').value = faqs.join('\n');
+                }
+              }
+            } catch (e) {
+              console.error('Error parsing knowledge base:', e);
+              // Still show any faqs as strings if parsing failed
+              if (typeof chatbot.knowledge_base === 'string') {
+                document.getElementById('faqs').value = chatbot.knowledge_base;
+              }
+            }
+          }
+          
+          return true; // Chatbot exists
+        } else {
+          console.log('No existing chatbot found, showing create interface');
+          return false; // No chatbot exists
+        }
+      } catch (error) {
+        console.error('Error checking for existing chatbot:', error);
+        showAlert('Error loading chatbot information. Creating a new chatbot.', 'warning');
+        return false; // Assume no chatbot exists on error
+      }
+    }
+
+    // Function to update sidebar company info
+    function updateSidebarCompanyInfo(user) {
+      // Update company name in sidebar
+      const companyNameElement = document.getElementById('sidebarCompanyName');
+      if (companyNameElement) {
+        companyNameElement.textContent = user.company_name || 'Company Admin';
+      }
+      
+      // Update logo in sidebar
+      const sidebarLogoElement = document.getElementById('sidebarLogo');
+      if (sidebarLogoElement) {
+        if (user.company_logo) {
+          sidebarLogoElement.src = user.company_logo;
+        } else {
+          // Generate avatar based on company name
+          const companyName = user.company_name || 'Company';
+          sidebarLogoElement.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(companyName)}&background=random`;
+        }
+      }
+    }
+
+    // Function to validate knowledge base format
+    function validateKnowledgeBase() {
+      try {
+        // Get the raw knowledge base
+        const knowledgeBaseText = document.getElementById('knowledge_base').value.trim();
+        const faqsText = document.getElementById('faqs').value.trim();
+        
+        // Create debug output container if it doesn't exist
+        let debugContainer = document.getElementById('debug-container');
+        if (!debugContainer) {
+          debugContainer = document.createElement('div');
+          debugContainer.id = 'debug-container';
+          debugContainer.className = 'card mt-4';
+          debugContainer.innerHTML = `
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Knowledge Base Validation</h5>
+              <button type="button" class="btn btn-sm btn-outline-danger" id="closeDebugBtn">
+                <i class="fas fa-times"></i> Close
+              </button>
+            </div>
+            <div class="card-body" id="debug-output" style="max-height: 300px; overflow-y: auto; font-family: monospace;"></div>
+          `;
+          document.querySelector('.page-container').appendChild(debugContainer);
+          
+          // Add close button handler
+          document.getElementById('closeDebugBtn').addEventListener('click', function() {
+            debugContainer.remove();
+          });
+        }
+        
+        // Get the debug output element
+        const debugOutput = document.getElementById('debug-output');
+        debugOutput.innerHTML = '<h6>Validation Results:</h6>';
+        
+        // Validate knowledge base
+        let knowledgeBaseObj = null;
+        if (knowledgeBaseText) {
+          try {
+            knowledgeBaseObj = JSON.parse(knowledgeBaseText);
+            debugOutput.innerHTML += `<div class="alert alert-success">✅ Knowledge base parsed successfully</div>`;
+            
+            // Check if it has faqs array
+            if (knowledgeBaseObj.faqs && Array.isArray(knowledgeBaseObj.faqs)) {
+              debugOutput.innerHTML += `<div>📋 Found ${knowledgeBaseObj.faqs.length} FAQs in knowledge base</div>`;
+              
+              // Validate FAQ format
+              const validFaqs = knowledgeBaseObj.faqs.filter(faq => 
+                faq && typeof faq === 'object' && faq.question && faq.answer);
+              
+              if (validFaqs.length === knowledgeBaseObj.faqs.length) {
+                debugOutput.innerHTML += `<div class="alert alert-success">✅ All FAQs have valid format</div>`;
+              } else {
+                debugOutput.innerHTML += `<div class="alert alert-warning">⚠️ Only ${validFaqs.length} out of ${knowledgeBaseObj.faqs.length} FAQs have valid format</div>`;
+                
+                // Show examples of invalid FAQs
+                const invalidFaqs = knowledgeBaseObj.faqs.filter(faq => 
+                  !faq || typeof faq !== 'object' || !faq.question || !faq.answer);
+                  
+                if (invalidFaqs.length > 0) {
+                  debugOutput.innerHTML += `<div>Example of invalid FAQ:</div>`;
+                  debugOutput.innerHTML += `<pre>${JSON.stringify(invalidFaqs[0], null, 2)}</pre>`;
+                  debugOutput.innerHTML += `<div>Expected format:</div>`;
+                  debugOutput.innerHTML += `<pre>{\n  "question": "What is your question?",\n  "answer": "This is the answer"\n}</pre>`;
+                }
+              }
+            } else {
+              debugOutput.innerHTML += `<div class="alert alert-warning">⚠️ No 'faqs' array found in knowledge base</div>`;
+            }
+          } catch (e) {
+            debugOutput.innerHTML += `<div class="alert alert-danger">❌ Error parsing knowledge base JSON: ${e.message}</div>`;
+          }
+        } else {
+          debugOutput.innerHTML += `<div class="alert alert-info">ℹ️ No knowledge base JSON found</div>`;
+        }
+        
+        // Parse FAQs from textarea
+        if (faqsText) {
+          debugOutput.innerHTML += `<h6 class="mt-3">FAQ Textarea Validation:</h6>`;
+          
+          // Split by double newline
+          const faqBlocks = faqsText.split(/\n\s*\n/);
+          debugOutput.innerHTML += `<div>📋 Found ${faqBlocks.length} FAQ blocks in textarea</div>`;
+          
+          // Test parsing
+          let validCount = 0;
+          let firstInvalidBlock = null;
+          
+          for (const block of faqBlocks) {
+            const lines = block.split('\n').filter(line => line.trim());
+            const questionLine = lines.find(l => l.trim().startsWith('Q:'));
+            const answerLine = lines.find(l => l.trim().startsWith('A:'));
+            
+            if (questionLine && answerLine) {
+              validCount++;
+            } else if (!firstInvalidBlock) {
+              firstInvalidBlock = block;
+            }
+          }
+          
+          if (validCount === faqBlocks.length) {
+            debugOutput.innerHTML += `<div class="alert alert-success">✅ All FAQ blocks have valid Q:/A: format</div>`;
+          } else {
+            debugOutput.innerHTML += `<div class="alert alert-warning">⚠️ Only ${validCount} out of ${faqBlocks.length} FAQ blocks have valid Q:/A: format</div>`;
+            
+            if (firstInvalidBlock) {
+              debugOutput.innerHTML += `<div>Example of invalid FAQ block:</div>`;
+              debugOutput.innerHTML += `<pre>${firstInvalidBlock}</pre>`;
+              debugOutput.innerHTML += `<div>Expected format:</div>`;
+              debugOutput.innerHTML += `<pre>Q: What is your question?\nA: This is the answer</pre>`;
+            }
+          }
+        } else {
+          debugOutput.innerHTML += `<div class="alert alert-info">ℹ️ No FAQs found in textarea</div>`;
+        }
+        
+        // Test parsing process
+        try {
+          debugOutput.innerHTML += `<h6 class="mt-3">Testing FAQ Parsing Process:</h6>`;
+          
+          // Simulate the parse process used when submitting the form
+          const faqBlocks = faqsText.split(/\n\s*\n/);
+          
+          const parsedFaqs = faqBlocks.map(block => {
+            const lines = block.split('\n').filter(line => line.trim());
+            
+            // Check if this is in Q: A: format
+            const questionLine = lines.find(l => l.trim().startsWith('Q:'));
+            const answerLine = lines.find(l => l.trim().startsWith('A:'));
+            
+            if (questionLine && answerLine) {
+              const question = questionLine.replace(/^Q:\s*/, '').trim();
+              const answer = answerLine.replace(/^A:\s*/, '').trim();
+              
+              if (question && answer) {
+                return { question, answer };
+              }
+            }
+            
+            // If not in Q/A format, try to extract in another way
+            if (lines.length >= 2) {
+              return {
+                question: lines[0].trim(),
+                answer: lines.slice(1).join(' ').trim()
+              };
+            }
+            
+            return null;
+          }).filter(item => item !== null);
+          
+          debugOutput.innerHTML += `<div>📋 Parsed ${parsedFaqs.length} valid FAQs</div>`;
+          
+          if (parsedFaqs.length > 0) {
+            debugOutput.innerHTML += `<div class="alert alert-success">✅ FAQ parsing process successful</div>`;
+            debugOutput.innerHTML += `<div>Example of parsed FAQ:</div>`;
+            debugOutput.innerHTML += `<pre>${JSON.stringify(parsedFaqs[0], null, 2)}</pre>`;
+          } else {
+            debugOutput.innerHTML += `<div class="alert alert-warning">⚠️ No valid FAQs parsed</div>`;
+          }
+        } catch (e) {
+          debugOutput.innerHTML += `<div class="alert alert-danger">❌ Error in FAQ parsing process: ${e.message}</div>`;
+        }
+        
+        // Add help and recommendations
+        debugOutput.innerHTML += `
+          <h6 class="mt-3">Recommendations:</h6>
+          <ul>
+            <li>Ensure FAQs are in the format "Q: question" on one line followed by "A: answer" on another line</li>
+            <li>Separate FAQ pairs with blank lines</li>
+            <li>Make sure the knowledge base JSON has a "faqs" array with objects having "question" and "answer" properties</li>
+            <li>Try uploading a text file with each question and answer on separate lines</li>
+          </ul>
+        `;
+      } catch (error) {
+        console.error('Error in validation:', error);
+        showAlert(`Error validating knowledge base: ${error.message}`, 'danger');
+      }
+    }
+
+    // Add a debug button to the UI
+    function addDebugButton() {
+      const cardHeader = document.querySelector('.card-header > div');
+      const debugButton = document.createElement('button');
+      debugButton.className = 'btn btn-sm btn-outline-secondary ml-2';
+      debugButton.innerHTML = '<i class="fas fa-bug"></i> Validate Format';
+      debugButton.addEventListener('click', validateKnowledgeBase);
+      cardHeader.appendChild(debugButton);
+    }
+
+    // Initialize chatbot builder
+    (async function initChatbotBuilder() {
+      try {
+        const user = await checkAuth();
+        if (!user) {
+          window.location.href = '/static/login.html';
           return;
         }
-        const data = await res.json();
-        const company_id = data.user.company_id || data.user.id;
-        document.getElementById('createCompanyId').value = company_id;
-        // Set the subscription plan field from the user's profile.
-        document.getElementById('subscriptionPlanCreate').value = data.user.subscription_plan || "N/A";
-        fetchChatbot();
+
+        // Update sidebar with company info
+        updateSidebarCompanyInfo(user);
+        
+        // Update user info in header
+        document.querySelector('.user-name').textContent = user.user_name || 'User';
+        document.querySelector('.user-role').textContent = user.role || 'Member';
+        
+        // Update avatar with fallback to default if no logo
+        const avatarImg = document.querySelector('.user-avatar');
+        if (user.company_logo) {
+          avatarImg.src = user.company_logo;
+        } else {
+          avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_name || 'User')}&background=random`;
+        }
+
+        // Add logout handler
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          logout();
+        });
+
+        // Check for existing chatbot
+        await checkExistingChatbot();
+
+        // Add refresh button handler
+        document.getElementById('refreshChatbotBtn').addEventListener('click', async function() {
+          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+          this.disabled = true;
+          
+          try {
+            await checkExistingChatbot();
+            showAlert('Chatbot data refreshed successfully', 'success');
+          } catch (error) {
+            console.error('Error refreshing chatbot data:', error);
+            showAlert('Failed to refresh chatbot data', 'danger');
+          } finally {
+            this.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+            this.disabled = false;
+          }
+        });
+        
+        // Add debug button to help troubleshoot knowledge base issues
+        addDebugButton();
+
+        // Handle knowledge base upload
+        document.getElementById('upload_knowledge_btn').addEventListener('click', async function() {
+          const fileInput = document.getElementById('knowledge_file');
+          const file = fileInput.files[0];
+          
+          if (!file) {
+            showAlert('Please select a file to upload', 'warning');
+            return;
+          }
+
+          // Show loading state
+          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+          this.disabled = true;
+          
+          const formData = new FormData();
+          formData.append('file', file);
+
+          try {
+            // First try to read the file manually to pre-process it
+            const fileReader = new FileReader();
+            
+            fileReader.onload = async function(event) {
+              try {
+                const fileContent = event.target.result;
+                
+                // Try to parse the file content as JSON
+                try {
+                  const jsonContent = JSON.parse(fileContent);
+                  
+                  // If the content has a faqs array, extract it
+                  if (jsonContent.faqs && Array.isArray(jsonContent.faqs)) {
+                    const faqs = jsonContent.faqs;
+                    const formattedFaqs = faqs.map(faq => {
+                      if (faq.question && faq.answer) {
+                        return `Q: ${faq.question}\nA: ${faq.answer}`;
+                      }
+                      return null;
+                    }).filter(item => item !== null);
+                    
+                    if (formattedFaqs.length > 0) {
+                      document.getElementById('faqs').value = formattedFaqs.join('\n\n');
+                      showAlert(`${formattedFaqs.length} FAQs imported from JSON file.`, 'success');
+                      
+                      // Display success
+                      const uploadResult = document.getElementById('upload_result');
+                      if (uploadResult) {
+                        uploadResult.style.display = 'block';
+                        const alertElement = uploadResult.querySelector('.alert');
+                        if (alertElement) {
+                          alertElement.className = 'alert alert-success';
+                          alertElement.textContent = `Processed ${formattedFaqs.length} FAQs from ${file.name}`;
+                        }
+                      }
+                      
+                      // Reset button state
+                      const uploadButton = document.getElementById('upload_knowledge_btn');
+                      if (uploadButton) {
+                        uploadButton.innerHTML = 'Upload Knowledge Base';
+                        uploadButton.disabled = false;
+                      }
+                      return;
+                    }
+                  }
+                } catch (jsonError) {
+                  console.warn('Not a valid JSON file, trying as JSONL', jsonError);
+                }
+                
+                // If JSON parsing fails, try to process it line by line as JSONL
+                const lines = fileContent.split('\n').filter(line => line.trim());
+                const formattedFaqs = [];
+                
+                for (const line of lines) {
+                  try {
+                    const jsonLine = JSON.parse(line);
+                    if (jsonLine.question && jsonLine.answer) {
+                      formattedFaqs.push(`Q: ${jsonLine.question}\nA: ${jsonLine.answer}`);
+                    }
+                  } catch (lineError) {
+                    console.warn('Could not parse line as JSON:', line);
+                  }
+                }
+                
+                if (formattedFaqs.length > 0) {
+                  document.getElementById('faqs').value = formattedFaqs.join('\n\n');
+                  showAlert(`${formattedFaqs.length} FAQs imported from JSONL file.`, 'success');
+                  
+                  // Display success
+                  const uploadResult = document.getElementById('upload_result');
+                  if (uploadResult) {
+                    uploadResult.style.display = 'block';
+                    const alertElement = uploadResult.querySelector('.alert');
+                    if (alertElement) {
+                      alertElement.className = 'alert alert-success';
+                      alertElement.textContent = `Processed ${formattedFaqs.length} FAQs from ${file.name}`;
+                    }
+                  }
+                  
+                  // Reset button state
+                  const uploadButton = document.getElementById('upload_knowledge_btn');
+                  if (uploadButton) {
+                    uploadButton.innerHTML = 'Upload Knowledge Base';
+                    uploadButton.disabled = false;
+                  }
+                  return;
+                }
+                
+                // If we couldn't parse it as JSON or JSONL, try the server upload
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const response = await fetch('/api/chatbot/upload', {
+                  method: 'POST',
+                  credentials: 'include',
+                  body: formData
+                });
+
+                if (!response.ok) {
+                  throw new Error(`Upload failed with status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Upload response:', data);
+                
+                if (data.status === 'error') {
+                  throw new Error(data.message || 'Upload failed');
+                }
+                
+                // Process the response as before
+                if (data.faqs && Array.isArray(data.faqs)) {
+                  const formattedFaqs = data.faqs.map(faq => {
+                    if (typeof faq === 'string') {
+                      return `Q: Generated Question\nA: ${faq}`;
+                    } else if (typeof faq === 'object') {
+                      if (faq.question && faq.answer) {
+                        return `Q: ${faq.question}\nA: ${faq.answer}`;
+                      } else if (faq.q && faq.a) {
+                        return `Q: ${faq.q}\nA: ${faq.a}`;
+                      } else {
+                        const keys = Object.keys(faq);
+                        if (keys.length > 0) {
+                          return `Q: ${keys[0]}\nA: ${faq[keys[0]]}`;
+                        }
+                      }
+                    }
+                    return null;
+                  }).filter(item => item !== null);
+                  
+                  if (formattedFaqs.length > 0) {
+                    document.getElementById('faqs').value = formattedFaqs.join('\n\n');
+                    showAlert(`Knowledge base uploaded successfully! ${formattedFaqs.length} FAQs imported.`, 'success');
+                  } else {
+                    showAlert('No valid FAQs found in the uploaded file.', 'warning');
+                  }
+                } else if (data.content) {
+                  // Process simple content format
+                  const lines = data.content.split('\n').filter(line => line.trim());
+                  const formattedFaqs = [];
+                  
+                  for (let i = 0; i < lines.length; i += 2) {
+                    if (i + 1 < lines.length) {
+                      formattedFaqs.push(`Q: ${lines[i].trim()}\nA: ${lines[i+1].trim()}`);
+                    }
+                  }
+                  
+                  if (formattedFaqs.length > 0) {
+                    document.getElementById('faqs').value = formattedFaqs.join('\n\n');
+                    showAlert(`Knowledge base uploaded and formatted! ${formattedFaqs.length} FAQs imported.`, 'success');
+                  } else {
+                    showAlert('Could not format content as FAQs.', 'warning');
+                  }
+                } else {
+                  showAlert('No FAQ data found in the response. Check the file format.', 'warning');
+                }
+                
+                // Display the upload result for debugging
+                const uploadResult = document.getElementById('upload_result');
+                if (uploadResult) {
+                  uploadResult.style.display = 'block';
+                  const alertElement = uploadResult.querySelector('.alert');
+                  if (alertElement) {
+                    alertElement.textContent = `Upload successful: ${file.name}`;
+                  }
+                }
+              } catch (error) {
+                console.error('Error processing file:', error);
+                showAlert(`Failed to process file: ${error.message}`, 'danger');
+                
+                // Display the error in the upload result
+                const uploadResult = document.getElementById('upload_result');
+                if (uploadResult) {
+                  uploadResult.style.display = 'block';
+                  const alertElement = uploadResult.querySelector('.alert');
+                  if (alertElement) {
+                    alertElement.className = 'alert alert-danger';
+                    alertElement.textContent = `Error: ${error.message}`;
+                  }
+                }
+              } finally {
+                // Reset button state
+                const uploadButton = document.getElementById('upload_knowledge_btn');
+                if (uploadButton) {
+                  uploadButton.innerHTML = 'Upload Knowledge Base';
+                  uploadButton.disabled = false;
+                }
+              }
+            };
+            
+            fileReader.readAsText(file);
+          } catch (error) {
+            console.error('Error reading file:', error);
+            showAlert(`Failed to read file: ${error.message}`, 'danger');
+            
+            // Display the error in the upload result
+            const uploadResult = document.getElementById('upload_result');
+            if (uploadResult) {
+              uploadResult.style.display = 'block';
+              const alertElement = uploadResult.querySelector('.alert');
+              if (alertElement) {
+                alertElement.className = 'alert alert-danger';
+                alertElement.textContent = `Error: ${error.message}`;
+              }
+            }
+            
+            // Reset button state
+            this.innerHTML = 'Upload Knowledge Base';
+            this.disabled = false;
+          }
+        });
+
+        // Handle form submission
+        document.getElementById('chatbotForm').addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          // Show loading state
+          const submitButton = document.querySelector('#chatbotForm button[type="submit"]');
+          const originalButtonText = submitButton.innerHTML;
+          submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+          submitButton.disabled = true;
+          
+          const formData = new FormData(this);
+          
+          // Parse the FAQs into a proper array format
+          const faqsText = document.getElementById('faqs').value;
+          let faqsArray = [];
+          
+          if (faqsText.trim()) {
+            try {
+              // Split by double newline to handle grouped Q&A
+              const faqBlocks = faqsText.split(/\n\s*\n/);
+              
+              faqsArray = faqBlocks.map(block => {
+                const lines = block.split('\n').filter(line => line.trim());
+                
+                // Check if this is in Q: A: format
+                const questionLine = lines.find(l => l.trim().startsWith('Q:'));
+                const answerLine = lines.find(l => l.trim().startsWith('A:'));
+                
+                if (questionLine && answerLine) {
+                  const question = questionLine.replace(/^Q:\s*/, '').trim();
+                  const answer = answerLine.replace(/^A:\s*/, '').trim();
+                  
+                  // Ensure we only return if both question and answer have content
+                  if (question && answer) {
+                    return {
+                      question: question,
+                      answer: answer
+                    };
+                  }
+                }
+                
+                // If not in Q/A format, try to extract in another way
+                if (lines.length >= 2) {
+                  // Assume first line is question, second is answer
+                  return {
+                    question: lines[0].trim(),
+                    answer: lines.slice(1).join(' ').trim()
+                  };
+                }
+                
+                // If we couldn't parse it properly, log warning and skip
+                console.warn('Could not parse FAQ block:', block);
+                return null;
+              }).filter(item => item !== null); // Filter out any nulls
+              
+              console.log('Parsed FAQs:', faqsArray);
+            } catch (parseError) {
+              console.error('Error parsing FAQs:', parseError);
+              showAlert('Error parsing FAQs. Please check your format.', 'warning');
+              
+              // Provide a fallback with simpler parsing
+              faqsArray = faqsText.split(/\n\s*\n/).map(block => {
+                const parts = block.split('\n');
+                if (parts.length >= 2) {
+                  return {
+                    question: parts[0].replace(/^Q:\s*/, '').trim(),
+                    answer: parts[1].replace(/^A:\s*/, '').trim()
+                  };
+                }
+                return null;
+              }).filter(item => item !== null);
+            }
+          }
+          
+          // Ensure all FAQs are proper objects
+          faqsArray = faqsArray.map(faq => {
+            if (typeof faq === 'string') {
+              return { 
+                question: 'Question', 
+                answer: faq 
+              };
+            }
+            return faq;
+          });
+          
+          // Parse any existing knowledge base data
+          let knowledgeBase = { faqs: faqsArray };
+          
+          // Try to parse the knowledge_base field if it's not empty
+          const knowledgeBaseText = document.getElementById('knowledge_base').value.trim();
+          if (knowledgeBaseText) {
+            try {
+              // Parse the raw knowledge base JSON
+              const parsedKnowledgeBase = JSON.parse(knowledgeBaseText);
+              
+              // Merge with faqs array, giving priority to newly entered FAQs
+              knowledgeBase = {
+                ...parsedKnowledgeBase,
+                faqs: faqsArray
+              };
+            } catch (e) {
+              console.error('Error parsing knowledge base:', e);
+              showAlert('Error parsing knowledge base. Using FAQs only.', 'warning');
+            }
+          }
+          
+          // Format data as required by the API endpoint
+          const data = {
+            bot_name: formData.get('bot_name'),
+            description: formData.get('description'),
+            welcome_message: formData.get('welcome_message'),
+            purpose: formData.get('purpose'),
+            goal: formData.get('goal'),
+            role: formData.get('role'),
+            knowledge_base: knowledgeBase
+          };
+
+          // Check if submitButtonText element exists before trying to access its textContent
+          const submitButtonTextElement = document.getElementById('submitButtonText');
+          const isUpdate = submitButtonTextElement ? submitButtonTextElement.textContent === 'Update Chatbot' : false;
+          const endpoint = isUpdate ? '/api/chatbot/update' : '/api/chatbot/create';
+          const actionType = isUpdate ? 'updating' : 'creating';
+          
+          console.log(`Using endpoint: ${endpoint} for ${actionType} chatbot`);
+          console.log('Sending data:', data);
+          
+          showAlert(`${isUpdate ? 'Updating' : 'Creating'} your chatbot...`, 'info');
+
+          try {
+            const response = await fetch(endpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              credentials: 'include',
+              body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('Error response:', errorText);
+              throw new Error(`Failed to ${actionType} chatbot: ${response.status} ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log('API response:', result);
+            
+            if (result.status === 'success') {
+              showAlert(result.message || `Chatbot ${isUpdate ? 'updated' : 'created'} successfully!`, 'success');
+              
+              // If it was a new chatbot, update the UI to show it's now in update mode
+              if (!isUpdate) {
+                const chatbotTitleElement = document.getElementById('chatbotTitle');
+                const submitButtonTextElement = document.getElementById('submitButtonText');
+                
+                if (chatbotTitleElement) {
+                  chatbotTitleElement.textContent = 'Update Your Chatbot';
+                }
+                
+                if (submitButtonTextElement) {
+                  submitButtonTextElement.textContent = 'Update Chatbot';
+                }
+              }
+              
+              // Try to train the chatbot after creating/updating
+              try {
+                const chatbotId = result.chatbot_id || result.data?.id;
+                if (chatbotId) {
+                  console.log(`Attempting to train chatbot ${chatbotId}...`);
+                  const trainResponse = await fetch(`/api/chatbot/${chatbotId}/train`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    }
+                  });
+                  
+                  const trainResult = await trainResponse.json();
+                  if (trainResult.success || trainResult.status === 'success') {
+                    console.log('Training completed successfully!');
+                    showAlert('Chatbot training completed successfully!', 'success');
+                  } else {
+                    console.warn('Training may not have completed successfully:', trainResult);
+                    showAlert('Chatbot saved but training may not have completed. You can still try it out.', 'warning');
+                  }
+                }
+              } catch (trainError) {
+                console.error('Error training chatbot:', trainError);
+                showAlert('Chatbot saved but training encountered an error. You can still try it out.', 'warning');
+              }
+              
+              // Redirect to dashboard after a short delay
+              setTimeout(() => {
+                try {
+                  console.log('Redirecting to dashboard...');
+                  // Only redirect if we're still on this page
+                  if (window.location.pathname.includes('chatbot_builder.html')) {
+                    window.location.href = '/static/dashboard.html';
+                  }
+                } catch (redirectError) {
+                  console.error('Error during redirect:', redirectError);
+                }
+              }, 2000);
+            } else {
+              throw new Error(result.message || `Failed to ${actionType} chatbot`);
+            }
+          } catch (error) {
+            console.error(`Error ${isUpdate ? 'updating' : 'creating'} chatbot:`, error);
+            showAlert(error.message || `Failed to save chatbot: ${error}`, 'danger');
+          } finally {
+            // Restore button state
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
+          }
+        });
       } catch (error) {
-        alert("Error verifying authentication. Please log in.");
-        window.location.href = "/static/login.html";
+        console.error('Error initializing chatbot builder:', error);
+        showAlert('Error initializing chatbot builder. Please try again.', 'danger');
       }
     })();
 
-    const createSection = document.getElementById('createSection');
-    const updateSection = document.getElementById('updateSection');
-
-    async function trainChatbot(botId) {
-      try {
-        const trainResp = await fetch(`/api/chatbot/train/${botId}`, {
-          method: 'POST',
-          credentials: 'include'
-        });
-        const trainData = await trainResp.json();
-        console.log("Training initiated:", trainData);
-        return trainData;
-      } catch (err) {
-        console.error("Error training chatbot:", err);
-      }
-    }
-
-    async function fetchChatbot() {
-      const company_id = document.getElementById('createCompanyId').value;
-      if (!company_id) {
-        document.getElementById('createResult').innerText = "No company_id. Please log in.";
-        return;
-      }
-      try {
-        const resp = await fetch(`/api/admin/chatbots?client_id=${company_id}`, {
-          method: 'GET',
-          credentials: 'include'
-        });
-        const data = await resp.json();
-        if (Array.isArray(data)) {
-          if (data.length === 0) {
-            showCreateForm();
-          } else {
-            showUpdateForm(data[0]);
+    // Show alert messages
+    function showAlert(message, type) {
+      const alertContainer = document.querySelector('.alert-container');
+      
+      // Create alert element
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `<span>${message}</span><button type="button" class="close" aria-label="Close">&times;</button>`;
+      
+      // Add close button functionality
+      const closeButton = alert.querySelector('.close');
+      closeButton.addEventListener('click', function() {
+        alert.remove();
+      });
+      
+      // Add to container
+      alertContainer.appendChild(alert);
+      
+      // Auto-remove after 5 seconds for non-error alerts
+      if (type !== 'danger') {
+        setTimeout(() => {
+          if (alert.parentNode) {
+            alert.remove();
           }
-        } else {
-          if (Object.keys(data).length === 0) {
-            showCreateForm();
-          } else {
-            showUpdateForm(data);
-          }
-        }
-      } catch (err) {
-        document.getElementById('createResult').innerText = "Error fetching chatbot: " + err;
+        }, 5000);
       }
     }
-
-    function showCreateForm() {
-      createSection.classList.remove('hidden');
-      updateSection.classList.add('hidden');
-    }
-
-    function showUpdateForm(bot) {
-      createSection.classList.add('hidden');
-      updateSection.classList.remove('hidden');
-      document.getElementById('updateChatbotId').value = bot.id || "";
-      document.getElementById('botNameUpdate').value = bot.bot_name || "";
-      document.getElementById('purposeUpdate').value = bot.purpose || "";
-      document.getElementById('goalUpdate').value = bot.goal || "";
-      document.getElementById('roleUpdate').value = bot.role || "";
-      document.getElementById('configUpdate').value = JSON.stringify(bot.configuration || {}, null, 2);
-      document.getElementById('subscriptionPlanUpdate').value = bot.subscription_plan || "N/A";
-      document.getElementById('kbUpdate').value = JSON.stringify(bot.knowledge_base || {}, null, 2);
-    }
-
-    // Create form handler.
-    document.getElementById('createForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formEl = document.getElementById('createForm');
-      const formData = new FormData(formEl);
-      try {
-        const resp = await fetch('/api/admin/chatbots', {
-          method: 'POST',
-          credentials: 'include',
-          body: formData
-        });
-        const data = await resp.json();
-        document.getElementById('createResult').innerText = JSON.stringify(data, null, 2);
-        if (data.id) {
-          await trainChatbot(data.id);
-        }
-        fetchChatbot();
-      } catch (err) {
-        document.getElementById('createResult').innerText = "Error: " + err;
-      }
-    });
-
-    // Update form handler.
-    document.getElementById('updateForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const botId = document.getElementById('updateChatbotId').value;
-      const fileInput = document.getElementById('fileUpdate');
-      if (fileInput.files && fileInput.files.length > 0) {
-        const formData = new FormData();
-        formData.append('bot_name', document.getElementById('botNameUpdate').value);
-        formData.append('purpose', document.getElementById('purposeUpdate').value);
-        formData.append('goal', document.getElementById('goalUpdate').value);
-        formData.append('role', document.getElementById('roleUpdate').value);
-        formData.append('configuration', document.getElementById('configUpdate').value);
-        formData.append('knowledge_base', document.getElementById('kbUpdate').value);
-        formData.append('file', fileInput.files[0]);
-        try {
-          const resp = await fetch(`/api/admin/chatbots/${botId}`, {
-            method: 'PUT',
-            credentials: 'include',
-            body: formData
-          });
-          const data = await resp.json();
-          document.getElementById('updateResult').innerText = JSON.stringify(data, null, 2);
-          await trainChatbot(botId);
-        } catch (err) {
-          document.getElementById('updateResult').innerText = "Error: " + err;
-        }
-      } else {
-        const payload = {
-          bot_name: document.getElementById('botNameUpdate').value,
-          purpose: document.getElementById('purposeUpdate').value,
-          goal: document.getElementById('goalUpdate').value,
-          role: document.getElementById('roleUpdate').value,
-          configuration: JSON.parse(document.getElementById('configUpdate').value),
-          knowledge_base: JSON.parse(document.getElementById('kbUpdate').value)
-        };
-        try {
-          const resp = await fetch(`/api/admin/chatbots/${botId}`, {
-            method: 'PUT',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          const data = await resp.json();
-          document.getElementById('updateResult').innerText = JSON.stringify(data, null, 2);
-          await trainChatbot(botId);
-        } catch (err) {
-          document.getElementById('updateResult').innerText = "Error: " + err;
-        }
-      }
-    });
   </script>
 </body>
 </html>

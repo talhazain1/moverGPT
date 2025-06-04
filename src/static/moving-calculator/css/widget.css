@@ -1,0 +1,301 @@
+/**
+ * Moving Cost Calculator Widget CSS
+ * These styles provide basic styling for the widget if the inline styles fail to load
+ */
+
+.moving-calculator {
+    font-family: 'Arial, sans-serif';
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+.moving-calculator h2 {
+    text-align: center;
+    color: #007bff;
+    margin-bottom: 20px;
+}
+
+.moving-calculator .steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.moving-calculator .step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.moving-calculator .step-number {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 50%;
+    background-color: #ddd;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.moving-calculator .step.active .step-number {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.moving-calculator .step.completed .step-number {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.moving-calculator .step-label {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.moving-calculator .step.active .step-label {
+    color: #007bff;
+    font-weight: bold;
+}
+
+.moving-calculator .form-group {
+    margin-bottom: 15px;
+}
+
+.moving-calculator label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.moving-calculator input,
+.moving-calculator select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.moving-calculator input[type="date"] {
+    padding: 9px;
+}
+
+.moving-calculator button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.moving-calculator button:hover {
+    background-color: #0069d9;
+}
+
+.moving-calculator button.secondary {
+    background-color: #6c757d;
+}
+
+.moving-calculator button.secondary:hover {
+    background-color: #5a6268;
+}
+
+.moving-calculator .buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.moving-calculator .loader {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.moving-calculator .error {
+    color: #dc3545;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+.moving-calculator .summary {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 4px;
+    margin: 20px 0;
+}
+
+.moving-calculator .summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.moving-calculator .summary-total {
+    font-weight: bold;
+    border-top: 1px solid #ddd;
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+.moving-calculator .success-message {
+    text-align: center;
+    background-color: #d4edda;
+    color: #155724;
+    padding: 20px;
+    border-radius: 4px;
+    margin: 20px 0;
+}
+
+/* Additional services styling */
+.moving-calculator .additional-services {
+    margin: 15px 0;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #f9f9f9;
+}
+
+.moving-calculator .service-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background-color: white;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    transition: all 0.2s;
+}
+
+.moving-calculator .service-option:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.moving-calculator .service-option input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+    transform: scale(1.2);
+    accent-color: #007bff;
+}
+
+.moving-calculator .service-option label {
+    display: inline;
+    font-weight: normal;
+    flex: 1;
+}
+
+.moving-calculator .service-description {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 3px;
+}
+
+/* Zip code input container and suggestions */
+.zip-input-container {
+    position: relative;
+    width: 100%;
+}
+
+.zip-suggestions {
+    position: absolute;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: none;
+}
+
+.zip-suggestion-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+.zip-suggestion-item:hover {
+    background-color: #f5f5f5;
+}
+
+.zip-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+/* Google Maps Autocomplete Styles */
+.pac-container {
+    z-index: 10000; /* Ensure Google Maps dropdown appears above other elements */
+    font-family: 'Arial, sans-serif';
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    border: 1px solid #ddd;
+    margin-top: 2px;
+}
+
+.pac-item {
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.pac-item:hover {
+    background-color: #f5f5f5;
+}
+
+.pac-item-query {
+    font-size: 14px;
+    color: #333;
+}
+
+.pac-matched {
+    font-weight: bold;
+}
+
+.pac-icon {
+    margin-right: 8px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .moving-calculator {
+        padding: 15px;
+    }
+    
+    .moving-calculator .step-label {
+        font-size: 0.7rem;
+    }
+    
+    .moving-calculator .buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .moving-calculator button {
+        width: 100%;
+    }
+} 

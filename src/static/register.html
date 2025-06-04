@@ -2,168 +2,399 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Register</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Admin Panel</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
+  <script src="/static/assets/auth.js" defer></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Arial', sans-serif;
-    }
     body {
-      background-color: #f8f9fa;
-    }
-    nav {
-      background-color: white;
-      padding: 1rem 5%;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      position: fixed;
-      width: 100%;
-      z-index: 1000;
-    }
-    nav ul {
+      background-color: var(--gray-100);
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      list-style: none;
-    }
-    nav ul li a {
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-      transition: color 0.3s ease;
-    }
-    nav ul li a:hover {
-      color: #6366f1;
-    }
-    .container {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
-      padding: 80px 20px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--primary-color, #6366f1), var(--secondary-color, #8b5cf6));
+      font-family: 'Poppins', sans-serif;
     }
-    form {
-      background-color: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    
+    .register-container {
       width: 100%;
-      max-width: 400px;
-      margin-top: 2rem;
+      max-width: 600px;
+      padding: 2rem;
+      animation: fadeIn 0.5s ease-in-out;
     }
-    h1 {
-      color: white;
-      font-size: 2.5rem;
-      margin-bottom: 2rem;
+    
+    .register-card {
+      background-color: white;
+      border-radius: var(--border-radius, 10px);
+      box-shadow: var(--box-shadow, 0 4px 6px rgba(0,0,0,0.1));
+      padding: 2rem;
+      transform: translateY(0);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .register-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+    
+    .register-header {
       text-align: center;
+      margin-bottom: 2rem;
     }
-    label {
-      color: #333;
-      font-weight: bold;
+    
+    .logo {
+      margin-bottom: 1rem;
+    }
+    
+    .logo i {
+      font-size: 3rem;
+      color: var(--primary-color, #6366f1);
+    }
+    
+    .register-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--gray-800, #333);
       margin-bottom: 0.5rem;
-      display: block;
     }
-    input {
+    
+    .register-subtitle {
+      font-size: 0.9rem;
+      color: var(--gray-600, #666);
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--gray-700, #444);
+    }
+    
+    .form-control {
       width: 100%;
       padding: 0.8rem;
-      margin-bottom: 1rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 5px;
+      border: 2px solid var(--gray-200, #e2e8f0);
+      border-radius: var(--border-radius, 5px);
       font-size: 1rem;
       transition: border-color 0.3s ease;
     }
-    input:focus {
+    
+    .form-control:focus {
       outline: none;
-      border-color: #6366f1;
+      border-color: var(--primary-color, #6366f1);
     }
-    button {
-      width: 100%;
-      padding: 1rem;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    
+    .btn {
+      display: inline-block;
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      padding: 0.8rem 1.5rem;
+      border-radius: var(--border-radius, 5px);
+      transition: all 0.2s ease-in-out;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color, #6366f1), var(--secondary-color, #8b5cf6));
       color: white;
       border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: transform 0.3s ease;
     }
-    button:hover {
-      transform: translateY(-2px);
-    }
-    #result {
-      margin-top: 1rem;
-      padding: 1rem;
-      background-color: white;
-      border-radius: 5px;
-      color: #333;
+    
+    .btn-block {
+      display: block;
       width: 100%;
-      max-width: 400px;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    #result {
+      margin-top: 1.5rem;
+      font-family: monospace;
+      color: var(--gray-700, #444);
+      font-size: 0.8rem;
+      overflow-x: auto;
+      background-color: var(--gray-100, #f8f9fa);
+      padding: 1rem;
+      border-radius: var(--border-radius, 5px);
+      max-height: 200px;
+      display: none;
+    }
+    
+    .register-footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: white;
+    }
+    
+    .register-footer a {
+      color: white;
+      text-decoration: underline;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .alert-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      max-width: 350px;
+    }
+    
+    .alert {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .alert-danger {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .alert-warning {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    
+    .alert-info {
+      background-color: #d1ecf1;
+      color: #0c5460;
     }
   </style>
 </head>
 <body>
-  <!-- Navigation Bar -->
-  <nav>
-    <ul>
-      <li><a href="/static/index.html">Home</a></li>
-      <!-- You can optionally show additional links here if needed -->
-      <li><a href="/static/profile.html">Profile</a></li>
-      <li><a href="/static/chatbot_builder.html">Chatbot Builder</a></li>
-      <li><a href="/static/admin.html">Admin</a></li>
-      <li><a href="/static/dashboard.html">Dashboard</a></li>
-      <li><a href="/static/inference.html">Test Chatbot</a></li>
-      <li><a href="/static/pricing.html">Pricing</a></li>
-    </ul>
-  </nav>
+  <div class="alert-container"></div>
   
-  <div class="container">
-    <h1>Register</h1>
-    <form id="registerForm">
-      <label for="userName">Name:</label>
-      <input type="text" id="userName" required>
+  <div class="register-container">
+    <div class="register-card">
+      <div class="register-header">
+        <div class="logo">
+          <i class="fas fa-building"></i>
+        </div>
+        <h1 class="register-title">Company Admin</h1>
+        <p class="register-subtitle">Create your account</p>
+      </div>
       
-      <label for="userEmail">Email:</label>
-      <input type="email" id="userEmail" required>
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="userName" class="form-label">Full Name</label>
+          <input type="text" id="userName" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="userEmail" class="form-label">Email Address</label>
+          <input type="email" id="userEmail" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" id="password" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="confirmPassword" class="form-label">Confirm Password</label>
+          <input type="password" id="confirmPassword" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="companyName" class="form-label">Company Name</label>
+          <input type="text" id="companyName" class="form-control" required>
+        </div>
+
+        <div class="form-group" id="otpGroup" style="display: none;">
+          <label for="otp" class="form-label">Verification OTP</label>
+          <div class="input-group">
+            <input type="text" id="otp" class="form-control" placeholder="Enter 6-digit OTP" maxlength="6">
+            <button type="button" class="btn btn-outline-primary" id="resendOtp">Resend OTP</button>
+          </div>
+          <small class="text-muted">Check your email for the OTP. It will expire in 5 minutes.</small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+          <i class="fas fa-user-plus"></i> Register
+        </button>
+      </form>
       
-      <label for="password">Password:</label>
-      <input type="password" id="password" required>
-      
-      <label for="companyName">Company Name:</label>
-      <input type="text" id="companyName" required>
-      
-      <button type="submit">Register</button>
-    </form>
-    <pre id="result"></pre>
+      <pre id="result"></pre>
+    </div>
+    
+    <div class="register-footer">
+      <p>Already have an account? <a href="/static/login.html">Login</a></p>
+    </div>
   </div>
   
   <script>
-    document.getElementById('registerForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const userName = document.getElementById('userName').value;
-      const userEmail = document.getElementById('userEmail').value;
-      const password = document.getElementById('password').value;
-      const companyName = document.getElementById('companyName').value;
+    // Alert function
+    function showAlert(message, type = 'info') {
+      const alertContainer = document.querySelector('.alert-container');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type} alert-dismissible fade show`;
+      alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      alertContainer.appendChild(alert);
+      
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+
+    let isOtpSent = false;
+
+    document.addEventListener('DOMContentLoaded', async function() {
       try {
-        const response = await fetch('/api/users/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_name: userName, user_email: userEmail, password: password, company_name: companyName })
-        });
-        const data = await response.json();
-        document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-        if (response.ok) {
-          // Alert the user of successful account creation.
-          alert("Your account has been successfully created!");
-          // Redirect to the profile page.
-          window.location.href = "/static/profile.html";
+        // If user is already authenticated, redirect to dashboard
+        const user = await Auth.init(false); // Pass false to prevent redirect to login
+        if (user) {
+          window.location.href = "/static/dashboard.html";
+          return;
         }
-      } catch (err) {
-        document.getElementById('result').innerText = err;
+      } catch (error) {
+        console.log("Not logged in");
       }
+      
+      document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const registerForm = document.getElementById('registerForm');
+        const userName = document.getElementById('userName').value.trim();
+        const userEmail = document.getElementById('userEmail').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const confirmPassword = document.getElementById('confirmPassword').value.trim();
+        const companyName = document.getElementById('companyName').value.trim();
+        const otp = document.getElementById('otp')?.value.trim();
+        
+        if (!userName || !userEmail || !password || !confirmPassword || !companyName) {
+          showAlert('Please fill in all required fields', 'warning');
+          return;
+        }
+        
+        if (password !== confirmPassword) {
+          showAlert('Passwords do not match', 'warning');
+          return;
+        }
+
+        if (isOtpSent && !otp) {
+          showAlert('Please enter the OTP sent to your email', 'warning');
+          return;
+        }
+        
+        // Show loading state
+        const submitBtn = registerForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        submitBtn.disabled = true;
+        
+        try {
+          const response = await fetch('/api/users/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ 
+              user_name: userName, 
+              user_email: userEmail, 
+              password: password, 
+              company_name: companyName,
+              otp: otp
+            })
+          });
+          
+          const data = await response.json();
+          
+          // Reset button state
+          submitBtn.innerHTML = originalBtnText;
+          submitBtn.disabled = false;
+          
+          if (response.ok) {
+            if (!isOtpSent) {
+              // First step: OTP sent
+              isOtpSent = true;
+              document.getElementById('otpGroup').style.display = 'block';
+              document.getElementById('submitBtn').innerHTML = '<i class="fas fa-check"></i> Verify OTP';
+              showAlert('Verification OTP sent to your email', 'success');
+            } else {
+              // Second step: Registration complete
+              showAlert('Your account has been successfully created!', 'success');
+              setTimeout(() => {
+                window.location.href = "/static/login.html";
+              }, 1000);
+            }
+          } else {
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+            showAlert(data.error || 'Registration failed. Please check the details.', 'danger');
+          }
+        } catch (err) {
+          // Reset button state
+          submitBtn.innerHTML = originalBtnText;
+          submitBtn.disabled = false;
+          
+          document.getElementById('result').style.display = 'block';
+          document.getElementById('result').innerText = err;
+          showAlert('Cannot connect to the server. Please try again.', 'danger');
+        }
+      });
+
+      // Handle resend OTP
+      document.getElementById('resendOtp').addEventListener('click', async function() {
+        const userEmail = document.getElementById('userEmail').value.trim();
+        if (!userEmail) {
+          showAlert('Please enter your email first', 'warning');
+          return;
+        }
+
+        const resendBtn = this;
+        resendBtn.disabled = true;
+        resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+        try {
+          const response = await fetch('/api/users/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ 
+              user_email: userEmail
+            })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            showAlert('New OTP sent to your email', 'success');
+          } else {
+            showAlert(data.error || 'Failed to resend OTP', 'danger');
+          }
+        } catch (err) {
+          showAlert('Cannot connect to the server. Please try again.', 'danger');
+        } finally {
+          resendBtn.disabled = false;
+          resendBtn.innerHTML = 'Resend OTP';
+        }
+      });
     });
   </script>
 </body>

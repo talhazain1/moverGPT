@@ -1,6 +1,6 @@
 from model_inference import run_inference_openai
 from model_training import train_model
-from models import ChatbotConfig
+from admin_panel.models import ChatbotConfig
 from database import db
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import JSON

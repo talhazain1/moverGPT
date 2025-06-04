@@ -2,256 +2,364 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>User Profile</title>
-  <style>
-    /* Global Reset */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Arial', sans-serif;
-    }
-    body {
-      background-color: #f4f4f4;
-      color: #333;
-      padding-top: 70px; /* Space for the nav bar */
-    }
-    /* Navigation Bar */
-    nav {
-      background: #fff;
-      padding: 1rem 5%;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: 1000;
-    }
-    nav ul {
-      display: flex;
-      justify-content: space-around;
-      list-style: none;
-    }
-    nav ul li a {
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-      transition: color 0.3s ease;
-    }
-    nav ul li a:hover {
-      color: #6366f1;
-    }
-    /* Profile Container */
-    .profile-container {
-      max-width: 800px;
-      margin: 2rem auto;
-      background: #fff;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
-    .profile-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .profile-header h1 {
-      font-size: 2rem;
-      color: #6366f1;
-    }
-    .signout-btn {
-      padding: 0.5rem 1rem;
-      background: #e53e3e;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    .signout-btn:hover {
-      background: #c53030;
-    }
-    .profile-details {
-      font-size: 1rem;
-      line-height: 1.6;
-      margin-top: 1rem;
-      position: relative;
-    }
-    .profile-details p {
-      margin-bottom: 0.8rem;
-    }
-    .profile-details strong {
-      color: #6366f1;
-    }
-    /* Logo Container */
-    .logo-container {
-      float: right;
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      overflow: hidden;
-      margin-left: 1rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .logo-container img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    /* Upgrade Section */
-    .upgrade-section {
-      margin-top: 2rem;
-      padding: 1rem;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-      border-radius: 8px;
-      text-align: center;
-    }
-    .upgrade-section h3 {
-      margin-bottom: 0.5rem;
-      font-size: 1.8rem;
-    }
-    .upgrade-section p {
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
-    }
-    .upgrade-section button {
-      padding: 0.8rem 1.5rem;
-      background-color: white;
-      color: #6366f1;
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    .upgrade-section button:hover {
-      transform: translateY(-3px);
-    }
-    @media (max-width: 768px) {
-      nav ul {
-        flex-wrap: wrap;
-        gap: 1rem;
-      }
-      .profile-container {
-        margin: 2rem 20px;
-        padding: 1.5rem;
-      }
-      .profile-header h1 {
-        font-size: 1.8rem;
-      }
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - Admin Panel</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
 </head>
 <body>
-  <!-- Navigation Bar -->
-  <nav>
-    <ul>
-      <li><a href="/static/index.html">Home</a></li>
-      <li><a href="/static/profile.html">Profile</a></li>
-      <li><a href="/static/chatbot_builder.html">Chatbot Builder</a></li>
-      <li><a href="/static/admin.html">Admin</a></li>
-      <li><a href="/static/dashboard.html">Dashboard</a></li>
-      <li><a href="/static/test.html">Test Chatbot</a></li>
-      <li><a href="/static/pricing.html">Pricing</a></li>
-    </ul>
-  </nav>
-  
-  <div class="profile-container">
-    <div class="profile-header">
-      <h1>User Profile</h1>
-      <button class="signout-btn" id="signOutBtn">Sign Out</button>
-    </div>
-    <div id="profileDetails" class="profile-details">
-      <!-- Profile details will be rendered here -->
-    </div>
-    
-    <!-- Upgrade Section -->
-    <div id="upgradeSection" class="upgrade-section" style="display: none;">
-      <h3>Become a Pro User</h3>
-      <p>Enjoy unlimited benefits, advanced features, and dedicated support. Upgrade your plan now to unlock everything we have to offer!</p>
-      <a href="/static/pricing.html"><button>Go to Pricing</button></a>
+  <div class="alert-container"></div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <img id="sidebarLogo" src="https://ui-avatars.com/api/?name=Company&background=random" alt="Logo" class="sidebar-logo" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px;">
+          <span id="sidebarCompanyName">Loading...</span>
+        </div>
+        <button class="sidebar-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li class="sidebar-item">
+          <a href="/static/dashboard.html" class="sidebar-link">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/profile.html" class="sidebar-link active">
+            <i class="fas fa-user-circle"></i>
+            <span>Profile</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chatbot_builder.html" class="sidebar-link">
+            <i class="fas fa-robot"></i>
+            <span>Chatbot Builder</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/test.html" class="sidebar-link">
+            <i class="fas fa-vial"></i>
+            <span>Test Chatbot</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/cost_calculator.html" class="sidebar-link">
+            <i class="fas fa-calculator"></i>
+            <span>Moving Cost Calculator</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/moving_parameters.html" class="sidebar-link">
+            <i class="fas fa-sliders-h"></i>
+            <span>Moving Parameters</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chat_analysis.html" class="sidebar-link">
+            <i class="fas fa-comments-dollar"></i>
+            <span>Chat Analysis</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/pricing.html" class="sidebar-link">
+            <i class="fas fa-tag"></i>
+            <span>Pricing Plans</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="#" id="logoutBtn" class="sidebar-link">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="main-header">
+        <div class="header-left">
+          <!-- <button class="header-toggle d-lg-none">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h4>Profile</h4> -->
+        </div>
+        
+        <div class="header-right">
+          <div class="user-dropdown">
+            <div class="user-info">
+              <div>
+                <div class="user-name">User</div>
+                <div class="user-role">Member</div>
+              </div>
+              <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" class="user-avatar">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Page Container -->
+      <div class="page-container">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Profile Information</h5>
+          </div>
+          <div class="card-body">
+            <form id="updateProfileForm">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="user_name">Name</label>
+                    <input type="text" id="user_name" name="user_name" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="user_phone">Phone</label>
+                    <input type="text" id="user_phone" name="user_phone" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="company_name">Company Name</label>
+                    <input type="text" id="company_name" name="company_name" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="company_phone">Company Phone</label>
+                    <input type="text" id="company_phone" name="company_phone" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="company_website">Company Website</label>
+                    <input type="text" id="company_website" name="company_website" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="niche">Niche</label>
+                    <input type="text" id="niche" name="niche" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-12">
+                  <div class="form-group">
+                    <label for="business_address">Business Address</label>
+                    <textarea id="business_address" name="business_address" class="form-control"></textarea>
+                  </div>
+                </div>
+              </div>
+              
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Update Profile
+              </button>
+            </form>
+            
+            <h5 class="mt-4 mb-3">Upload Company Logo</h5>
+            <form id="uploadLogoForm" enctype="multipart/form-data">
+              <div class="form-group">
+                <label for="logo">Choose Logo (PNG/JPG)</label>
+                <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg" required class="form-control">
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Upload Logo
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  
+
+  <script src="/static/assets/auth.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      // If no token is found, redirect the user to the login page.
-      const token = localStorage.getItem("token");
-      if (!token) {
-        window.location.href = "/static/login.html";
-        return;
+    // Function to update sidebar company info
+    function updateSidebarCompanyInfo(user) {
+      // Update company name in sidebar
+      const companyNameElement = document.getElementById('sidebarCompanyName');
+      if (companyNameElement) {
+        companyNameElement.textContent = user.company_name || 'Company Admin';
       }
       
-      // Fetch profile, and if the API returns an error (such as 401), redirect as well.
+      // Update logo in sidebar
+      const sidebarLogoElement = document.getElementById('sidebarLogo');
+      if (sidebarLogoElement) {
+        if (user.company_logo) {
+          sidebarLogoElement.src = user.company_logo;
+        } else {
+          // Generate avatar based on company name
+          const companyName = user.company_name || 'Company';
+          sidebarLogoElement.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(companyName)}&background=random`;
+        }
+      }
+    }
+
+    // Initialize profile page
+    (async function initProfile() {
       try {
-        const response = await fetch('/api/users/profile', { method: 'GET', credentials: 'include' });
-        if (!response.ok) {
-          window.location.href = "/static/login.html";
+        const user = await checkAuth();
+        if (!user) {
+          window.location.href = '/static/login.html';
           return;
         }
-        const data = await response.json();
-        if (data.user) {
-          displayProfile(data.user);
+
+        // Update sidebar with company info
+        updateSidebarCompanyInfo(user);
+        
+        // Update user info in header
+        document.querySelector('.user-name').textContent = user.user_name || 'User';
+        document.querySelector('.user-role').textContent = user.role || 'Member';
+        
+        // Update avatar with fallback to default if no logo
+        const avatarImg = document.querySelector('.user-avatar');
+        if (user.company_logo) {
+          avatarImg.src = user.company_logo;
         } else {
-          document.getElementById('profileDetails').innerText = JSON.stringify(data, null, 2);
+          avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_name || 'User')}&background=random`;
         }
-      } catch (error) {
-        window.location.href = "/static/login.html";
-      }
-      
-      // Set up the logout button handler.
-      const signOutBtn = document.getElementById("signOutBtn");
-      signOutBtn.addEventListener("click", async () => {
-        try {
-          const response = await fetch('/api/users/logout', { method: 'POST', credentials: 'include' });
-          if (response.ok) {
-            window.location.href = "/static/login.html";
+
+        // Populate form with user data
+        document.getElementById('user_name').value = user.user_name || '';
+        document.getElementById('user_phone').value = user.user_phone || '';
+        document.getElementById('company_name').value = user.company_name || '';
+        document.getElementById('company_phone').value = user.company_phone || '';
+        document.getElementById('business_address').value = user.business_address || '';
+        document.getElementById('company_website').value = user.company_website || '';
+        document.getElementById('niche').value = user.niche || '';
+
+        // Add logout handler
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          logout();
+        });
+
+        // Handle profile update
+        document.getElementById('updateProfileForm').addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          const formData = {
+            user_name: document.getElementById('user_name').value,
+            user_phone: document.getElementById('user_phone').value,
+            company_name: document.getElementById('company_name').value,
+            company_phone: document.getElementById('company_phone').value,
+            business_address: document.getElementById('business_address').value,
+            company_website: document.getElementById('company_website').value,
+            niche: document.getElementById('niche').value
+          };
+          
+          try {
+            const response = await fetch('/api/users/update_profile', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify(formData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success' && data.user) {
+              // Update sidebar with new company info
+              updateSidebarCompanyInfo(data.user);
+              
+              // Update user info in header
+              document.querySelector('.user-name').textContent = data.user.user_name || 'User';
+              document.querySelector('.user-avatar').src = data.user.company_logo || 
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.user_name || 'User')}&background=random`;
+              
+              // Show success message
+              showAlert('Profile updated successfully!', 'success');
+            } else {
+              showAlert(data.message || 'Failed to update profile', 'danger');
+            }
+          } catch (error) {
+            console.error('Error updating profile:', error);
+            showAlert('Error updating profile: ' + error.message, 'danger');
           }
-        } catch (err) {
-          console.error("Logout error:", err);
-        }
-      });
-    });
-    
-    function displayProfile(u) {
-      if (!u) {
-        document.getElementById('profileDetails').innerText = "No user data found.";
-        return;
+        });
+
+        // Handle logo upload
+        document.getElementById('uploadLogoForm').addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(this);
+          
+          try {
+            const response = await fetch('/api/users/upload_logo', {
+              method: 'POST',
+              credentials: 'include',
+              body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success' && data.user) {
+              // Update sidebar logo
+              const sidebarLogo = document.getElementById('sidebarLogo');
+              if (sidebarLogo && data.user.company_logo) {
+                sidebarLogo.src = data.user.company_logo;
+              }
+              
+              // Update user avatar in header
+              const userAvatar = document.querySelector('.user-avatar');
+              if (userAvatar && data.user.company_logo) {
+                userAvatar.src = data.user.company_logo;
+              }
+              
+              // Show success message
+              showAlert('Logo uploaded successfully!', 'success');
+            } else {
+              showAlert(data.message || 'Failed to upload logo', 'danger');
+            }
+          } catch (error) {
+            console.error('Error uploading logo:', error);
+            showAlert('Error uploading logo: ' + error.message, 'danger');
+          }
+        });
+      } catch (error) {
+        console.error('Error initializing profile:', error);
+        showAlert('Error loading profile data', 'danger');
       }
-      let logoHtml = "";
-      if (u.company_logo) {
-        logoHtml = `
-          <div class="logo-container">
-            <img src="${u.company_logo}" alt="Company Logo">
-          </div>
-        `;
-      }
-      const detailsHtml = `
-        ${logoHtml}
-        <p><strong>ID:</strong> ${u.id}</p>
-        <p><strong>Name:</strong> ${u.user_name || 'N/A'}</p>
-        <p><strong>Email:</strong> ${u.user_email || 'N/A'}</p>
-        <p><strong>Phone:</strong> ${u.user_phone || 'N/A'}</p>
-        <p><strong>Company ID:</strong> ${u.company_id || 'N/A'}</p>
-        <p><strong>Company Name:</strong> ${u.company_name || 'N/A'}</p>
-        <p><strong>Company Phone:</strong> ${u.company_phone || 'N/A'}</p>
-        <p><strong>Business Address:</strong> ${u.business_address || 'N/A'}</p>
-        <p><strong>Company Website:</strong> ${u.company_website || 'N/A'}</p>
-        <p><strong>Niche:</strong> ${u.niche || 'N/A'}</p>
-        <p><strong>Subscription Plan:</strong> ${u.subscription_plan || 'N/A'}</p>
-        <p><strong>Verified:</strong> ${u.is_verified ? "Yes" : "No"}</p>
-        <p><strong>Created At:</strong> ${u.created_at || 'N/A'}</p>
-      `;
-      document.getElementById('profileDetails').innerHTML = detailsHtml;
+    })();
+
+    // Show alert messages
+    function showAlert(message, type) {
+      const alertContainer = document.querySelector('.alert-container');
       
-      // Show upgrade prompt if applicable.
-      if (!u.subscription_plan || u.subscription_plan === "N/A" || u.subscription_plan === "free_trial") {
-        document.getElementById('upgradeSection').style.display = "block";
-      } else {
-        document.getElementById('upgradeSection').style.display = "none";
+      // Create alert element
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `<span>${message}</span><button type="button" class="close" aria-label="Close">&times;</button>`;
+      
+      // Add close button functionality
+      const closeButton = alert.querySelector('.close');
+      closeButton.addEventListener('click', function() {
+        alert.remove();
+      });
+      
+      // Add to container
+      alertContainer.appendChild(alert);
+      
+      // Auto-remove after 5 seconds for non-error alerts
+      if (type !== 'danger') {
+        setTimeout(() => {
+          if (alert.parentNode) {
+            alert.remove();
+          }
+        }, 5000);
       }
     }
   </script>

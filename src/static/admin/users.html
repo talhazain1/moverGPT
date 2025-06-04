@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>User Management - Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/admin/css/admin.css">
+    <script src="/static/admin/js/auth.js"></script>
+</head>
+<body class="bg-light">
+    <!-- Dashboard header with logo and logout button -->
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="/admin/dashboard.html">Admin Panel</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+                <a class="nav-link px-3" href="#" id="logout-btn">Sign out</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">Admin Panel</h4>
+                    </div>
+                    <ul class="nav flex-column" id="sidebar-nav">
+                        <!-- Sidebar will be populated by admin-nav.js -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div id="alerts-container" class="mt-3"></div>
+                
+                <!-- Users header -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">User Management</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="exportUsers">
+                                <i class="bi bi-download"></i> Export CSV
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="refreshUsers">
+                                <i class="bi bi-arrow-repeat"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User list / User details container -->
+                <div class="row">
+                    <!-- User list -->
+                    <div id="userListContainer" class="col-md-12">
+                        <!-- Search and filters -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <input type="text" class="form-control" id="searchUser" placeholder="Search users...">
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <select class="form-select" id="filterPlan">
+                                            <option value="">All Plans</option>
+                                            <option value="basic">Basic</option>
+                                            <option value="pro">Pro</option>
+                                            <option value="enterprise">Enterprise</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <select class="form-select" id="filterStatus">
+                                            <option value="">All Status</option>
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                            <option value="pending">Pending</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <button class="btn btn-primary w-100" id="applyFilters">
+                                            <i class="bi bi-funnel"></i> Filter
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Users table -->
+                        <div class="card shadow">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>User Name</th>
+                                                <th>Email</th>
+                                                <th>Company</th>
+                                                <th>Phone</th>
+                                                <th>Subscription</th>
+                                                <th>Status</th>
+                                                <th>Created</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="usersTable">
+                                            <tr>
+                                                <td colspan="8" class="text-center">Loading users data...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User details - will be shown when a user is selected -->
+                    <div id="userDetailsContainer" class="col-md-12 mt-4" style="display: none;">
+                        <div class="card shadow">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">User Details</h5>
+                                <button class="btn btn-outline-secondary btn-sm" id="backToUserList">
+                                    <i class="bi bi-arrow-left"></i> Back to User List
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <form id="userDetailsForm">
+                                    <input type="hidden" id="userId">
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="userName" class="form-label">User Name</label>
+                                            <input type="text" class="form-control" id="userName">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="userEmail" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="userEmail">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="userPhone" class="form-label">Phone</label>
+                                            <input type="text" class="form-control" id="userPhone">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="companyName" class="form-label">Company Name</label>
+                                            <input type="text" class="form-control" id="companyName">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="companyPhone" class="form-label">Company Phone</label>
+                                            <input type="text" class="form-control" id="companyPhone">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="companyWebsite" class="form-label">Company Website</label>
+                                            <input type="text" class="form-control" id="companyWebsite">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <label for="businessAddress" class="form-label">Business Address</label>
+                                            <textarea class="form-control" id="businessAddress" rows="2"></textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label for="niche" class="form-label">Business Niche</label>
+                                            <input type="text" class="form-control" id="niche">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="subscriptionPlan" class="form-label">Subscription Plan</label>
+                                            <select class="form-select" id="subscriptionPlan">
+                                                <option value="basic">Basic</option>
+                                                <option value="pro">Pro</option>
+                                                <option value="enterprise">Enterprise</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="subscriptionStatus" class="form-label">Status</label>
+                                            <select class="form-select" id="subscriptionStatus">
+                                                <option value="active">Active</option>
+                                                <option value="inactive">Inactive</option>
+                                                <option value="pending">Pending</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-12 d-flex justify-content-between">
+                                            <button type="button" class="btn btn-danger" id="deleteUserBtn">
+                                                <i class="bi bi-trash"></i> Delete User
+                                            </button>
+                                            <div>
+                                                <button type="button" class="btn btn-outline-secondary me-2" id="resetUserBtn">
+                                                    Reset
+                                                </button>
+                                                <button type="submit" class="btn btn-primary" id="saveUserBtn">
+                                                    <i class="bi bi-save"></i> Save Changes
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/admin/js/admin-nav.js"></script>
+    
+    <script>
+        // Function to show alerts
+        function showAlert(message, type = 'danger') {
+            const alertsContainer = document.getElementById('alerts-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            alertsContainer.innerHTML = '';
+            alertsContainer.appendChild(alertDiv);
+            
+            // Auto-dismiss success alerts after 3 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    alertDiv.classList.remove('show');
+                    setTimeout(() => alertDiv.remove(), 150);
+                }, 3000);
+            }
+        }
+
+        // Global storage for users data
+        let users = [];
+        let currentUser = null;
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const usersTable = document.getElementById('usersTable');
+                usersTable.innerHTML = '<tr><td colspan="8" class="text-center"><span class="spinner-border spinner-border-sm" role="status"></span> Loading user data...</td></tr>';
+                
+                // Apply any filters
+                const searchQuery = document.getElementById('searchUser').value.toLowerCase();
+                const planFilter = document.getElementById('filterPlan').value;
+                const statusFilter = document.getElementById('filterStatus').value;
+                
+                // Fetch users from the API
+                const response = await fetch('/api/admin/users', {
+                    headers: {
+                        'Authorization': `Bearer ${getAdminData()?.token || ''}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load users');
+                }
+                
+                const data = await response.json();
+                users = data.users || [];
+                
+                // Clear loading message
+                usersTable.innerHTML = '';
+                
+                if (users.length === 0) {
+                    // No users found
+                    usersTable.innerHTML = '<tr><td colspan="8" class="text-center">No users found</td></tr>';
+                    return;
+                }
+                
+                // Filter users
+                const filteredUsers = users.filter(user => {
+                    // Apply search filter
+                    const matchesSearch = searchQuery === '' || 
+                        (user.user_name && user.user_name.toLowerCase().includes(searchQuery)) ||
+                        (user.user_email && user.user_email.toLowerCase().includes(searchQuery)) ||
+                        (user.company_name && user.company_name.toLowerCase().includes(searchQuery));
+                    
+                    // Apply plan filter
+                    const matchesPlan = planFilter === '' || user.subscription_plan === planFilter;
+                    
+                    // Apply status filter
+                    const matchesStatus = statusFilter === '' || user.subscription_status === statusFilter;
+                    
+                    return matchesSearch && matchesPlan && matchesStatus;
+                });
+                
+                if (filteredUsers.length === 0) {
+                    usersTable.innerHTML = '<tr><td colspan="8" class="text-center">No users match the current filters</td></tr>';
+                    return;
+                }
+                
+                // Add users to the table
+                filteredUsers.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.user_name || 'N/A'}</td>
+                        <td>${user.user_email || 'N/A'}</td>
+                        <td>${user.company_name || 'N/A'}</td>
+                        <td>${user.user_phone || 'N/A'}</td>
+                        <td><span class="badge bg-${user.subscription_plan === 'enterprise' ? 'success' : user.subscription_plan === 'pro' ? 'primary' : 'secondary'}">${user.subscription_plan || 'basic'}</span></td>
+                        <td><span class="badge bg-${user.subscription_status === 'active' ? 'success' : user.subscription_status === 'pending' ? 'warning' : 'danger'}">${user.subscription_status || 'inactive'}</span></td>
+                        <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="viewUser(${user.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    usersTable.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading users:', error);
+                const usersTable = document.getElementById('usersTable');
+                usersTable.innerHTML = '<tr><td colspan="8" class="text-center">Failed to load user data. <button class="btn btn-sm btn-link" onclick="loadUsers()">Try Again</button></td></tr>';
+            }
+        }
+
+        // View/edit user
+        async function viewUser(userId) {
+            try {
+                // Show loading state
+                document.getElementById('userListContainer').style.display = 'none';
+                document.getElementById('userDetailsContainer').style.display = 'block';
+                document.getElementById('userDetailsForm').classList.add('opacity-50');
+                document.getElementById('userDetailsForm').innerHTML = '<div class="text-center py-5"><span class="spinner-border" role="status"></span><p class="mt-2">Loading user details...</p></div>';
+                
+                // Fetch user details
+                const response = await fetch(`/api/admin/users/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${getAdminData()?.token || ''}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load user details');
+                }
+                
+                currentUser = await response.json();
+                
+                // Populate form
+                document.getElementById('userId').value = currentUser.id;
+                document.getElementById('userName').value = currentUser.user_name || '';
+                document.getElementById('userEmail').value = currentUser.user_email || '';
+                document.getElementById('userPhone').value = currentUser.user_phone || '';
+                document.getElementById('companyName').value = currentUser.company_name || '';
+                document.getElementById('companyPhone').value = currentUser.company_phone || '';
+                document.getElementById('companyWebsite').value = currentUser.company_website || '';
+                document.getElementById('businessAddress').value = currentUser.business_address || '';
+                document.getElementById('niche').value = currentUser.niche || '';
+                document.getElementById('subscriptionPlan').value = currentUser.subscription_plan || 'basic';
+                document.getElementById('subscriptionStatus').value = currentUser.subscription_status || 'inactive';
+                
+                // Show the form
+                document.getElementById('userDetailsForm').classList.remove('opacity-50');
+            } catch (error) {
+                console.error('Error loading user details:', error);
+                showAlert(`Failed to load user details: ${error.message}`);
+                
+                // Go back to user list
+                document.getElementById('userListContainer').style.display = 'block';
+                document.getElementById('userDetailsContainer').style.display = 'none';
+            }
+        }
+
+        // Save user changes
+        async function saveUser(e) {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                showAlert('No user selected to update');
+                return;
+            }
+            
+            try {
+                // Disable the form during submission
+                const saveBtn = document.getElementById('saveUserBtn');
+                const originalBtnText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Saving...';
+                saveBtn.disabled = true;
+                
+                // Get form values
+                const userData = {
+                    id: document.getElementById('userId').value,
+                    user_name: document.getElementById('userName').value,
+                    user_email: document.getElementById('userEmail').value,
+                    user_phone: document.getElementById('userPhone').value,
+                    company_name: document.getElementById('companyName').value,
+                    company_phone: document.getElementById('companyPhone').value,
+                    company_website: document.getElementById('companyWebsite').value,
+                    business_address: document.getElementById('businessAddress').value,
+                    niche: document.getElementById('niche').value,
+                    subscription_plan: document.getElementById('subscriptionPlan').value,
+                    subscription_status: document.getElementById('subscriptionStatus').value
+                };
+                
+                // Update user
+                const response = await fetch(`/api/admin/users/${userData.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getAdminData()?.token || ''}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(userData)
+                });
+                
+                // Reset button state
+                saveBtn.innerHTML = originalBtnText;
+                saveBtn.disabled = false;
+                
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || 'Failed to update user');
+                }
+                
+                showAlert('User updated successfully', 'success');
+                
+                // Go back to user list and refresh
+                document.getElementById('userListContainer').style.display = 'block';
+                document.getElementById('userDetailsContainer').style.display = 'none';
+                loadUsers();
+            } catch (error) {
+                console.error('Error updating user:', error);
+                showAlert(`Error updating user: ${error.message}`);
+                
+                // Reset button state
+                const saveBtn = document.getElementById('saveUserBtn');
+                saveBtn.innerHTML = '<i class="bi bi-save"></i> Save Changes';
+                saveBtn.disabled = false;
+            }
+        }
+
+        // Delete user
+        async function deleteUser(userId) {
+            if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${getAdminData()?.token || ''}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || 'Failed to delete user');
+                }
+                
+                showAlert('User deleted successfully', 'success');
+                
+                // If we're on the user details page, go back to list
+                if (document.getElementById('userDetailsContainer').style.display !== 'none') {
+                    document.getElementById('userListContainer').style.display = 'block';
+                    document.getElementById('userDetailsContainer').style.display = 'none';
+                }
+                
+                // Reload users list
+                loadUsers();
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                showAlert(`Error deleting user: ${error.message}`);
+            }
+        }
+
+        // Export users
+        async function exportUsers() {
+            try {
+                window.location.href = '/api/admin/users/export';
+            } catch (error) {
+                console.error('Error exporting users:', error);
+                showAlert(`Error exporting users: ${error.message}`);
+            }
+        }
+
+        // Initialize page
+        async function initUsersPage() {
+            try {
+                // Check if admin is authenticated
+                const admin = await checkAuth();
+                if (!admin) {
+                    // Not authenticated, redirect to login
+                    window.location.href = '/admin/login.html';
+                    return;
+                }
+                
+                // Load users
+                await loadUsers();
+                
+                // Setup event listeners
+                document.getElementById('refreshUsers').addEventListener('click', loadUsers);
+                document.getElementById('exportUsers').addEventListener('click', exportUsers);
+                document.getElementById('applyFilters').addEventListener('click', loadUsers);
+                document.getElementById('backToUserList').addEventListener('click', () => {
+                    document.getElementById('userListContainer').style.display = 'block';
+                    document.getElementById('userDetailsContainer').style.display = 'none';
+                    currentUser = null;
+                });
+                document.getElementById('userDetailsForm').addEventListener('submit', saveUser);
+                document.getElementById('resetUserBtn').addEventListener('click', () => {
+                    if (currentUser) {
+                        viewUser(currentUser.id);
+                    }
+                });
+                document.getElementById('deleteUserBtn').addEventListener('click', () => {
+                    if (currentUser) {
+                        deleteUser(currentUser.id);
+                    }
+                });
+                
+                // Setup logout button
+                document.getElementById('logout-btn').addEventListener('click', handleLogout);
+                
+                // Check for user ID in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('id');
+                if (userId) {
+                    viewUser(userId);
+                }
+            } catch (error) {
+                console.error('Users page initialization error:', error);
+                showAlert('An error occurred while loading the users page. Please refresh the page or try again later.');
+            }
+        }
+
+        // Handle logout
+        async function handleLogout(e) {
+            e.preventDefault();
+            
+            try {
+                await logout();
+                window.location.href = '/admin/login.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                showAlert('Failed to logout. Please try again.');
+            }
+        }
+
+        // Initialize the page when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initUsersPage);
+    </script>
+</body>
+</html> 

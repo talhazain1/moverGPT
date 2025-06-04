@@ -42,13 +42,14 @@ class User(db.Model):
             raise Exception(f"Subscription update failed: {e}")
         
 
-    def __init__(self, user_email, user_name=None, company_name=None, password_hash=None):
+    def __init__(self, user_email, user_name=None, company_name=None, password_hash=None, is_verified=False):
         self.user_email = user_email
         self.user_name = user_name
         self.company_name = company_name
         self.password_hash = password_hash
         self.subscription_plan = 'basic'  # Default to basic plan
         self.subscription_status = 'active'
+        self.is_verified = is_verified
     
     def has_feature(self, feature):
         """Check if user has access to a specific feature based on their subscription plan."""

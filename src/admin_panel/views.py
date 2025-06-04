@@ -10,14 +10,22 @@ import uuid
 import json
 import csv
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from core.utils import verify_jwt
 from core.database import db
 from users.models import User
 from chatbot.models import ChatbotConfig
 from chatbot.model_training import train_model
+from flask_login import login_required, current_user
+from sqlalchemy.exc import SQLAlchemyError
+from admin_panel.models import SupportTicket
+import logging
 
 admin_bp = Blueprint('admin', __name__)
+support_bp = Blueprint('support', __name__)
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 def get_logged_in_company_id():
     """
@@ -378,3 +386,143 @@ def get_dashboard():
         return jsonify({"chatbots": data}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@support_bp.route('/tickets', methods=['GET'])
+def get_tickets():
+    """Get support tickets for the authenticated user/company"""
+    try:
+        logger.info("Support tickets endpoint called")
+        # Get token from request
+        token = None
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+        else:
+            token = request.cookies.get("access_token")
+        
+        if not token:
+            logger.warning("No authentication token provided for support tickets")
+            # Return empty data with 200 to avoid dashboard errors
+            return jsonify({
+                'success': True,
+                'tickets': [],
+                'total': 0,
+                'offset': 0,
+                'limit': 100
+            }), 200
+        
+        # Verify the token
+        payload = verify_jwt(token)
+        if not payload:
+            logger.warning("Invalid token for support tickets")
+            # Return empty data with 200 to avoid dashboard errors
+            return jsonify({
+                'success': True,
+                'tickets': [],
+                'total': 0,
+                'offset': 0, 
+                'limit': 100
+            }), 200
+        
+        # Get company ID directly from payload if available
+        company_id = payload.get('company_id')
+        if not company_id:
+            # If company_id not in payload, get it from user
+            user_id = payload.get('user_id')
+            from users.models import User
+            user = User.query.get(user_id)
+            if user:
+                company_id = user.company_id or user.id
+            else:
+                logger.warning(f"User not found for support tickets: {user_id}")
+                return jsonify({
+                    'success': True,
+                    'tickets': [],
+                    'total': 0,
+                    'offset': 0,
+                    'limit': 100
+                }), 200
+        
+        # Get query parameters
+        status = request.args.get('status')
+        limit = request.args.get('limit', 100, type=int)
+        offset = request.args.get('offset', 0, type=int)
+        
+        logger.info(f"Getting support tickets for company_id: {company_id}")
+        
+        # Try to safely get tickets from the database
+        try:
+            from admin_panel.models import SupportTicket
+            
+            # Build query based on parameters
+            query = SupportTicket.query.filter_by(company_id=company_id)
+            
+            # Add status filter if provided
+            if status:
+                query = query.filter_by(status=status)
+            
+            # Get total count (do this first in case the later queries fail)
+            total_count = query.count()
+            
+            # Apply pagination
+            tickets_data = query.order_by(SupportTicket.created_at.desc()).offset(offset).limit(limit).all()
+            
+            # Format the tickets
+            tickets = []
+            for ticket in tickets_data:
+                try:
+                    # Find the user who created the ticket
+                    from users.models import User
+                    ticket_user = User.query.get(ticket.user_id)
+                    
+                    tickets.append({
+                        'id': ticket.id,
+                        'ticket_number': ticket.ticket_number if hasattr(ticket, 'ticket_number') else f"TICKET-{ticket.id}",
+                        'subject': ticket.subject,
+                        'topic': ticket.topic if hasattr(ticket, 'topic') else "General",
+                        'details': ticket.details,
+                        'status': ticket.status,
+                        'created_at': ticket.created_at.isoformat() if ticket.created_at else None,
+                        'updated_at': ticket.updated_at.isoformat() if hasattr(ticket, 'updated_at') and ticket.updated_at else None,
+                        'user': {
+                            'id': ticket_user.id,
+                            'name': ticket_user.user_name if hasattr(ticket_user, 'user_name') else ticket_user.username,
+                            'email': ticket_user.user_email if hasattr(ticket_user, 'user_email') else ticket_user.email
+                        } if ticket_user else None
+                    })
+                except Exception as ticket_error:
+                    logger.error(f"Error formatting ticket {ticket.id}: {str(ticket_error)}")
+                    # Skip this ticket but continue processing others
+            
+            logger.info(f"Found {len(tickets)} support tickets for company_id {company_id}")
+            
+            return jsonify({
+                'success': True,
+                'tickets': tickets,
+                'total': total_count,
+                'offset': offset,
+                'limit': limit
+            }), 200
+        except Exception as db_error:
+            logger.error(f"Database error getting tickets: {str(db_error)}")
+            # Return empty results with 200 status to avoid breaking the dashboard
+            return jsonify({
+                'success': True,
+                'tickets': [],
+                'total': 0,
+                'offset': offset,
+                'limit': limit,
+                'error_info': str(db_error)
+            }), 200
+        
+    except Exception as e:
+        logger.error(f"Error retrieving tickets: {str(e)}")
+        # Return empty data even on error to avoid breaking the dashboard
+        return jsonify({
+            'success': True,
+            'tickets': [],
+            'total': 0,
+            'offset': 0,
+            'limit': 100,
+            'error_info': str(e)
+        }), 200

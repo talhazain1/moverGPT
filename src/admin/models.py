@@ -85,3 +85,24 @@ class AdminUser(db.Model, UserMixin):
     def has_role(self, role: AdminRole) -> bool:
         """Check if admin has a specific role."""
         return self.role and self.role.name == role.value 
+
+class ApiKey(db.Model):
+    __tablename__ = 'api_keys'
+    __table_args__ = {'extend_existing': True}
+    
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(64), unique=True, nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
+    company = db.relationship('Company', backref='api_keys_admin')
+    subscription_plan = db.Column(db.String(50), nullable=False)
+    status = db.Column(db.String(20), default='active')  # active, inactive, revoked
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_used_at = db.Column(db.DateTime)
+    
+    @property
+    def is_active(self):
+        """Check if the API key is active based on status"""
+        return self.status == 'active'
+    
+    def __repr__(self):
+        return f'<ApiKey {self.key[:8]}... for Company {self.company_id}>' 

@@ -1,0 +1,6 @@
+-- Add missing columns to api_keys table
+ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;
+ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMP;
+ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS subscription_plan VARCHAR(50);
+ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMP; 

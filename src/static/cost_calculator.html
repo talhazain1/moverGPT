@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moving Cost Calculator - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="moving-calculator/css/widget.css">
+  <!-- CRITICAL FIX: Insert token management script at the very start, before any other scripts -->
+  <script>
+    // Token Management - Fix for session persistence across pages
+    (function() {
+      
+      
+      // Get a valid JWT token from various sources
+      function getValidJWTToken() {
+        // Try moving_params_token first (special case)
+        const movingParamsToken = localStorage.getItem('moving_params_token');
+        if (movingParamsToken && movingParamsToken.startsWith('eyJhbGciOiJ')) {
+          console.log('Found special moving_params_token, using it and removing it');
+          localStorage.removeItem('moving_params_token'); 
+          return movingParamsToken;
+        }
+        
+        // Then check for jwt_access_token (used by TokenManager)
+        const jwtToken = localStorage.getItem('jwt_access_token');
+        if (jwtToken && jwtToken.startsWith('eyJhbGciOiJ')) {
+          return jwtToken;
+        }
+        
+        // Try legacy access_token
+        const legacyToken = localStorage.getItem('access_token');
+        if (legacyToken && legacyToken.startsWith('eyJhbGciOiJ')) {
+          return legacyToken;
+        }
+        
+        // Then check sessionStorage
+        const sessionToken = sessionStorage.getItem('jwt_access_token') || 
+                            sessionStorage.getItem('access_token');
+        if (sessionToken && sessionToken.startsWith('eyJhbGciOiJ')) {
+          return sessionToken;
+        }
+        
+        // Finally check cookies
+        const cookieValue = document.cookie.split('; ').find(row => row.startsWith('access_token='));
+        if (cookieValue) {
+          const token = cookieValue.split('=')[1];
+          if (token && token.startsWith('eyJhbGciOiJ')) {
+            return token;
+          }
+        }
+        
+        return null;
+      }
+      
+      // Get a valid JWT token if available
+      const validToken = getValidJWTToken();
+      
+      if (validToken) {
+        console.log('Token management: Valid JWT found, ensuring it is set properly');
+        
+        // Store tokens in both the new TokenManager format and legacy format for compatibility
+        localStorage.setItem('jwt_access_token', validToken); // New TokenManager format
+        localStorage.setItem('access_token', validToken);     // Legacy format
+        sessionStorage.setItem('jwt_access_token', validToken);
+        sessionStorage.setItem('access_token', validToken);
+        
+        // Set cookie directly with correct path and expiry
+        document.cookie = `access_token=${validToken}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+        
+        // The critical fix: override the fetch API to always include the token
+        // AND to always use the current origin for any app.movergpt.com URLs only when running on movergpt.com
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+          if (!options.headers) {
+            options.headers = {};
+          }
+          
+          // Ensure the token is present in the Authorization header
+          if (validToken && !options.headers['Authorization']) {
+            options.headers['Authorization'] = `Bearer ${validToken}`;
+          }
+          
+          // CRITICAL: Override app.movergpt.com URLs to use current origin ONLY when running on movergpt.com
+          let targetUrl = url;
+          if (typeof targetUrl === 'string' && targetUrl.includes('app.movergpt.com') && 
+              window.location.hostname.includes('movergpt.com')) {
+            console.warn(`Overriding URL from ${targetUrl} to use current origin`);
+            targetUrl = targetUrl.replace('https://app.movergpt.com', window.location.origin);
+          }
+          
+          return originalFetch(targetUrl, options);
+        };
+      }
+    })();
+  </script>
+  <!-- Google Maps API with Places library for address autocomplete -->
+  <script>
+    // Map of states to representative ZIP codes
+    const stateZipMap = {
+      'FL': ['33101', '32801', '32202', '34101'],
+      'CA': ['90001', '94101', '95814', '92101'],
+      'NY': ['10001', '11201', '14604', '12207'],
+      'TX': ['73301', '75201', '77001', '78701'],
+      // Add more as needed
+      'AL': ['35201', '36104'],
+      'AZ': ['85001', '85721'],
+      'CO': ['80201', '80523'],
+      'GA': ['30301', '30602'],
+      'IL': ['60601', '62701'],
+      'MA': ['02108', '02210'],
+      'MI': ['48201', '49855'],
+      'OH': ['43201', '44101'],
+      'PA': ['19101', '15201'],
+      'WA': ['98101', '99201']
+    };
+    
+    function getRandomZip(stateAbbr) {
+      const zips = stateZipMap[stateAbbr];
+      if (zips && zips.length > 0) {
+        return zips[Math.floor(Math.random() * zips.length)];
+      }
+      return '00000'; // fallback
+    }
+    
+    function initAutocomplete() {
+      const input = document.getElementById('autocomplete');
+      if (!input) return;
+
+      // Check if we should use the newer PlaceAutocompleteElement
+      if (google.maps.places.PlaceAutocompleteElement) {
+        try {
+          // Create container for PlaceAutocompleteElement
+          const container = document.createElement('div');
+          container.id = 'autocomplete-container';
+          container.style.display = 'none'; // Hide the actual element
+          input.parentNode.insertBefore(container, input.nextSibling);
+          
+          // Create the PlaceAutocompleteElement with emphasis on postal codes
+          const placeAutocompleteElement = new google.maps.places.PlaceAutocompleteElement({
+            inputElement: input,
+            types: ['postal_code', 'geocode'], // Focus on postal codes
+            componentRestrictions: { country: 'us' }
+          });
+          
+          // Add event listener for place selection
+          placeAutocompleteElement.addListener('place_changed', event => {
+            const place = event.place;
+            if (!place || !place.address_components) return;
+            
+            let zip = '', city = '', state = '';
+            for (const component of place.address_components) {
+              const types = component.types;
+              if (types.includes('postal_code')) {
+                zip = component.long_name;
+              }
+              if (types.includes('locality')) {
+                city = component.long_name;
+              }
+              if (types.includes('administrative_area_level_1')) {
+                state = component.short_name;
+              }
+            }
+            
+            // If ZIP is missing, use random ZIP for that state
+            if (!zip && state) {
+              zip = getRandomZip(state);
+            }
+            
+            // If we just have a ZIP but no city/state, look them up
+            if (zip && (!city || !state)) {
+              const cityState = lookupCityStateFromZip(zip);
+              if (cityState) {
+                city = cityState.city || city;
+                state = cityState.state || state;
+              }
+            }
+            
+            input.value = `${zip}, ${city}, ${state}`;
+          });
+          
+          // Handle manual input for partial zip codes
+          input.addEventListener('input', handlePartialZipCodeInput);
+          
+        } catch (error) {
+          console.warn('Error setting up PlaceAutocompleteElement, falling back to legacy Autocomplete:', error);
+          setupLegacyZipCodeAutocomplete(input);
+        }
+      } else {
+        // Use legacy Autocomplete
+        setupLegacyZipCodeAutocomplete(input);
+      }
+    }
+    
+    // Helper function to set up the legacy Autocomplete with focus on zip codes
+    function setupLegacyZipCodeAutocomplete(input) {
+      const autocomplete = new google.maps.places.Autocomplete(input, {
+        types: ['geocode'], // Use geocode which includes postal codes
+        componentRestrictions: { country: "us" }
+      });
+      
+      autocomplete.addListener('place_changed', function () {
+        const place = autocomplete.getPlace();
+        let zip = '', city = '', state = '';
+        if (!place.address_components) return;
+        
+        for (const component of place.address_components) {
+          const types = component.types;
+          if (types.includes('postal_code')) {
+            zip = component.long_name;
+          }
+          if (types.includes('locality')) {
+            city = component.long_name;
+          }
+          if (types.includes('administrative_area_level_1')) {
+            state = component.short_name;
+          }
+        }
+        
+        // If ZIP is missing, use random ZIP for that state
+        if (!zip && state) {
+          zip = getRandomZip(state);
+        }
+        
+        // If we just have a ZIP but no city/state, look them up
+        if (zip && (!city || !state)) {
+          const cityState = lookupCityStateFromZip(zip);
+          if (cityState) {
+            city = cityState.city || city;
+            state = cityState.state || state;
+          }
+        }
+        
+        input.value = `${zip}, ${city}, ${state}`;
+      });
+      
+      // Also handle manual input for partial zip codes
+      input.addEventListener('input', handlePartialZipCodeInput);
+    }
+    
+    // Helper function to handle partial zip code input
+    function handlePartialZipCodeInput(e) {
+      const inputElement = e.target;
+      const value = inputElement.value.trim();
+      
+      // Check if input looks like a partial zip code (starts with digits)
+      if (/^\d{1,4}/.test(value)) {
+        // Use the AutocompleteService to get predictions for the partial zip
+        if (google.maps.places && google.maps.places.AutocompleteService) {
+          const autocompleteService = new google.maps.places.AutocompleteService();
+          
+          autocompleteService.getPlacePredictions({
+            input: value,
+            componentRestrictions: { country: 'us' },
+            types: ['geocode']
+          }, function(predictions, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+              console.log('Zip code predictions:', predictions);
+              
+              // Filter predictions that look like zip codes
+              const zipPredictions = predictions.filter(p => 
+                p.description.includes(value) && 
+                /\d{5}/.test(p.description)
+              );
+              
+              if (zipPredictions.length > 0) {
+                console.log('Found zip code completions:', zipPredictions);
+                // We don't need to do anything here as the built-in autocomplete
+                // will show the suggestions
+              }
+            }
+          });
+        }
+      }
+    }
+    
+    // Helper function to look up city and state from zip code
+    function lookupCityStateFromZip(zip) {
+      // Map common zip codes to city and state
+      const zipData = {
+        // New York
+        '10001': { city: 'New York', state: 'NY' },
+        '10002': { city: 'New York', state: 'NY' },
+        '11201': { city: 'Brooklyn', state: 'NY' },
+        '11101': { city: 'Long Island City', state: 'NY' },
+        
+        // California
+        '90001': { city: 'Los Angeles', state: 'CA' },
+        '90210': { city: 'Beverly Hills', state: 'CA' },
+        '94101': { city: 'San Francisco', state: 'CA' },
+        '95814': { city: 'Sacramento', state: 'CA' },
+        
+        // Florida
+        '33101': { city: 'Miami', state: 'FL' },
+        '32801': { city: 'Orlando', state: 'FL' },
+        '33401': { city: 'West Palm Beach', state: 'FL' },
+        
+        // Texas
+        '75201': { city: 'Dallas', state: 'TX' },
+        '77001': { city: 'Houston', state: 'TX' },
+        '78701': { city: 'Austin', state: 'TX' },
+        
+        // Add more common zip codes as needed
+      };
+      
+      // First, check for an exact match
+      if (zipData[zip]) {
+        return zipData[zip];
+      }
+      
+      // If no exact match, try to find a zip code with similar prefix
+      const zipPrefix = zip.substring(0, 3);
+      for (const knownZip in zipData) {
+        if (knownZip.startsWith(zipPrefix)) {
+          return zipData[knownZip];
+        }
+      }
+      
+      // If no matches, use zip prefix map for approximation
+      const firstDigit = zip.charAt(0);
+      switch(firstDigit) {
+        case '0': return { city: 'Providence', state: 'RI' };
+        case '1': return { city: 'New York', state: 'NY' };
+        case '2': return { city: 'Washington', state: 'DC' };
+        case '3': return { city: 'Atlanta', state: 'GA' };
+        case '4': return { city: 'Cincinnati', state: 'OH' };
+        case '5': return { city: 'Chicago', state: 'IL' };
+        case '6': return { city: 'St. Louis', state: 'MO' };
+        case '7': return { city: 'Dallas', state: 'TX' };
+        case '8': return { city: 'Denver', state: 'CO' };
+        case '9': return { city: 'Los Angeles', state: 'CA' };
+        default: return null;
+      }
+    }
+    
+    // Global callback for Google Maps API
+    window.initGoogleMapsAutocomplete = function() {
+      console.log('Google Maps API loaded. Setting up autocomplete...');
+      
+      // Store API key for reference if needed elsewhere
+      window.googleMapsApiKey = 'AIzaSyAEHRFyXOPNzQadf6VLzIguRvhqCGZNiJA';
+      
+      // Initialize any standalone autocomplete fields
+      const autocompleteInput = document.getElementById('autocomplete');
+      if (autocompleteInput) {
+        initAutocomplete();
+      }
+      
+      // Initialize the widget's autocomplete if the function exists
+      if (typeof setupAutocomplete === 'function') {
+        setupAutocomplete();
+      }
+    };
+  </script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/common.js"></script>
+  <!-- Google Maps API script - Loaded dynamically by widget.js instead -->
+  <!-- If you need to manually load the Google Maps API, uncomment the line below: -->
+  <!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAEHRFyXOPNzQadf6VLzIguRvhqCGZNiJA&libraries=places&callback=initGoogleMapsAutocomplete" async defer></script> -->
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #6c757d;
+      --success-color: #2ecc71;
+      --info-color: #3498db;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+      --light-color: #f8f9fa;
+      --dark-color: #343a40;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f7fb;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .calculator-container {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .info-panel {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .info-panel h5 {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #4A6FDC;
+    }
+    
+    .embed-instructions {
+      margin-top: 2rem;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .code-block {
+      background-color: #f1f3f5;
+      border-radius: 6px;
+      padding: 1rem;
+      margin: 1rem 0;
+      position: relative;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #4A6FDC;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background-color: #3558B2;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.35em 0.65em;
+      font-size: 0.75em;
+      font-weight: 600;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: baseline;
+      border-radius: 0.25rem;
+    }
+
+    .status-badge.connected {
+      background-color: #198754;
+      color: white;
+    }
+
+    .status-badge.disconnected {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    /* Loading spinner */
+    .loading-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 300px;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-top-color: #4A6FDC;
+      animation: spinner 1s linear infinite;
+    }
+
+    @keyframes spinner {
+      to {transform: rotate(360deg);}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="alert-container"></div>
+
+  <div class="admin-layout">
+    <!-- Sidebar will be loaded by JavaScript -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <img id="sidebarLogo" src="https://ui-avatars.com/api/?name=Company&background=random" alt="Logo" class="sidebar-logo" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px;">
+          <span id="sidebarCompanyName">Loading...</span>
+        </div>
+        <button class="sidebar-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li class="sidebar-item">
+          <a href="/static/dashboard.html" class="sidebar-link">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/profile.html" class="sidebar-link">
+            <i class="fas fa-user-circle"></i>
+            <span>Profile</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chatbot_builder.html" class="sidebar-link">
+            <i class="fas fa-robot"></i>
+            <span>Chatbot Builder</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/moving_parameters.html" class="sidebar-link">
+            <i class="fas fa-sliders-h"></i>
+            <span>Moving Parameters</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/test.html" class="sidebar-link">
+            <i class="fas fa-vial"></i>
+            <span>Test Chatbot</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/cost_calculator.html" class="sidebar-link active">
+            <i class="fas fa-calculator"></i>
+            <span>Moving Cost Calculator</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/pricing.html" class="sidebar-link">
+            <i class="fas fa-tag"></i>
+            <span>Pricing Plans</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="#" id="logoutBtn" class="sidebar-link">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="main-header">
+        <div class="header-left">
+          <!-- <button class="header-toggle d-lg-none">
+            <i class="fas fa-bars"></i>
+          </button> -->
+        </div>
+        
+        <div class="header-right">
+          <div class="user-dropdown">
+            <div class="user-info">
+              <div>
+                <div class="user-name">User</div>
+                <div class="user-role">Member</div>
+              </div>
+              <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" class="user-avatar">
+            </div>
+            
+            <div class="user-dropdown-menu" style="display: none; position: absolute; top: 100%; right: 0; background: white; box-shadow: var(--box-shadow); border-radius: var(--border-radius); padding: 0.5rem 0; min-width: 200px; margin-top: 0.5rem; z-index: 1000;">
+              <a href="/static/profile.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+                <i class="fas fa-user-circle"></i> Manage Profile
+              </a>
+              <a href="/static/chatbot_builder.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+                <i class="fas fa-robot"></i> Chatbot Builder
+              </a>
+              <div style="height: 1px; background-color: var(--gray-200); margin: 0.5rem 0;"></div>
+              <a href="#" id="dropdownLogoutBtn" style="display: block; padding: 0.5rem 1rem; color: var(--danger-color);">
+                <i class="fas fa-sign-out-alt"></i> Logout
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Page Container -->
+      <div class="page-container">
+        <div id="alerts-container" class="mt-3"></div>
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="h2">Moving Cost Calculator</h1>
+          <div class="connection-status">
+            API Status: <span id="api-status" class="status-badge disconnected">Checking...</span>
+          </div>
+        </div>
+        
+        <div class="info-panel">
+          <h5>Test Your Calculator</h5>
+          <p>Below is a preview of your moving cost calculator. Try it out to ensure it works properly with your company's moving parameters.</p>
+          <div class="form-group">
+            <label for="staff_email"><i class="fas fa-envelope"></i> Staff Email: <span class="text-danger">*</span></label>
+            <div class="mb-2">All cost calculator quotes will be sent to this email address.</div>
+            <div class="input-group mb-2">
+              <input type="email" id="staff_email" class="form-control" value="info@movergpt.com" required>
+              <div class="input-group-append">
+                <button class="btn btn-primary" onclick="saveStaffEmail()"><i class="fas fa-save"></i> Save</button>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-info mb-3" onclick="sendTestEmail()"><i class="fas fa-paper-plane"></i> Send Test Email</button>
+              <button class="btn btn-warning mb-3" onclick="testWidgetEmail()"><i class="fas fa-wrench"></i> Direct Widget Test</button>
+            </div>
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i> After saving, click "Send Test Email" to verify email delivery is working correctly.
+            </div>
+          </div>
+          <div class="alert alert-warning d-flex align-items-center" role="alert">
+            <i class="fas fa-exclamation-triangle me-3"></i>
+            <div>
+              Before testing, make sure you've properly set up your moving parameters in the <a href="moving_parameters.html" class="alert-link">Moving Parameters</a> section.
+            </div>
+          </div>
+        </div>
+        
+        <div id="calculator-loading" class="loading-container">
+          <div class="spinner"></div>
+        </div>
+        
+        <div class="calculator-container" id="calculator-container" style="display: none;">
+          <div id="moving-cost-calculator-container"></div>
+        </div>
+        
+        <div class="embed-instructions">
+          <h5>Add to Your Website</h5>
+          <p>Copy the code below and paste it into any page on your website where you want the calculator to appear:</p>
+          <div class="form-group mb-3">
+            <label for="websiteUrlInput" class="form-label">Your Website URL (where you'll use the calculator):</label>
+            <input type="text" class="form-control" id="websiteUrlInput" placeholder="https://example.com" value="">
+          </div>
+          <div class="code-block">
+            <button class="copy-btn" id="copy-code-btn">Copy</button>
+            <pre id="embed-code" class="mb-0">Loading embed code...</pre>
+          </div>
+          <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            <span>You can also generate and copy this embed code from your dashboard.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="moving-calculator/js/widget.js"></script>
+  <script>
+    // Global variables
+    let companyId = null;
+    let apiUrl = window.location.origin;
+    let user = null;
+
+    // Document ready
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('cost_calculator.html loaded at', new Date().toISOString());
+      
+      // Initialize
+      initInterface();
+      
+      // Toggle user dropdown
+      const userInfo = document.querySelector('.user-info');
+      if (userInfo) {
+        userInfo.addEventListener('click', function() {
+          const dropdownMenu = document.querySelector('.user-dropdown-menu');
+          if (dropdownMenu) {
+            dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
+          }
+        });
+      }
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(event) {
+        const userInfo = document.querySelector('.user-info');
+        const dropdownMenu = document.querySelector('.user-dropdown-menu');
+        
+        if (userInfo && dropdownMenu && !userInfo.contains(event.target) && !dropdownMenu.contains(event.target)) {
+          dropdownMenu.style.display = 'none';
+        }
+      });
+      
+      // Copy embed code to clipboard
+      document.getElementById('copy-code-btn').addEventListener('click', function() {
+        const codeBlock = document.getElementById('embed-code');
+        const range = document.createRange();
+        range.selectNode(codeBlock);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        
+        this.textContent = 'Copied!';
+        setTimeout(() => {
+          this.textContent = 'Copy';
+        }, 2000);
+      });
+      
+      // Update embed code when website URL changes
+      const websiteUrlInput = document.getElementById('websiteUrlInput');
+      if (websiteUrlInput) {
+        websiteUrlInput.addEventListener('change', function() {
+          const apiUrl = window.location.origin;
+          const companyId = user ? user.company_id : null;
+          if (companyId) {
+            generateEmbedCode(companyId, apiUrl);
+          }
+        });
+        
+        // Set default value to website origin
+        websiteUrlInput.value = window.location.origin;
+      }
+      
+      // Add event listener for logout
+      document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        logout();
+      });
+      
+      // Add event listener for dropdown logout
+      const dropdownLogoutBtn = document.getElementById('dropdownLogoutBtn');
+      if (dropdownLogoutBtn) {
+        dropdownLogoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          logout();
+        });
+      }
+    });
+
+    // Initialize the interface
+    async function initInterface() {
+      try {
+        // Check authentication
+        user = await checkAuth();
+        console.log('Auth check result:', user);
+        
+        if (!user) {
+          console.log('No authenticated user found, redirecting to login...');
+          window.location.href = '/static/login.html';
+          return;
+        }
+        
+        console.log('User authenticated:', user);
+        
+        // Update sidebar company info and user info
+        updateSidebarCompanyInfo(user);
+        updateUserInfo(user);
+        
+        // Get company ID
+        const urlParams = new URLSearchParams(window.location.search);
+        companyId = urlParams.get('company_id') || (user ? user.company_id : null);
+        console.log('Company ID:', companyId);
+        
+        if (!companyId) {
+          console.log('No company ID found');
+          showAlert('Company ID is missing. Please go back to the dashboard.', 'warning');
+          return;
+        }
+        
+        // Check API status
+        checkAPIStatus();
+        
+      } catch (error) {
+        console.error('Error in initInterface:', error);
+        showAlert('Error initializing interface: ' + error.message, 'danger');
+      }
+    }
+    
+    // Update sidebar company info
+    function updateSidebarCompanyInfo(user) {
+      console.log('updateSidebarCompanyInfo called with user:', user);
+      
+      const sidebarLogo = document.getElementById('sidebarLogo');
+      const sidebarCompanyName = document.getElementById('sidebarCompanyName');
+      
+      // Update logo
+      if (user.company_logo) {
+        sidebarLogo.src = user.company_logo;
+      } else if (user.company_name) {
+        sidebarLogo.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.company_name)}&background=random`;
+      }
+      
+      // Update company name
+      sidebarCompanyName.textContent = user.company_name || 'Company Admin';
+    }
+
+    // Function to update the navbar user information
+    function updateUserInfo(user) {
+      console.log('updateUserInfo called with user:', user);
+      if (!user) {
+        console.log('No user provided to updateUserInfo');
+        return;
+      }
+      
+      // Update user name and role in the dropdown
+      const userName = document.querySelector('.user-name');
+      const userRole = document.querySelector('.user-role');
+      const userAvatar = document.querySelector('.user-avatar');
+      
+      console.log('Updating user name to:', user.user_name || 'User');
+      if (userName) {
+        userName.textContent = user.user_name || 'User';
+      }
+      
+      console.log('Updating user role to:', user.role || 'Member');
+      if (userRole) {
+        userRole.textContent = user.role || 'Member';
+      }
+      
+      console.log('Updating user avatar with logo:', user.company_logo);
+      if (userAvatar) {
+        if (user.company_logo) {
+          userAvatar.src = user.company_logo;
+        } else {
+          // Generate avatar based on user name
+          const nameForAvatar = user.user_name || 'User';
+          userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nameForAvatar)}&background=random`;
+        }
+      }
+    }
+
+    // Function to check API status and initialize calculator
+    function checkAPIStatus() {
+      const statusBadge = document.getElementById('api-status');
+      
+      fetch(`${apiUrl}/api/companies/moving-parameters`, {
+        method: 'GET',
+        credentials: 'include'
+      })
+      .then(response => {
+        if (response.ok) {
+          statusBadge.className = 'status-badge connected';
+          statusBadge.textContent = 'Connected';
+          return response.json();
+        } else {
+          statusBadge.className = 'status-badge disconnected';
+          statusBadge.textContent = 'Disconnected';
+          throw new Error('API not available');
+        }
+      })
+      .then(data => {
+        if (data.success) {
+          console.log('Company parameters loaded:', data);
+          
+          // Get company ID
+          fetch('/api/users/profile', {
+            method: 'GET',
+            credentials: 'include'
+          })
+          .then(response => response.json())
+          .then(userData => {
+            if ((userData.success && userData.user && userData.user.company_id) || 
+                (userData.status === 'success' && userData.user && userData.user.company_id)) {
+              companyId = userData.user.company_id;
+              
+              // Get the API key from localStorage
+              const apiKey = localStorage.getItem('jwt_access_token') || 
+                           localStorage.getItem('access_token') || 
+                           sessionStorage.getItem('jwt_access_token') || 
+                           sessionStorage.getItem('access_token');
+              
+              if (!apiKey) {
+                showError('Authentication token not found. Please log in again.');
+                return;
+              }
+
+              // Load existing staff email (server first, fallback to per-company localStorage)
+              const staffEmailInput = document.getElementById('staff_email');
+              if (staffEmailInput) {
+                const serverEmail = data.moving_parameters && data.moving_parameters.email_config && data.moving_parameters.email_config.smtp && data.moving_parameters.email_config.smtp.staff_email;
+                if (serverEmail) {
+                  staffEmailInput.value = serverEmail;
+                } else {
+                  const savedEmail = localStorage.getItem('staff_email_' + companyId);
+                  if (savedEmail) {
+                    staffEmailInput.value = savedEmail;
+                  }
+                }
+              }
+
+              // Add event listener for staff email changes
+              if (staffEmailInput) {
+                staffEmailInput.addEventListener('change', function() {
+                  const newStaffEmail = this.value.trim();
+                  if (newStaffEmail && validateEmail(newStaffEmail)) {
+                    // Update moving parameters with new staff email
+                    fetch(`${apiUrl}/api/companies/save-moving-parameters`, {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                      },
+                      body: JSON.stringify({
+                        email_config: {
+                          smtp: {
+                            staff_email: newStaffEmail
+                          }
+                        }
+                      })
+                    })
+                    .then(response => response.json())
+                    .then(updateData => {
+                      if (updateData.success) {
+                        showAlert('Staff email updated successfully', 'success');
+                      } else {
+                        showAlert('Failed to update staff email', 'danger');
+                      }
+                    })
+                    .catch(error => {
+                      console.error('Error updating staff email:', error);
+                      showAlert('Error updating staff email', 'danger');
+                    });
+                  }
+                });
+              }
+              
+              // Hide loader and show calculator
+              document.getElementById('calculator-loading').style.display = 'none';
+              document.getElementById('calculator-container').style.display = 'block';
+              
+              // Initialize the calculator with the API key
+              initMovingCalculator({
+                companyId: companyId,
+                apiUrl: window.location.origin,
+                apiKey: apiKey,
+                websiteUrl: window.location.origin,
+                containerId: 'moving-cost-calculator-container',
+                primaryColor: '#4A6FDC',
+                secondaryColor: '#6c757d',
+                fontFamily: 'Poppins, sans-serif'
+              });
+              
+              // Generate embed code
+              generateEmbedCode(companyId, apiUrl);
+            } else {
+              showError('Could not determine your company. Please try refreshing the page.');
+            }
+          })
+          .catch(error => {
+            console.error('Error getting user data:', error);
+            showError('Could not retrieve your company information. Please try again later.');
+          });
+        } else {
+          showError('Your moving parameters are not properly configured. Please visit the Moving Parameters page.');
+        }
+      })
+      .catch(error => {
+        console.error('Error checking API status:', error);
+        showError('Could not connect to the API. The server may be down or not properly configured.');
+      });
+    }
+    
+    // Function to show error messages
+    function showError(message) {
+      document.getElementById('calculator-loading').style.display = 'none';
+      
+      const errorContainer = document.createElement('div');
+      errorContainer.className = 'alert alert-danger';
+      errorContainer.innerHTML = `
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span>${message}</span>
+      `;
+      
+      document.getElementById('calculator-container').innerHTML = '';
+      document.getElementById('calculator-container').appendChild(errorContainer);
+      document.getElementById('calculator-container').style.display = 'block';
+    }
+    
+    // Function to generate embed code
+    function generateEmbedCode(companyId, apiUrl) {
+      // Get API key from localStorage or other sources
+      const apiKey = localStorage.getItem('jwt_access_token') || localStorage.getItem('access_token') || '';
+      const currentWebsiteUrl = document.getElementById('websiteUrlInput').value || window.location.origin;
+      const staffEmail = document.getElementById('staff_email').value || 'info@movergpt.com';
+      
+      // Always use app.movergpt.com for API URL in embed code
+      const embedApiUrl = 'https://app.movergpt.com';
+      
+      const scriptCloseTag = '</scr' + 'ipt>';
+      const embedCode = [
+        '<!-- Moving Cost Calculator Widget -->',
+        '<div id="moving-cost-calculator-container"></div>',
+        '<script>',
+        '    (function() {',
+        '        var script = document.createElement(\'script\');',
+        '        script.src = \'' + embedApiUrl + '/static/moving-calculator/js/widget.js\';',
+        '        script.async = true;',
+        '        script.onload = function() {',
+        '            initMovingCalculator({',
+        '                companyId: ' + companyId + ',',
+        '                apiKey: \'' + apiKey + '\',',
+        '                apiUrl: \'' + embedApiUrl + '\',',
+        '                websiteUrl: \'' + currentWebsiteUrl + '\',',
+        '                containerId: \'moving-cost-calculator-container\',',
+        '                primaryColor: \'#4A6FDC\',',
+        '                secondaryColor: \'#6c757d\',',
+        '                fontFamily: \'Arial, sans-serif\',',
+        '                staffEmail: \'' + staffEmail + '\'',
+        '            });',
+        '        };',
+        '        document.head.appendChild(script);',
+        '        ',
+        '        var link = document.createElement(\'link\');',
+        '        link.rel = \'stylesheet\';',
+        '        link.href = \'' + embedApiUrl + '/static/moving-calculator/css/widget.css\';',
+        '        document.head.appendChild(link);',
+        '    })();',
+        scriptCloseTag,
+        '<!-- End Moving Cost Calculator Widget -->'
+      ].join('\n');
+      
+      document.getElementById('embed-code').textContent = embedCode;
+    }
+
+    // Function to show alerts
+    function showAlert(message, type = 'info', timeout = 5000) {
+      const alertsContainer = document.getElementById('alerts-container');
+      if (!alertsContainer) return;
+      
+      const alertElement = document.createElement('div');
+      alertElement.className = `alert alert-${type} alert-dismissible fade show`;
+      alertElement.role = 'alert';
+      
+      alertElement.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      
+      alertsContainer.appendChild(alertElement);
+      
+      // Auto-dismiss non-error alerts after timeout
+      if (type !== 'danger') {
+        setTimeout(() => {
+          alertElement.classList.remove('show');
+          setTimeout(() => {
+            alertElement.remove();
+          }, 150);
+        }, timeout);
+      }
+      
+      // Set up click handler for close button
+      const closeButton = alertElement.querySelector('.btn-close');
+      if (closeButton) {
+        closeButton.addEventListener('click', () => {
+          alertElement.classList.remove('show');
+          setTimeout(() => {
+            alertElement.remove();
+          }, 150);
+        });
+      }
+    }
+
+    function saveStaffEmail() {
+      const staffEmail = document.getElementById('staff_email').value;
+      if (!staffEmail) {
+        alert('Please enter a staff email address');
+        return;
+      }
+      
+      if (!validateEmail(staffEmail)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+      
+      // Save fallback to localStorage for this company
+      if (companyId) {
+        localStorage.setItem('staff_email_' + companyId, staffEmail);
+      }
+      
+      // Update moving parameters via API if user is authenticated
+      const apiKey = localStorage.getItem('jwt_access_token') || 
+                   localStorage.getItem('access_token') || 
+                   sessionStorage.getItem('jwt_access_token') || 
+                   sessionStorage.getItem('access_token');
+                   
+      if (apiKey && companyId) {
+        fetch(`${apiUrl}/api/companies/save-moving-parameters`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            company_id: companyId,
+            email_config: {
+              smtp: {
+                staff_email: staffEmail
+              }
+            }
+          })
+        })
+        .then(response => response.json())
+        .then(updateData => {
+          if (updateData.success) {
+            showAlert('Staff email saved successfully', 'success');
+          } else {
+            console.error('Failed to update staff email on server:', updateData.error);
+            showAlert('Staff email saved locally', 'info');
+          }
+        })
+        .catch(error => {
+          console.error('Error updating staff email:', error);
+          showAlert('Staff email saved locally', 'info');
+        });
+      } else {
+        showAlert('Staff email saved locally', 'info');
+      }
+    }
+    
+    // Validate email function
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
+
+    function sendTestEmail() {
+      const staffEmail = document.getElementById('staff_email').value;
+      if (!staffEmail) {
+        showAlert('Please enter a staff email address', 'warning');
+        return;
+      }
+      
+      if (!validateEmail(staffEmail)) {
+        showAlert('Please enter a valid email address', 'warning');
+        return;
+      }
+      
+      // First, save the email to make sure it's stored
+      saveStaffEmail();
+      
+      // Show loading state
+      const button = event.target;
+      const originalText = button.innerHTML;
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+      
+      // Get the API token
+      const apiKey = localStorage.getItem('jwt_access_token') || 
+                   localStorage.getItem('access_token') || 
+                   sessionStorage.getItem('jwt_access_token') || 
+                   sessionStorage.getItem('access_token');
+      
+      // Prepare test data
+      const testData = {
+        customer_name: "Test Customer",
+        customer_email: staffEmail, // Send to staff email for testing
+        customer_phone: "555-123-4567",
+        staff_email: staffEmail,
+        company_id: companyId || 1,
+        origin: "Test Origin, New York",
+        destination: "Test Destination, Los Angeles",
+        move_date: new Date().toISOString().split('T')[0],
+        move_size: "2-bedroom",
+        distance: 2800,
+        estimate: {
+          base_cost: 960,
+          distance_cost: 4200.00,
+          min_cost: 4128.00,
+          max_cost: 6192.00
+        },
+        smtp_config: {
+          server: "smtp.gmail.com",
+          port: 587,
+          username: "info@movergpt.com",
+          password: "squx iyum vgaw yqhv"
+        },
+        is_test_only: true
+      };
+      
+      // Show additional info
+      showAlert(`Sending test email to ${staffEmail}... Please wait.`, 'info');
+      
+      // Send test email
+      fetch(`${apiUrl}/api/companies/send-estimate-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': apiKey ? `Bearer ${apiKey}` : ''
+        },
+        body: JSON.stringify(testData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Reset button state
+        button.disabled = false;
+        button.innerHTML = originalText;
+        
+        if (data.success) {
+          const successMessage = `
+            Test email successfully sent to ${staffEmail}.<br>
+            <ul>
+              <li>Please check both your inbox and spam folder</li>
+              <li>It may take 1-2 minutes to arrive</li>
+              <li>Sent from: info@movergpt.com</li>
+            </ul>
+          `;
+          showAlert(successMessage, 'success', 10000);
+        } else {
+          const errorDetail = data.error || 'Unknown error';
+          showAlert(`Failed to send test email: ${errorDetail}<br>Please check your staff email address and try again.`, 'danger');
+          console.error('Email sending failed:', data);
+          
+          // Add troubleshooting tips
+          showAlert(`
+            <strong>Troubleshooting tips:</strong><br>
+            <ul>
+              <li>Verify the email address is correct</li>
+              <li>Check if your email provider blocks messages from external services</li>
+              <li>Try a different email address (Gmail, Outlook, etc.)</li>
+              <li>Contact support if the issue persists</li>
+            </ul>
+          `, 'warning');
+        }
+      })
+      .catch(error => {
+        // Reset button state
+        button.disabled = false;
+        button.innerHTML = originalText;
+        
+        console.error('Error sending test email:', error);
+        showAlert(`Error sending test email: ${error.message}`, 'danger');
+        
+        // Add troubleshooting tips for technical errors
+        showAlert(`
+          <strong>Technical error:</strong><br>
+          <ul>
+            <li>Please check your network connection</li>
+            <li>Verify that you're logged in correctly</li>
+            <li>Try refreshing the page and attempt again</li>
+          </ul>
+        `, 'warning');
+      });
+    }
+
+    function testWidgetEmail() {
+      const staffEmail = document.getElementById('staff_email').value;
+      if (!staffEmail) {
+        showAlert('Please enter a staff email address', 'warning');
+        return;
+      }
+      
+      if (!validateEmail(staffEmail)) {
+        showAlert('Please enter a valid email address', 'warning');
+        return;
+      }
+      
+      // Save the email first
+      saveStaffEmail();
+      
+      // Show loading state
+      const button = event.target;
+      const originalText = button.innerHTML;
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+      
+      try {
+        // Create test customer data
+        const customerData = {
+          name: 'Test Customer from Dashboard',
+          email: 'test@example.com',
+          phone: '555-123-4567'
+        };
+        
+        // Access the calculator's test function directly
+        const result = window.testMovingCalculatorEmail(staffEmail, customerData);
+        console.log('Direct test result:', result);
+        showAlert('Widget email test initiated. Check browser console for details.', 'info');
+        
+        // Show additional help
+        showAlert(`
+          <strong>Debugging Steps:</strong><br>
+          <ol>
+            <li>Open browser console (F12 or Ctrl+Shift+J)</li>
+            <li>Look for "DEBUG MODE:" messages</li>
+            <li>Check if there are any errors during the email sending process</li>
+            <li>Verify the staff email is being set correctly</li>
+            <li>Verify customer data is included: ${JSON.stringify(customerData)}</li>
+          </ol>
+        `, 'info', 10000);
+      } catch(e) {
+        console.error('Error running widget email test:', e);
+        showAlert('Error testing widget email: ' + e.message, 'danger');
+      } finally {
+        // Reset button state
+        button.disabled = false;
+        button.innerHTML = originalText;
+      }
+    }
+  </script>
+</body>
+</html>

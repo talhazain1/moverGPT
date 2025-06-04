@@ -2,193 +2,326 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Admin Panel</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
+  <script src="/assets/auth.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Arial', sans-serif;
-    }
     body {
-      background-color: #f8f9fa;
-    }
-    nav {
-      background-color: white;
-      padding: 1rem 5%;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      position: fixed;
-      width: 100%;
-      z-index: 1000;
-    }
-    nav ul {
+      background-color: var(--gray-100);
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      list-style: none;
-    }
-    nav ul li a {
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-      transition: color 0.3s ease;
-    }
-    nav ul li a:hover {
-      color: #6366f1;
-    }
-    .container {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
-      padding: 80px 20px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
+      align-items: center;
+      min-height: 100vh;
+      background-image: url(https://www.movergpt.com/assets/img/joule-dashboard-bg.svg);
     }
-    form {
-      background-color: white;
-      padding: 2.5rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    
+    .login-container {
       width: 100%;
-      max-width: 400px;
-      margin-top: 2rem;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      max-width: 500px;
+      padding: 2rem;
+      animation: fadeIn 0.5s ease-in-out;
     }
-    form:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-    }
-    h1 {
-      color: white;
-      font-size: 2.5rem;
-      margin-bottom: 2rem;
-      text-align: center;
-    }
-    label {
-      color: #333;
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-      display: block;
-    }
-    input {
-      width: 100%;
-      padding: 1rem;
-      margin-bottom: 1.5rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 5px;
-      font-size: 1rem;
-      transition: border-color 0.3s ease;
-    }
-    input:focus {
-      outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-    button {
-      width: 100%;
-      padding: 1rem;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    .btn-primary {
+      margin-top: 10px;
+      background-color: #038e9e !important;
       color: white;
       border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
+    }
+    .login-card {
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 2rem;
+      transform: translateY(0);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    
+    .login-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
     }
+    
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+     .logo {
+      width:110px;
+    }
+    
+    .logo i {
+      font-size: 3rem;
+      color: var(--primary-color);
+    }
+    
+    .login-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 0.5rem;
+    }
+    
+    .login-subtitle {
+      font-size: 0.9rem;
+      color: var(--gray-600);
+    }
+    
     #result {
       margin-top: 1.5rem;
+      font-family: monospace;
+      color: var(--gray-700);
+      font-size: 0.8rem;
+      overflow-x: auto;
+      background-color: var(--gray-100);
       padding: 1rem;
-      background-color: white;
+      border-radius: var(--border-radius);
+      max-height: 200px;
+    }
+    
+    .login-footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 18px;
+      color: black;
+    }
+    
+    .login-footer a {
+       color: #4361ee;
+      text-decoration: none;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    .alert-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      max-width: 350px;
+    }
+    
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    
+    .fadeOut {
+      animation: fadeOut 0.3s ease-in-out forwards;
+    }
+    
+    .alert {
+      padding: 1rem;
+      margin-bottom: 1rem;
       border-radius: 5px;
-      color: #333;
-      width: 100%;
-      max-width: 400px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    /* Shake Animation */
+    
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .alert-danger {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .alert-warning {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    
+    .alert-info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+    }
+    
     @keyframes shake {
       0% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      50% { transform: translateX(5px); }
-      75% { transform: translateX(-5px); }
+      20% { transform: translateX(-10px); }
+      40% { transform: translateX(10px); }
+      60% { transform: translateX(-10px); }
+      80% { transform: translateX(10px); }
       100% { transform: translateX(0); }
     }
+    
     .shake {
-      animation: shake 0.5s;
+      animation: shake 0.5s ease-in-out;
     }
   </style>
 </head>
 <body>
-  <!-- Navigation Bar -->
-  <nav>
-    <ul>
-      <li><a href="/static/index.html">Home</a></li>
-      <!-- <li><a href="/static/register.html">Register</a></li>
-      <li><a href="/static/login.html">Login</a></li> -->
-      <li><a href="/static/profile.html">Profile</a></li>
-      <li><a href="/static/chatbot_builder.html">Chatbot Builder</a></li>
-      <li><a href="/static/admin.html">Admin</a></li>
-      <li><a href="/static/dashboard.html">Dashboard</a></li>
-      <li><a href="/static/test.html">Test Chatbot</a></li>
-      <li><a href="/static/pricing.html">Pricing</a></li>
-    </ul>
-  </nav>
+  <div class="alert-container"></div>
   
-  <div class="container">
-    <h1>Login</h1>
-    <form id="loginForm">
-      <label for="email">Email:</label>
-      <input type="email" id="email" required>
-      <label for="password">Password:</label>
-      <input type="password" id="password" required>
-      <button type="submit">Login</button>
-    </form>
-    <pre id="result"></pre>
-  </div>
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const loginForm = document.getElementById('loginForm');
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      try {
-        const response = await fetch('/api/users/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_email: email, password: password })
-        });
-        const data = await response.json();
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div >
+          <img src="https://www.movergpt.com/assets/img/logo2.0.png" class="logo" alt="comapny-logo">
+        </div>
+        <h1 class="login-title">Company Login</h1>
+        <p class="login-subtitle">Sign in to your account</p>
+      </div>
+      
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address</label>
+          <input type="email" id="email" class="form-control" required>
+        </div>
         
-        if (response.ok) {
-          // Show a success alert before redirecting.
-          alert('Login successful!');
-          // Redirect to profile page.
-          window.location.href = "/static/profile.html";
-        } else {
-          // Add a shake effect to the form.
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" id="password" class="form-control" required>
+        </div>
+        
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+            <label for="remember-me" class="ml-2 block text-sm text-gray-900">Remember me</label>
+          </div>
+
+          <div class="text-sm">
+            <a href="#" id="forgotPassword" class="font-medium text-indigo-600 hover:text-indigo-500">Forgot your password?</a>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+      </form>
+      
+      <pre id="result" style="display: none;"></pre>
+    </div>
+    
+    <div class="login-footer">
+      <p>Don't have an account? <a href="/register.html">Register</a></p>
+    </div>
+  </div>
+  
+  <script>
+    // Alert function
+    function showAlert(message, type = 'info') {
+      const alertContainer = document.querySelector('.alert-container');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type} alert-dismissible fade show`;
+      alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      alertContainer.appendChild(alert);
+      
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      // Check if user is already authenticated
+      const user = await checkAuth();
+      if (user) {
+        // Get the redirect URL from localStorage or default to dashboard
+        const redirectUrl = localStorage.getItem('redirectHash') 
+          ? window.location.pathname + localStorage.getItem('redirectHash')
+          : '/dashboard.html';
+        localStorage.removeItem('redirectHash'); // Clear it after use
+        window.location.href = redirectUrl;
+        return;
+      }
+      
+      document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const loginForm = document.getElementById('loginForm');
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        
+        if (!email || !password) {
+          showAlert('Please enter both email and password', 'warning');
+          return;
+        }
+        
+        // Show loading state
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+        submitBtn.disabled = true;
+        
+        try {
+          const user = await login(email, password);
+          
+          // Reset button state
+          submitBtn.innerHTML = originalBtnText;
+          submitBtn.disabled = false;
+          
+          if (user) {
+            showAlert('Login successful! Redirecting...', 'success');
+            // Get the redirect URL from localStorage or default to dashboard
+            const redirectUrl = localStorage.getItem('redirectHash') 
+              ? window.location.pathname + localStorage.getItem('redirectHash')
+              : '/dashboard.html';
+            localStorage.removeItem('redirectHash'); // Clear it after use
+            setTimeout(() => {
+              window.location.href = redirectUrl;
+            }, 1000);
+          } else {
+            loginForm.classList.add('shake');
+            setTimeout(() => {
+              loginForm.classList.remove('shake');
+            }, 500);
+            showAlert('Login failed. Please check your credentials.', 'danger');
+          }
+        } catch (err) {
+          // Reset button state
+          submitBtn.innerHTML = originalBtnText;
+          submitBtn.disabled = false;
+          
           loginForm.classList.add('shake');
-          // Remove the shake effect after the animation is done.
           setTimeout(() => {
             loginForm.classList.remove('shake');
           }, 500);
-          alert('Please enter correct details.');
+          
+          console.error('Login error:', err);
+          showAlert('Cannot connect to the server. Please try again.', 'danger');
+        }
+      });
+
+      document.getElementById('forgotPassword').addEventListener('click', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        if (!email) {
+          alert('Please enter your email address');
+          return;
         }
         
-        document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-      } catch (err) {
-        loginForm.classList.add('shake');
-        setTimeout(() => {
-          loginForm.classList.remove('shake');
-        }, 500);
-        document.getElementById('result').innerText = err;
-        alert('An error occurred. Please try again.');
-      }
+        try {
+          const response = await fetch('/api/users/forgot-password', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            alert('If your email is registered, you will receive a password reset link');
+          } else {
+            alert(data.error || 'Failed to send reset link');
+          }
+        } catch (error) {
+          alert('An error occurred. Please try again.');
+        }
+      });
     });
   </script>
 </body>

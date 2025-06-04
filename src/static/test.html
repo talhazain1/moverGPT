@@ -1,497 +1,2082 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Test Chatbot with Manual Token Input</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Chatbot - Admin Panel</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
+  <!-- Add jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- CRITICAL FIX: Insert token management script at the very start, before any other scripts -->
+  <script>
+    // Token Management - Fix for session persistence across pages
+    (function() {
+      // This version is compatible with the new TokenManager in auth.js
+      
+      // Get a valid JWT token from various sources
+      function getValidJWTToken() {
+        // Try moving_params_token first (special case)
+        const movingParamsToken = localStorage.getItem('moving_params_token');
+        if (movingParamsToken && movingParamsToken.startsWith('eyJhbGciOiJ')) {
+          console.log('Found special moving_params_token, using it and removing it');
+          localStorage.removeItem('moving_params_token'); 
+          return movingParamsToken;
+        }
+        
+        // Then check for jwt_access_token (used by TokenManager)
+        const jwtToken = localStorage.getItem('jwt_access_token');
+        if (jwtToken && jwtToken.startsWith('eyJhbGciOiJ')) {
+          return jwtToken;
+        }
+        
+        // Try legacy access_token
+        const legacyToken = localStorage.getItem('access_token');
+        if (legacyToken && legacyToken.startsWith('eyJhbGciOiJ')) {
+          return legacyToken;
+        }
+        
+        // Then check sessionStorage
+        const sessionToken = sessionStorage.getItem('jwt_access_token') || 
+                            sessionStorage.getItem('access_token');
+        if (sessionToken && sessionToken.startsWith('eyJhbGciOiJ')) {
+          return sessionToken;
+        }
+        
+        // Finally check cookies
+        const cookieValue = document.cookie.split('; ').find(row => row.startsWith('access_token='));
+        if (cookieValue) {
+          const token = cookieValue.split('=')[1];
+          if (token && token.startsWith('eyJhbGciOiJ')) {
+            return token;
+          }
+        }
+        
+        return null;
+      }
+      
+      // Get a valid JWT token if available
+      const validToken = getValidJWTToken();
+      
+      if (validToken) {
+        console.log('Token management: Valid JWT found, ensuring it is set properly');
+        
+        // Store tokens in both the new TokenManager format and legacy format for compatibility
+        localStorage.setItem('jwt_access_token', validToken); // New TokenManager format
+        localStorage.setItem('access_token', validToken);     // Legacy format
+        sessionStorage.setItem('jwt_access_token', validToken);
+        sessionStorage.setItem('access_token', validToken);
+        
+        // Set cookie directly with correct path and expiry
+        document.cookie = `access_token=${validToken}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+        
+        // The critical fix: override the fetch API to always include the token
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+          if (!options.headers) {
+            options.headers = {};
+          }
+          
+          // Ensure the token is present in the Authorization header
+          if (validToken && !options.headers['Authorization']) {
+            options.headers['Authorization'] = `Bearer ${validToken}`;
+          }
+          
+          return originalFetch(url, options);
+        };
+      }
+    })();
+  </script>
+  <script src="/static/assets/auth.js"></script>
+  <script src="/static/assets/common.js"></script>
   <style>
-    /* Basic Reset and Styling */
-    * {
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #6c757d;
+      --success-color: #2ecc71;
+      --info-color: #3498db;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+      --light-color: #f8f9fa;
+      --dark-color: #343a40;
+      --gray-100: #f8f9fa;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --gray-400: #ced4da;
+      --gray-500: #adb5bd;
+      --gray-600: #6c757d;
+      --gray-700: #495057;
+      --gray-800: #343a40;
+      --gray-900: #212529;
+      --border-radius: 0.25rem;
+      --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f7fb;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
+      color: var(--gray-800);
     }
-    body {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    
+    .admin-layout {
+      display: flex;
       min-height: 100vh;
-      color: #333;
-      padding-top: 60px;
     }
-    nav {
-      background-color: #fff;
-      padding: 1rem 5%;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    
+    .sidebar {
+      width: 260px;
+      background-color: var(--dark-color);
+      color: white;
+      display: flex;
+      flex-direction: column;
       position: fixed;
       top: 0;
+      bottom: 0;
       left: 0;
-      width: 100%;
-      z-index: 1000;
+      z-index: 100;
+      box-shadow: var(--box-shadow);
+      transition: 0.3s ease;
     }
-    nav ul {
+    
+    @media (max-width: 991.98px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      
+      .sidebar.show {
+        transform: translateX(0);
+      }
+    }
+    
+    .response-id {
+      display: none; /* Hide the response ID element */
+    }
+    
+    .star-rating {
+      margin-top: 0.5rem;
+      display: inline-block;
+    }
+    
+    .star-button {
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0 0.25rem;
+    }
+    
+    .star-button:hover, .star-button.selected {
+      color: #ffbf00;
+    }
+    
+    /* Thumbs rating styling */
+    .rating-container {
+      margin-top: 0.5rem;
       display: flex;
-      justify-content: space-around;
-      list-style: none;
+      align-items: center;
+      gap: 0.5rem;
     }
-    nav ul li a {
-      text-decoration: none;
-      color: #333;
+    
+    .rating-button {
+      background: none;
+      border: none;
+      color: var(--gray-500);
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 50%;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    
+    .rating-button:hover {
+      background-color: var(--gray-100);
+    }
+    
+    .rating-button.selected.thumbs-up {
+      color: var(--success-color);
+    }
+    
+    .rating-button.selected.thumbs-down {
+      color: var(--danger-color);
+    }
+    
+    .rating-feedback {
+      font-size: 0.75rem;
+      color: var(--gray-500);
+      margin-left: 0.5rem;
+    }
+    
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    .sidebar-header {
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
       font-weight: bold;
-      transition: color 0.3s ease;
+      font-size: 1.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    nav ul li a:hover {
-      color: #6366f1;
+    
+    .sidebar-logo {
+      width: 32px;
+      height: 32px;
+      margin-right: 10px;
+      border-radius: 50%;
     }
-    .container {
-      max-width: 800px;
-      margin: 100px auto 40px;
-      padding: 2rem;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    
+    .sidebar-toggle {
+      display: none;
+      background: transparent;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    
+    @media (max-width: 991.98px) {
+      .sidebar-toggle {
+        display: block;
+      }
+    }
+    
+    .sidebar-menu {
+      padding: 0.5rem 0;
+      list-style: none;
+      margin: 0;
+      overflow-y: auto;
+      flex: 1;
+    }
+    
+    .sidebar-item {
+      margin: 0.25rem 0;
+    }
+    
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      color: var(--gray-300);
+      text-decoration: none;
+      transition: 0.2s;
+      border-left: 3px solid transparent;
+    }
+    
+    .sidebar-link:hover, .sidebar-link.active {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      border-left-color: var(--primary-color);
+    }
+    
+    .sidebar-link i {
+      margin-right: 0.75rem;
+      font-size: 1.1rem;
+      width: 20px;
       text-align: center;
     }
-    .input-group {
-      margin-bottom: 1rem;
-      text-align: left;
+    
+    .main-content {
+      flex: 1;
+      margin-left: 260px;
+      transition: margin-left 0.3s ease;
     }
-    .input-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: bold;
+    
+    @media (max-width: 991.98px) {
+      .main-content {
+        margin-left: 0;
+      }
     }
-    .input-group input {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 5px;
-      font-size: 1rem;
-    }
-    #chatWindow {
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
+    
+    .main-header {
+      background-color: white;
+      box-shadow: var(--box-shadow);
       padding: 1rem;
-      height: 300px;
-      overflow-y: auto;
-      background: #fafafa;
-      margin-bottom: 1rem;
-      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
-    .message {
-      margin-bottom: 0.75rem;
-      padding: 0.5rem;
-      border-radius: 5px;
+    
+    .header-left {
+      display: flex;
+      align-items: center;
     }
-    .message.user {
-      background: #e0f7fa;
-      text-align: right;
-    }
-    .message.bot {
-      background: #fff3e0;
-      text-align: left;
-    }
-    .timestamp {
-      font-size: 0.8rem;
-      color: #777;
-    }
-    .btn {
-      padding: 0.5rem 1rem;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: #fff;
+    
+    .header-toggle {
+      background: transparent;
       border: none;
-      border-radius: 5px;
+      font-size: 1.25rem;
+      margin-right: 1rem;
       cursor: pointer;
-      font-weight: bold;
-      transition: background 0.3s ease;
-      margin-top: 0.5rem;
+      display: none;
     }
-    .btn:hover {
-      background: #4f46e5;
+    
+    @media (max-width: 991.98px) {
+      .header-toggle {
+        display: block;
+      }
     }
-    .chat-input {
-      width: 80%;
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+    }
+    
+    .user-dropdown {
+      position: relative;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
       padding: 0.5rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 5px;
-      font-size: 1rem;
+      border-radius: var(--border-radius);
+      transition: background-color 0.2s;
     }
-    .debug {
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      background: #f0f0f0;
-      padding: 0.5rem;
-      border-radius: 5px;
-      text-align: left;
-      max-height: 200px;
+    
+    .user-info:hover {
+      background-color: var(--gray-100);
+    }
+    
+    .user-name {
+      font-weight: 500;
+    }
+    
+    .user-role {
+      font-size: 0.75rem;
+      color: var(--gray-500);
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-left: 0.75rem;
+      object-fit: cover;
+    }
+    
+    .page-container {
+      padding: 1.5rem;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      border: none;
+      margin-bottom: 1.5rem;
+    }
+    
+    .card-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .card-body {
+      padding: 1.5rem;
+    }
+    
+    /* Chat container styling */
+    #chat-container {
+      height: 500px;
       overflow-y: auto;
+      padding: 1rem;
+      border: 1px solid var(--gray-200);
+      border-radius: 0.5rem;
+      background-color: var(--gray-50);
     }
-    /* Shaking animation for invalid login */
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      20% { transform: translateX(-10px); }
-      40% { transform: translateX(10px); }
-      60% { transform: translateX(-10px); }
-      80% { transform: translateX(10px); }
-      100% { transform: translateX(0); }
+    
+    /* Message styling */
+    .message {
+      margin-bottom: 1rem;
+      max-width: 80%;
+      clear: both;
+      position: relative;
     }
-    .shake {
-      animation: shake 0.5s;
+    
+    .message.user {
+      float: right;
+      background-color: var(--primary-color);
+      color: white;
+      border-radius: 1rem 0 1rem 1rem;
+      padding: 0.75rem 1rem;
+      margin-left: 20%;
+    }
+    
+    .message.bot {
+      float: left;
+      background-color: var(--gray-100);
+      color: var(--gray-900);
+      border-radius: 0 1rem 1rem 1rem;
+      padding: 0.75rem 1rem;
+      margin-right: 20%;
+    }
+    
+    .message-timestamp {
+      font-size: 0.7rem;
+      color: var(--gray-500);
+      margin-top: 0.25rem;
+    }
+    
+    .message.user .message-timestamp {
+      text-align: right;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    /* Typing indicator */
+    @keyframes typing-dot {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.6; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 2rem;
+      height: 2rem;
+      border: 0.25rem solid rgba(0, 123, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <nav>
-    <ul>
-      <li><a href="/static/index.html">Home</a></li>
-      <li><a href="/static/profile.html">Profile</a></li>
-      <li><a href="/static/chatbot_builder.html">Chatbot Builder</a></li>
-      <li><a href="/static/admin.html">Admin</a></li>
-      <li><a href="/static/pricing.html">Pricing</a></li>
-    </ul>
-  </nav>
-  
-  <div class="container">
-    <h1>Test Chatbot with Manual Token Input</h1>
-    
-    <!-- Token Input Section -->
-    <div class="input-group">
-      <label for="tokenInput">Paste Your Valid Token:</label>
-      <input type="text" id="tokenInput" placeholder="Paste JWT token here">
-    </div>
-    <button class="btn" id="setTokenBtn">Set Token</button>
-    
-    <!-- Company ID Input Section -->
-    <div class="input-group">
-      <label for="company_id">Enter Company ID:</label>
-      <input type="number" id="company_id" placeholder="e.g., 7" required>
-    </div>
-    <button class="btn" id="loadChatbotBtn">Load Chatbot</button>
-    
-    <!-- Chat Interface -->
-    <div id="chatInterface" style="display:none; margin-top:2rem;">
-      <div id="chatWindow"></div>
-      <div class="input-group">
-        <input type="text" id="userMessage" class="chat-input" placeholder="Type your message...">
+  <div class="alert-container"></div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <img id="sidebarLogo" src="https://ui-avatars.com/api/?name=Company&background=random" alt="Logo" class="sidebar-logo" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px;">
+          <div id="company-avatar" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; display: none; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 14px;"></div>
+          <span id="sidebarCompanyName">Company Admin</span>
+        </div>
+        <button class="sidebar-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
       </div>
-      <button class="btn" id="sendMessageBtn">Send Message</button>
-      <button class="btn" id="endChatBtn" style="margin-top:1rem;">End Chat</button>
+      
+      <ul class="sidebar-menu">
+        <li class="sidebar-item">
+          <a href="/static/dashboard.html" class="sidebar-link">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/profile.html" class="sidebar-link">
+            <i class="fas fa-user-circle"></i>
+            <span>Profile</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chatbot_builder.html" class="sidebar-link">
+            <i class="fas fa-robot"></i>
+            <span>Chatbot Builder</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/test.html" class="sidebar-link active">
+            <i class="fas fa-vial"></i>
+            <span>Test Chatbot</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/cost_calculator.html" class="sidebar-link">
+            <i class="fas fa-calculator"></i>
+            <span>Moving Cost Calculator</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/moving_parameters.html" class="sidebar-link">
+            <i class="fas fa-sliders-h"></i>
+            <span>Moving Parameters</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chat_analysis.html" class="sidebar-link">
+            <i class="fas fa-comments-dollar"></i>
+            <span>Chat Analysis</span>
+          </a>
+        </li>
+        <!-- <li class="sidebar-item">
+          <a href="/static/admin.html" class="sidebar-link">
+            <i class="fas fa-cog"></i>
+            <span>Admin Settings</span>
+          </a>
+        </li> -->
+        <li class="sidebar-item">
+          <a href="/static/pricing.html" class="sidebar-link">
+            <i class="fas fa-tag"></i>
+            <span>Pricing Plans</span>
+          </a>
+        </li>
+        <!-- <li class="sidebar-item">
+          <a href="/static/index.html" class="sidebar-link">
+            <i class="fas fa-home"></i>
+            <span>Landing Page</span>
+          </a>
+        </li> -->
+        <li class="sidebar-item">
+          <a href="#" id="logoutBtn" class="sidebar-link">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </li>
+      </ul>
     </div>
     
-    <!-- Debug Log -->
-    <div class="debug" id="debugLog"></div>
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="main-header">
+        <div class="header-left">
+          <!-- <button class="header-toggle d-lg-none">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h4>Test Chatbot</h4> -->
+        </div>
+        
+        <div class="header-right">
+          <div class="user-dropdown">
+            <div class="user-info">
+              <div>
+                <div class="user-name">User</div>
+                <div class="user-role">Member</div>
+              </div>
+              <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" class="user-avatar">
+            </div>
+            
+            <div class="user-dropdown-menu" style="display: none; position: absolute; top: 100%; right: 0; background: white; box-shadow: var(--box-shadow); border-radius: var(--border-radius); padding: 0.5rem 0; min-width: 200px; margin-top: 0.5rem; z-index: 1000;">
+              <a href="/static/profile.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+                <i class="fas fa-user-circle"></i> Manage Profile
+              </a>
+              <a href="/static/chatbot_builder.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+                <i class="fas fa-robot"></i> Chatbot Builder
+              </a>
+              <div style="height: 1px; background-color: var(--gray-200); margin: 0.5rem 0;"></div>
+              <a href="#" id="dropdownLogoutBtn" style="display: block; padding: 0.5rem 1rem; color: var(--danger-color);">
+                <i class="fas fa-sign-out-alt"></i> Logout
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Page Container -->
+      <div class="page-container">
+        <div id="alerts-container" class="mt-3"></div>
+        <div class="card mb-4">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">Chat with your Chatbot</h5>
+              <div>
+                <button type="button" id="refreshChatbotBtn" class="btn btn-sm btn-outline-secondary mr-2">
+                  <i class="fas fa-sync-alt"></i> Refresh Status
+                </button>
+                <button type="button" id="clearChatBtn" class="btn btn-sm btn-outline-secondary">
+                  <i class="fas fa-trash-alt"></i> Clear Chat
+                </button>
+              </div>
+            </div>
+            <p class="mt-2 text-muted">This is where you can test your chatbot's responses in real-time.</p>
+          </div>
+          <div class="card-body">
+            <div id="chat-container"></div>
+            
+            <div id="typing-indicator" style="display: none; margin-top: 0.5rem; margin-bottom: 0.5rem;">
+              <div style="background-color: var(--gray-100); padding: 0.5rem 1rem; border-radius: 1rem; display: inline-flex; align-items: center;">
+                <span style="margin-right: 0.5rem; color: var(--gray-700);">Typing</span>
+                <span class="typing-dot" style="width: 6px; height: 6px; background-color: var(--gray-500); border-radius: 50%; margin: 0 2px; display: inline-block; animation: typing-dot 1.4s infinite ease-in-out;"></span>
+                <span class="typing-dot" style="width: 6px; height: 6px; background-color: var(--gray-500); border-radius: 50%; margin: 0 2px; display: inline-block; animation: typing-dot 1.4s infinite ease-in-out; animation-delay: 0.2s;"></span>
+                <span class="typing-dot" style="width: 6px; height: 6px; background-color: var(--gray-500); border-radius: 50%; margin: 0 2px; display: inline-block; animation: typing-dot 1.4s infinite ease-in-out; animation-delay: 0.4s;"></span>
+              </div>
+            </div>
+            
+            <div class="mt-3" style="position: relative;">
+              <textarea id="user-input" class="form-control" placeholder="Type your message..." rows="1" style="padding-right: 4.5rem; resize: none; min-height: 38px; max-height: 150px;"></textarea>
+              <button id="send-button" class="btn btn-primary" style="position: absolute; right: 0; top: 0; bottom: 0; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                <i class="fas fa-paper-plane"></i> Send
+              </button>
+            </div>
+            
+            <div id="loading-indicator" class="text-center mt-3" style="display: none;">
+              <div class="spinner"></div>
+              <p class="mt-2">Thinking...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  
+
   <script>
-    document.addEventListener("DOMContentLoaded", async function() {
-      // Helper: Log debug messages.
-      function logDebug(message) {
-        console.log(message);
-        const debugDiv = document.getElementById('debugLog');
-        debugDiv.innerHTML += "<p>" + message + "</p>";
+    // Clear any pending redirects from other pages
+    window.onload = function() {
+      console.log('test.html loaded at', new Date().toISOString());
+      
+      // Clear any setTimeout calls that might be pending from other pages
+      const highestTimeoutId = setTimeout(";");
+      for (let i = 0; i < highestTimeoutId; i++) {
+        clearTimeout(i);
+      }
+    };
+    
+    // Function to update the sidebar company info
+    function updateSidebarCompanyInfo(user) {
+      console.log('updateSidebarCompanyInfo called with user:', user);
+      
+      // Try to get company_id either from user or from URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const company_id = user.company_id || urlParams.get('company_id');
+      
+      // If we have a company_id but no company_name, fetch it
+      if (company_id && (!user.company_name || user.company_name === 'Company Admin')) {
+        console.log('No company name available, fetching from API for company_id:', company_id);
+        fetchCompanyInfo(company_id).then(companyInfo => {
+          if (companyInfo && companyInfo.name) {
+            console.log('Got company name from API:', companyInfo.name);
+            document.getElementById('sidebarCompanyName').textContent = companyInfo.name;
+            
+            // Update the avatar with the first two letters if no logo
+            if (!user.company_logo) {
+              const initials = companyInfo.name
+                .split(' ')
+                .map(word => word.charAt(0))
+                .join('')
+                .substring(0, 2)
+                .toUpperCase();
+              
+              console.log('Company initials from API:', initials);
+              document.getElementById('company-avatar').textContent = initials;
+              
+              // Generate a consistent color based on company name
+              const hash = companyInfo.name.split('').reduce((acc, char) => {
+                  return char.charCodeAt(0) + ((acc << 5) - acc);
+              }, 0);
+              
+              const hue = Math.abs(hash % 360);
+              document.getElementById('company-avatar').style.backgroundColor = `hsl(${hue}, 70%, 60%)`;
+            }
+          }
+        }).catch(error => {
+          console.error('Error fetching company info:', error);
+        });
+      } else {
+        // Set company name, default to "Company Admin" if not available
+        const companyName = user.company_name || "Company Admin";
+        console.log('Setting company name to:', companyName);
+        document.getElementById('sidebarCompanyName').textContent = companyName;
       }
       
-      // Helper: Decode JWT payload (for debugging purposes only).
-      function decodeJWT(token) {
+      // Update logo
+      const logoElement = document.getElementById('sidebarLogo');
+      const avatarElement = document.getElementById('company-avatar');
+      
+      console.log('Company logo:', user.company_logo);
+      
+      if (user.company_logo) {
+        // Show logo, hide avatar
+        console.log('Using company logo');
+        logoElement.src = user.company_logo;
+        logoElement.style.display = 'block';
+        avatarElement.style.display = 'none';
+      } else {
+        // No logo, show avatar with initials
+        console.log('Using company avatar with initials');
+        logoElement.style.display = 'none';
+        avatarElement.style.display = 'flex';
+        
+        // Get initials (up to 2 characters)
+        const initials = user.company_name
+            ? user.company_name.split(' ').map(word => word.charAt(0)).join('').substring(0, 2).toUpperCase()
+            : "CA"; // Default to "CA" for "Company Admin"
+        
+        console.log('Company initials:', initials);
+        avatarElement.textContent = initials;
+        
+        // Generate a consistent color based on company name
+        const hash = (user.company_name || "Company Admin").split('').reduce((acc, char) => {
+            return char.charCodeAt(0) + ((acc << 5) - acc);
+        }, 0);
+        
+        const hue = Math.abs(hash % 360);
+        avatarElement.style.backgroundColor = `hsl(${hue}, 70%, 60%)`;
+      }
+    }
+    
+    // Function to fetch company information
+    async function fetchCompanyInfo(companyId) {
+      console.log('Fetching company info for company ID:', companyId);
+      try {
+        const token = getToken(); // From auth.js
+        if (!token) {
+          console.error('No auth token available for company info fetch');
+          return null;
+        }
+        
+        const response = await fetch(`/api/companies/${companyId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch company info: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Company info API response:', data);
+        return data;
+      } catch (error) {
+        console.error('Error fetching company info:', error);
+        // Try alternate API endpoint if the first one fails
         try {
-          const payloadBase64 = token.split('.')[1];
-          const payloadDecoded = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
-          return JSON.parse(payloadDecoded);
-        } catch (e) {
-          logDebug("Error decoding JWT: " + e.message);
+          const token = getToken();
+          const response = await fetch(`/api/companies/info?company_id=${companyId}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch from alternate endpoint: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          console.log('Company info from alternate API:', data);
+          return data;
+        } catch (altError) {
+          console.error('Error fetching from alternate endpoint:', altError);
           return null;
         }
       }
-      
-      // Helper: Get token from localStorage.
-      function getToken() {
-        const t = localStorage.getItem('token');
-        logDebug("Current token from localStorage: " + t);
-        return t;
+    }
+    
+    // Function to update the navbar user information
+    function updateUserInfo(user) {
+      console.log('updateUserInfo called with user:', user);
+      if (!user) {
+        console.log('No user provided to updateUserInfo');
+        return;
       }
       
-      // Authentication check: Try to load profile. If not valid, redirect to login.
-      async function checkAuth() {
-        try {
-          const res = await fetch('/api/users/profile', { method: 'GET', credentials: 'include' });
-          if (!res.ok) {
-            throw new Error("Unauthorized");
-          }
-          const data = await res.json();
-          if (!data.user) {
-            throw new Error("No user data");
-          }
-          logDebug("User authenticated.");
-          return true;
-        } catch (err) {
-          logDebug("Authentication error: " + err.message);
-          window.location.href = "/static/login.html";
-          return false;
+      // Update user name and role in the dropdown
+      const userName = document.querySelector('.user-name');
+      const userRole = document.querySelector('.user-role');
+      const userAvatar = document.querySelector('.user-avatar');
+      
+      console.log('Updating user name to:', user.user_name || 'User');
+      if (userName) {
+        userName.textContent = user.user_name || 'User';
+      }
+      
+      console.log('Updating user role to:', user.role || 'Member');
+      if (userRole) {
+        userRole.textContent = user.role || 'Member';
+      }
+      
+      console.log('Updating user avatar with logo:', user.company_logo);
+      if (userAvatar) {
+        if (user.company_logo) {
+          userAvatar.src = user.company_logo;
+        } else {
+          // Generate avatar based on user name
+          const nameForAvatar = user.user_name || 'User';
+          userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nameForAvatar)}&background=random`;
         }
       }
+    }
+    
+    // Store the conversation history
+    let conversationHistory = [];
+    let companyId = null;
+    let userId = null;
+    let chatSessionId = localStorage.getItem('chat_session_id');
+    let botName = 'Chatbot';
+    let isChatbotTrained = false; // Flag to track if the chatbot is trained
+
+    // Create a global variable to expose moving parameters for development/testing
+    window.MOCK_MOVING_PARAMETERS = null;
+    try {
+      // Try to load the mock parameters from localStorage that were saved in moving_parameters.html
+      const savedParamsString = localStorage.getItem('mock_moving_parameters');
+      if (savedParamsString) {
+        window.MOCK_MOVING_PARAMETERS = JSON.parse(savedParamsString);
+        console.log("Loaded saved moving parameters from localStorage for chatbot use:", window.MOCK_MOVING_PARAMETERS);
+      }
+    } catch (e) {
+      console.error("Error loading mock moving parameters from localStorage:", e);
+    }
+
+    // Function to initialize the test interface
+    async function initTestInterface() {
+      console.log('Starting initTestInterface...');
       
-      // Set token manually.
-      function setToken() {
-        const token = document.getElementById('tokenInput').value.trim();
-        if (token) {
-          localStorage.setItem('token', token);
-          logDebug("Token set manually to: " + token);
-          const payload = decodeJWT(token);
-          if (payload && payload.company_id) {
-            logDebug("Token payload company_id: " + payload.company_id);
+      // Show loading indicator
+      const loadingIndicator = document.getElementById('loading-indicator');
+      if (loadingIndicator) {
+        loadingIndicator.style.display = 'block';
+      }
+      
+      try {
+        console.log('Checking authentication...');
+        // Check if authenticated
+        const user = await checkAuth();
+        console.log('Auth check result:', user);
+        
+        if (!user) {
+          console.log('No authenticated user found, redirecting to login...');
+          window.location.href = '/static/login.html';
+          return;
+        }
+        
+        console.log('User authenticated:', {
+          id: user.id,
+          company_id: user.company_id,
+          company_name: user.company_name,
+          user_name: user.user_name
+        });
+        
+        // Update sidebar company info and user info
+        console.log('Updating sidebar company info...');
+        updateSidebarCompanyInfo(user);
+        console.log('Updating user info...');
+        updateUserInfo(user);
+        
+        // Get company ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        companyId = urlParams.get('company_id') || (user ? user.company_id : null);
+        console.log('Company ID:', companyId);
+        
+        if (!companyId) {
+          console.log('No company ID found');
+          showAlert('Company ID is missing. Please go back to the dashboard and select a chatbot to test.', 'warning');
+          if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+          }
+          return;
+        }
+        
+        // Store user ID if available
+        if (user && user.id) {
+          userId = user.id;
+          console.log('User ID set:', userId);
+        }
+        
+        // Restore session if available
+        const savedSessionId = localStorage.getItem('chat_session_id');
+        if (savedSessionId) {
+          chatSessionId = savedSessionId;
+          console.log('Restored chat session ID:', chatSessionId);
+        }
+        
+        // Add event listener for logout
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          console.log('Logout button clicked');
+          logout();
+        });
+        
+        // Initialize dropdown menu functionality
+        const userDropdown = document.querySelector('.user-dropdown');
+        const dropdownMenu = document.querySelector('.user-dropdown-menu');
+        
+        if (userDropdown && dropdownMenu) {
+          console.log('Setting up dropdown menu...');
+          userDropdown.addEventListener('click', function() {
+            dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
+          });
+          
+          // Close the dropdown when clicking outside
+          document.addEventListener('click', function(event) {
+            if (!userDropdown.contains(event.target)) {
+              dropdownMenu.style.display = 'none';
+            }
+          });
+          
+          // Add event listener for dropdown logout button
+          document.getElementById('dropdownLogoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Dropdown logout button clicked');
+            logout();
+          });
+        }
+        
+        console.log('Adding welcome message...');
+        // Add welcome message
+        addMessage(`Welcome to the Chatbot Test Interface! Type a message to start a conversation with ${botName}.`, 'bot');
+        
+        console.log('Checking chatbot status...');
+        // Now check if chatbot is trained already
+        await checkChatbotStatus();
+        
+        console.log('initTestInterface completed successfully');
+        
+      } catch (error) {
+        console.error('Error in initTestInterface:', error);
+        console.error('Error stack:', error.stack);
+        showAlert('Error initializing test interface: ' + error.message, 'danger');
+      } finally {
+        // Hide loading indicator
+        if (loadingIndicator) {
+          loadingIndicator.style.display = 'none';
+        }
+        console.log('initTestInterface completed');
+      }
+    }
+
+    // Check if the chatbot is trained
+    async function checkChatbotStatus() {
+      try {
+        // First get the chatbot info to see if we already have data
+        const infoResponse = await fetch(`/api/chatbot/info?company_id=${companyId}`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (infoResponse.ok) {
+          const infoData = await infoResponse.json();
+          console.log('Chatbot info response:', infoData);
+          
+          // Handle different API response formats
+          let chatbot = null;
+          if (infoData.success && infoData.chatbot) {
+            chatbot = infoData.chatbot;
+          } else if (infoData.status === 'success' && infoData.data) {
+            chatbot = infoData.data;
+          }
+          
+          if (chatbot) {
+            console.log('Found chatbot:', chatbot);
+            
+            // Determine if the chatbot is trained based on multiple potential indicators
+            // We need to check various fields since different API versions might use different fields
+            const hasTrained = 
+              // Explicit is_trained flag
+              (chatbot.is_trained === true) || 
+              // Check if trained_model exists and is not null
+              (chatbot.trained_model !== null && chatbot.trained_model !== undefined) ||
+              // Check if last_trained_at exists and is not null
+              (chatbot.last_trained_at !== null && chatbot.last_trained_at !== undefined) ||
+              // Check for specific training fields in configuration
+              (chatbot.configuration && chatbot.configuration.trained === true);
+            
+            console.log('Chatbot training status determined as:', hasTrained);
+            
+            // Set the global state
+            isChatbotTrained = hasTrained;
+            botName = chatbot.bot_name || chatbot.name || 'Chatbot';
+            
+            // Local storage can help persist training state across refreshes
+            const savedTrainingState = localStorage.getItem('chatbot_trained_state');
+            if (savedTrainingState === 'true' && !isChatbotTrained) {
+              console.log('Using saved training state from localStorage');
+              isChatbotTrained = true;
+            } else {
+              // Save current state to localStorage
+              localStorage.setItem('chatbot_trained_state', isChatbotTrained);
+            }
+            
+            if (!isChatbotTrained) {
+              addMessage("Hello! I don't have any trained knowledge yet. Please upload documents in the Chatbot Builder and train me before testing.", 'bot');
+              
+              // Add a train chatbot button
+              const cardHeader = document.querySelector('.card-header > div > div');
+              if (!document.querySelector('.btn-outline-primary')) {
+                const trainButton = document.createElement('button');
+                trainButton.className = 'btn btn-sm btn-outline-primary ml-2';
+                trainButton.innerHTML = '<i class="fas fa-graduation-cap"></i> Train Chatbot';
+                trainButton.addEventListener('click', trainChatbot);
+                cardHeader.appendChild(trainButton);
+              }
+              
+              // Show a warning alert
+              showAlert("Your chatbot needs training. Please go to the Chatbot Builder, add content, and save changes to train your chatbot.", "warning");
+            } else {
+              addMessage(`Hello! I'm ${botName}. How can I help you today?`, 'bot');
+              
+              // Add a message about rating after a delay
+              setTimeout(() => {
+                addMessage("Don't forget to rate my responses using the stars or thumbs buttons! Your feedback helps me improve.", 'bot');
+              }, 1000);
+              
+              // Remove any existing train button if chatbot is already trained
+              const trainButton = document.querySelector('.btn-outline-primary');
+              if (trainButton && trainButton.innerHTML.includes('Train Chatbot')) {
+                trainButton.remove();
+              }
+            }
+            
+            // Create a chat session if needed
+            if (!chatSessionId) {
+              try {
+                const sessionResponse = await fetch('/api/chatbot/session', {
+                  method: 'POST',
+                  credentials: 'include',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    company_id: companyId,
+                    chatbot_id: chatbot.id
+                  })
+                });
+                
+                const sessionData = await sessionResponse.json();
+                
+                if (sessionData.success && sessionData.session_id) {
+                  chatSessionId = sessionData.session_id;
+                  localStorage.setItem('chat_session_id', chatSessionId);
+                  console.log('Created new chat session:', chatSessionId);
+                }
+              } catch (sessionError) {
+                console.error('Error creating chat session:', sessionError);
+              }
+            }
+          } else {
+            console.error('No chatbot found in response:', infoData);
+            addMessage("Hello! It looks like you haven't created a chatbot yet. Please go to the Chatbot Builder to create and train a chatbot first.", 'bot');
+            document.getElementById('user-input').disabled = true;
+            document.getElementById('send-button').disabled = true;
+            showAlert("No chatbot found. Please create one in the Chatbot Builder.", "warning");
           }
         } else {
-          // Shake the token input field for invalid entry.
-          const tokenInput = document.getElementById('tokenInput');
-          tokenInput.classList.add('shake');
-          setTimeout(() => tokenInput.classList.remove('shake'), 500);
-          alert("Please paste a valid token.");
+          console.error('Error fetching chatbot info:', infoResponse.status, infoResponse.statusText);
+          addMessage("I couldn't connect to the chatbot service. Please try again later or contact support if the issue persists.", 'bot');
         }
-      }
-      
-      // Global variables.
-      let session_id = null;
-      let conversation = [];
-      
-      // Load chatbot configuration using company ID.
-      async function loadChatbot() {
-        const company_id_input = document.getElementById('company_id').value.trim();
-        if (!company_id_input) {
-          alert("Please enter a valid Company ID.");
-          return;
-        }
-        const token = getToken();
-        const payload = decodeJWT(token);
-        if (!payload) {
-          alert("Invalid token. Please set a valid token.");
-          return;
-        }
-        // Check if entered company ID matches token's company_id.
-        if (String(payload.company_id) !== company_id_input) {
-          alert("Entered Company ID (" + company_id_input +
-                ") does not match the token's company ID (" + payload.company_id + ").");
-          return;
-        }
-        try {
-          logDebug("Loading chatbot config for company_id: " + company_id_input);
-          const response = await fetch(`/api/admin/chatbots?client_id=${company_id_input}`, {
-            method: 'GET',
-            credentials: 'include',
-            headers: { 'Authorization': 'Bearer ' + token }
-          });
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error("Failed to load chatbot config: " + response.status + " " + errorText);
-          }
-          const config = await response.json();
-          logDebug("Chatbot config loaded: " + JSON.stringify(config));
-          // Display chat interface and create a new chat session.
-          document.getElementById('chatInterface').style.display = 'block';
-          await createChatSession();
-          // Automatically add a greeting message from the bot.
-          const greeting = "Hello, welcome to our chatbot! How can I assist you today? 😊";
-          conversation.push({
-            sender: "bot",
-            message: greeting,
-            timestamp: new Date().toISOString()
-          });
-          renderConversation();
-        } catch (err) {
-          console.error(err);
-          alert("Error loading chatbot config: " + err.message);
-        }
-      }
-      
-      // Create a new chat session.
-      async function createChatSession() {
-        const token = getToken();
-        try {
-          logDebug("Creating chat session using token: " + token);
-          const response = await fetch('/api/chatbot/session', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Authorization': 'Bearer ' + token }
-          });
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error("Session creation failed: " + response.status + " " + errorText);
-          }
-          const data = await response.json();
-          if (data.session_id) {
-            session_id = data.session_id;
-            localStorage.setItem('chat_session_id', session_id);
-            logDebug("New session created with session_id: " + session_id);
-          }
-        } catch (err) {
-          console.error("Error creating chat session:", err);
-          logDebug("Error creating chat session: " + err.message);
-        }
-      }
-      
-      // Fetch chat history.
-      async function fetchChatHistory() {
-        if (!session_id) {
-          logDebug("No session_id available to fetch history.");
-          return;
-        }
-        const token = getToken();
-        try {
-          logDebug("Fetching chat history for session: " + session_id);
-          const response = await fetch(`/api/chatbot/session/${session_id}/messages`, {
-            method: 'GET',
-            credentials: 'include',
-            headers: { 'Authorization': 'Bearer ' + token }
-          });
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error("Failed to fetch chat history: " + response.status + " " + errorText);
-          }
-          const data = await response.json();
-          conversation = data.messages || [];
-          renderConversation();
-        } catch (err) {
-          console.error("Error fetching chat history:", err);
-          logDebug("Error fetching chat history: " + err.message);
-        }
-      }
-      
-      // Render conversation in chat window.
-      function renderConversation() {
-        const chatWindow = document.getElementById('chatWindow');
-        chatWindow.innerHTML = "";
-        conversation.forEach(msg => {
-          const div = document.createElement('div');
-          div.className = 'message ' + msg.sender;
-          const time = msg.timestamp ? `<span class="timestamp">${new Date(msg.timestamp).toLocaleTimeString()}</span>` : "";
-          div.innerHTML = `<strong>${msg.sender === 'user' ? 'You' : 'Bot'}:</strong> ${msg.message} ${time}`;
-          chatWindow.appendChild(div);
-        });
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-      }
-      
-      // Send a message.
-      async function sendMessage() {
-        if (!session_id) {
-          logDebug("No session_id available. Cannot send message.");
-          return;
-        }
-        const company_id = document.getElementById('company_id').value.trim();
-        if (!company_id) {
-          alert("Please enter a valid Company ID.");
-          return;
-        }
-        const messageInput = document.getElementById('userMessage');
-        const text = messageInput.value.trim();
-        if (!text) return;
         
-        conversation.push({
-          sender: "user",
-          message: text,
-          timestamp: new Date().toISOString()
-        });
-        renderConversation();
-        messageInput.value = "";
+        // Add the View Knowledge Base button
+        addViewKnowledgeBaseOption();
         
-        const token = getToken();
-        try {
-          logDebug("Sending message with token: " + token);
-          const response = await fetch('/api/chatbot/inference', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + token
-            },
-            body: JSON.stringify({
-              company_id: Number(company_id),
-              query: text,
-              history: conversation
-            })
-          });
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error("Failed to send message: " + response.status + " " + errorText);
-          }
-          const data = await response.json();
-          logDebug("Chatbot inference response: " + JSON.stringify(data));
-          conversation.push({
-            sender: "bot",
-            message: data.response || "No reply",
-            timestamp: new Date().toISOString()
-          });
-          renderConversation();
-        } catch (err) {
-          console.error("Error sending message:", err);
-          alert("Error sending message: " + err.message);
-        }
+        // Add the View Statistics button
+        addViewStatisticsOption();
+      } catch (error) {
+        console.error('Error checking chatbot status:', error);
+        addMessage("There was an error checking the chatbot status. Please try refreshing the page.", 'bot');
       }
+    }
+
+    // Function to train the chatbot
+    async function trainChatbot() {
+      const chatContainer = document.getElementById('chat-container');
       
-      // End the chat session.
-      async function endChatSession() {
-        if (!session_id) {
-          logDebug("No session_id available to end session.");
+      // Show training message
+      addMessage("Starting training process... This might take a moment.", 'bot');
+      
+      try {
+        // First get the chatbot info to see if we already have data
+        const infoResponse = await fetch(`/api/chatbot/info?company_id=${companyId}`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        const chatbotData = await infoResponse.json();
+        console.log('Chatbot info for training:', chatbotData);
+        
+        // Handle different API response formats
+        let chatbot = null;
+        if (chatbotData.success && chatbotData.chatbot) {
+          chatbot = chatbotData.chatbot;
+        } else if (chatbotData.status === 'success' && chatbotData.data) {
+          chatbot = chatbotData.data;
+        }
+        
+        if (!chatbot) {
+          console.error('No chatbot found in response:', chatbotData);
+          addMessage("Error: No chatbot found. Please go to the Chatbot Builder to create one first.", 'bot');
           return;
         }
-        const token = getToken();
-        try {
-          const response = await fetch(`/api/chatbot/session/${session_id}/end`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Authorization': 'Bearer ' + token }
-          });
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error("Failed to end session: " + response.status + " " + errorText);
+        
+        const chatbotId = chatbot.id;
+        console.log(`Training chatbot with ID: ${chatbotId}`);
+        
+        // Attempt to train the chatbot with the new endpoint
+        const trainResponse = await fetch(`/api/chatbot/${chatbotId}/train`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          // Include an empty body as it might be expected by the server
+          body: JSON.stringify({})
+        });
+        
+        if (!trainResponse.ok) {
+          throw new Error(`Training request failed: ${trainResponse.status} ${trainResponse.statusText}`);
+        }
+        
+        const trainResult = await trainResponse.json();
+        console.log('Training result:', trainResult);
+        
+        // Check for success in different formats
+        const isSuccess = trainResult.status === 'success' || trainResult.success === true;
+        
+        if (isSuccess) {
+          // Training succeeded
+          isChatbotTrained = true;
+          
+          // Save training state to localStorage
+          localStorage.setItem('chatbot_trained_state', 'true');
+          
+          addMessage("🎉 Training completed successfully! You can now ask me specific questions about your business.", 'bot');
+          showAlert('Chatbot training completed successfully!', 'success');
+          
+          // Remove the train button since it's no longer needed
+          const trainButton = document.querySelector('.card-header .btn-outline-primary');
+          if (trainButton) {
+            trainButton.remove();
           }
-          const data = await response.json();
-          logDebug("Session ended: " + JSON.stringify(data));
-          localStorage.removeItem('chat_session_id');
-          session_id = null;
-          conversation = [];
-          renderConversation();
-          await createChatSession();
-        } catch (err) {
-          console.error("Error ending session:", err);
-          logDebug("Error ending session: " + err.message);
+        } else {
+          // Training failed
+          addMessage("Training failed. Error: " + (trainResult.message || 'Unknown error'), 'bot');
+          addMessage("Please go to the Chatbot Builder and ensure you have added FAQs or knowledge base content.", 'bot');
+          showAlert('Training failed: ' + (trainResult.message || 'Please check your knowledge base content.'), 'danger');
+        }
+      } catch (error) {
+        console.error('Error during training:', error);
+        addMessage("An error occurred during training: " + error.message, 'bot');
+        showAlert('Error during training: ' + error.message, 'danger');
+      }
+    }
+
+    // Function to show knowledge base content for diagnostic purposes
+    async function showKnowledgeBase() {
+      try {
+        // Get chatbot info
+        const infoResponse = await fetch(`/api/chatbot/info?company_id=${companyId}`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        const chatbotData = await infoResponse.json();
+        console.log('Chatbot info for knowledge base:', chatbotData);
+        
+        // Handle different API response formats
+        let chatbot = null;
+        if (chatbotData.success && chatbotData.chatbot) {
+          chatbot = chatbotData.chatbot;
+        } else if (chatbotData.status === 'success' && chatbotData.data) {
+          chatbot = chatbotData.data;
+        }
+        
+        if (!chatbot) {
+          console.error('No chatbot found in response:', chatbotData);
+          addMessage("Error: No chatbot found. Please go to the Chatbot Builder to create one first.", 'bot');
+          return;
+        }
+        
+        // Get the knowledge base content
+        const knowledgeBase = chatbot.knowledge_base;
+        
+        if (!knowledgeBase || Object.keys(knowledgeBase).length === 0) {
+          addMessage("Your chatbot doesn't have any knowledge base content. Please add FAQs or upload a knowledge base in the Chatbot Builder.", 'bot');
+          return;
+        }
+        
+        // Process FAQs if available
+        const faqs = knowledgeBase.faqs || [];
+        
+        if (faqs.length === 0) {
+          addMessage("Your knowledge base doesn't contain any FAQs. Please add some in the Chatbot Builder.", 'bot');
+        } else {
+          // Show the first few FAQs
+          addMessage(`Here's what I know (${faqs.length} FAQs total):`, 'bot');
+          
+          // Show at most 3 FAQs to avoid cluttering the chat
+          const displayCount = Math.min(3, faqs.length);
+          for (let i = 0; i < displayCount; i++) {
+            const faq = faqs[i];
+            if (faq.question && faq.answer) {
+              setTimeout(() => {
+                addMessage(`Q: ${faq.question}\nA: ${faq.answer}`, 'bot');
+              }, 500 * (i + 1));
+            }
+          }
+          
+          if (faqs.length > 3) {
+            setTimeout(() => {
+              addMessage(`... and ${faqs.length - 3} more FAQs. Check the Chatbot Builder for the complete list.`, 'bot');
+            }, 500 * (displayCount + 1));
+          }
+        }
+        
+        // Check for other knowledge base content
+        const otherKeys = Object.keys(knowledgeBase).filter(key => key !== 'faqs');
+        if (otherKeys.length > 0) {
+          setTimeout(() => {
+            addMessage(`Your knowledge base also contains: ${otherKeys.join(', ')}`, 'bot');
+          }, 500 * (faqs.length > 3 ? 5 : faqs.length + 2));
+        }
+      } catch (error) {
+        console.error('Error fetching knowledge base:', error);
+        addMessage("An error occurred while retrieving the knowledge base: " + error.message, 'bot');
+      }
+    }
+
+    // Fetch and display chatbot rating statistics
+    async function showRatingStatistics() {
+      try {
+        // First check if we have a chatbot
+        const infoResponse = await fetch(`/api/chatbot/info?company_id=${companyId}`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        const chatbotData = await infoResponse.json();
+        
+        if (chatbotData.status !== 'success' || !chatbotData.data) {
+          addMessage("Error: No chatbot found. Please create one first.", 'bot');
+          return;
+        }
+        
+        const chatbotId = chatbotData.data.id;
+        
+        // Fetch statistics for this chatbot
+        const statsResponse = await fetch(`/api/chatbot/${chatbotId}/analytics`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (!statsResponse.ok) {
+          throw new Error(`Failed to fetch statistics: ${statsResponse.status} ${statsResponse.statusText}`);
+        }
+        
+        const statsData = await statsResponse.json();
+        
+        if (!statsData.success && !statsData.data) {
+          addMessage("Statistics are not available for this chatbot yet.", 'bot');
+          return;
+        }
+        
+        // Extract rating statistics
+        const stats = statsData.data || statsData;
+        const totalMessages = stats.total_messages || 0;
+        const positiveFeedback = stats.positive_feedback_count || 0;
+        const totalFeedback = stats.total_feedback_count || 0;
+        const satisfactionRate = stats.satisfaction_rate || 0;
+        
+        // Create a feedback summary message
+        let statsMessage = `📊 **Chatbot Satisfaction Statistics**\n\n`;
+        statsMessage += `Total messages: ${totalMessages}\n`;
+        statsMessage += `Feedback received: ${totalFeedback}\n`;
+        statsMessage += `Positive feedback: ${positiveFeedback}\n`;
+        
+        if (totalFeedback > 0) {
+          const satisfactionPercent = Math.round(satisfactionRate * 100) / 100;
+          statsMessage += `Satisfaction rate: ${satisfactionPercent}%\n`;
+          
+          // Add visual representation
+          if (satisfactionRate >= 90) {
+            statsMessage += `\nStatus: 🟢 Excellent`;
+          } else if (satisfactionRate >= 75) {
+            statsMessage += `\nStatus: 🟡 Good`;
+          } else if (satisfactionRate >= 50) {
+            statsMessage += `\nStatus: 🟠 Average`;
+          } else {
+            statsMessage += `\nStatus: 🔴 Needs improvement`;
+          }
+        } else {
+          statsMessage += `\nNot enough ratings to calculate a satisfaction rate yet. Please rate some responses!`;
+        }
+        
+        // Display the statistics in the chat
+        addMessage(statsMessage, 'bot');
+        
+      } catch (error) {
+        console.error('Error fetching rating statistics:', error);
+        addMessage(`Error fetching statistics: ${error.message}`, 'bot');
+      }
+    }
+
+    // Add a "View Knowledge Base" menu option
+    function addViewKnowledgeBaseOption() {
+      // Add a button to the card header
+      const cardHeader = document.querySelector('.card-header > div');
+      const diagnoseButton = document.createElement('button');
+      diagnoseButton.className = 'btn btn-sm btn-outline-info ml-2';
+      diagnoseButton.innerHTML = '<i class="fas fa-database"></i> View Knowledge Base';
+      diagnoseButton.addEventListener('click', showKnowledgeBase);
+      cardHeader.appendChild(diagnoseButton);
+    }
+
+    // Add a "View Statistics" menu option
+    function addViewStatisticsOption() {
+      // Add a button to the card header
+      const cardHeader = document.querySelector('.card-header > div');
+      const statsButton = document.createElement('button');
+      statsButton.className = 'btn btn-sm btn-outline-success ml-2';
+      statsButton.innerHTML = '<i class="fas fa-chart-bar"></i> View Ratings';
+      statsButton.addEventListener('click', showRatingStatistics);
+      cardHeader.appendChild(statsButton);
+    }
+
+    // Function to add a message to the chat
+    function addMessage(message, sender, messageId = null) {
+      console.log(`Adding message from ${sender}: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"${messageId ? ` with ID: ${messageId}` : ''}`);
+      
+      const chatContainer = document.getElementById('chat-container');
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      // Create message element
+      const messageElement = document.createElement('div');
+      messageElement.className = `message ${sender}`;
+      
+      // Convert URLs to clickable links
+      function linkify(text) {
+        // Handle markdown links [text](url)
+        const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+        text = text.replace(markdownLinkRegex, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        
+        // Handle plain URLs
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        text = text.replace(urlRegex, url => {
+          // Skip URLs that are already in an anchor tag
+          if (url.startsWith('<a href="')) return url;
+          return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+        });
+        
+        return text;
+      }
+      
+      // Process newlines and format text
+      const formattedMessage = linkify(message)
+        .replace(/\n/g, '<br>') // Convert newlines to <br>
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+        .replace(/\*(.*?)\*/g, '<em>$1</em>'); // Italic
+      
+      // Different structure for user vs bot messages
+      if (sender === 'bot') {
+        // For bot messages, add rating options
+        if (messageId) {
+          // Hide the message ID for rating purposes
+          messageElement.innerHTML = `
+            <div class="response-id">${messageId}</div>
+            <div class="message-content">${formattedMessage}</div>
+            <div class="message-timestamp">${timeString}</div>
+            <div class="rating-container">
+              <div class="star-rating">
+                <button class="star-button" data-rating="1" title="Poor"><i class="fas fa-star"></i></button>
+                <button class="star-button" data-rating="2" title="Fair"><i class="fas fa-star"></i></button>
+                <button class="star-button" data-rating="3" title="Good"><i class="fas fa-star"></i></button>
+                <button class="star-button" data-rating="4" title="Very Good"><i class="fas fa-star"></i></button>
+                <button class="star-button" data-rating="5" title="Excellent"><i class="fas fa-star"></i></button>
+              </div>
+              <button class="rating-button thumbs-up" title="This was helpful"><i class="fas fa-thumbs-up"></i></button>
+              <button class="rating-button thumbs-down" title="This was not helpful"><i class="fas fa-thumbs-down"></i></button>
+              <span class="rating-feedback"></span>
+            </div>
+          `;
+        } else {
+          // For non-rated bot messages
+          messageElement.innerHTML = `
+            <div class="message-content">${formattedMessage}</div>
+            <div class="message-timestamp">${timeString}</div>
+          `;
+        }
+      } else {
+        // For user messages
+        messageElement.innerHTML = `
+          <div class="message-content">${formattedMessage}</div>
+          <div class="message-timestamp">${timeString}</div>
+        `;
+      }
+      
+      // Add to the chat container
+      chatContainer.appendChild(messageElement);
+      
+      // Scroll to the bottom
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      
+      // Save to conversation history if needed
+      if (typeof saveMessageToHistory === 'function') {
+        saveMessageToHistory(sender, message, messageId);
+      } else {
+        // Add to conversation history directly if the saveMessageToHistory function isn't available
+        const historyItem = {
+          sender: sender,
+          message: message,
+          timestamp: now
+        };
+        
+        if (messageId) {
+          historyItem.messageId = messageId;
+        }
+        
+        conversationHistory.push(historyItem);
+        
+        // Keep only the last 10 messages
+        if (conversationHistory.length > 10) {
+          conversationHistory = conversationHistory.slice(conversationHistory.length - 10);
         }
       }
       
-      // Attach event listeners safely.
-      const setTokenBtn = document.getElementById('setTokenBtn');
-      if (setTokenBtn) {
-        setTokenBtn.addEventListener('click', setToken);
-      } else {
-        logDebug("setTokenBtn not found");
-      }
-      
-      const loadChatbotBtn = document.getElementById('loadChatbotBtn');
-      if (loadChatbotBtn) {
-        loadChatbotBtn.addEventListener('click', loadChatbot);
-      } else {
-        logDebug("loadChatbotBtn not found");
-      }
-      
-      const sendMessageBtn = document.getElementById('sendMessageBtn');
-      if (sendMessageBtn) {
-        sendMessageBtn.addEventListener('click', sendMessage);
-      } else {
-        logDebug("sendMessageBtn not found");
-      }
-      
-      const endChatBtn = document.getElementById('endChatBtn');
-      if (endChatBtn) {
-        endChatBtn.addEventListener('click', endChatSession);
-      } else {
-        logDebug("endChatBtn not found");
-      }
-      
-      // On initialization, perform an authentication check.
-      if (await checkAuth()) {
-        // If authenticated, try to load any existing chat session.
-        session_id = localStorage.getItem('chat_session_id');
-        if (session_id) {
-          await fetchChatHistory();
+      // Add event listeners to rating buttons if this is a bot message
+      if (sender === 'bot' && messageId) {
+        console.log("Setting up rating buttons for message");
+        const thumbsUp = messageElement.querySelector('.thumbs-up');
+        const thumbsDown = messageElement.querySelector('.thumbs-down');
+        const starButtons = messageElement.querySelectorAll('.star-button');
+        
+        if (thumbsUp && thumbsDown) {
+          thumbsUp.addEventListener('click', function() {
+            submitRating(messageElement, 'positive', 5);
+          });
+          
+          thumbsDown.addEventListener('click', function() {
+            submitRating(messageElement, 'negative', 1);
+          });
+        } else {
+          console.warn("Could not find thumbs up/down buttons for this message");
         }
+        
+        // Add event listeners for star ratings
+        if (starButtons.length > 0) {
+          starButtons.forEach(button => {
+            button.addEventListener('click', function() {
+              const rating = parseInt(this.getAttribute('data-rating'));
+              let feedbackType = 'neutral';
+              
+              if (rating >= 4) {
+                feedbackType = 'positive';
+              } else if (rating <= 2) {
+                feedbackType = 'negative';
+              }
+              
+              // Highlight selected star and all stars before it
+              starButtons.forEach(btn => {
+                const btnRating = parseInt(btn.getAttribute('data-rating'));
+                if (btnRating <= rating) {
+                  btn.classList.add('selected');
+                } else {
+                  btn.classList.remove('selected');
+                }
+              });
+              
+              submitRating(messageElement, feedbackType, rating);
+            });
+          });
+        } else {
+          console.warn("Could not find star buttons for this message");
+        }
+      }
+      
+      return messageElement;
+    }
+    
+    // Submit a rating for a bot message
+    async function submitRating(messageElement, rating, starRating) {
+      // Get the session ID and message ID
+      const responseIdElement = messageElement.querySelector('.response-id');
+      
+      // Check if we have a valid session
+      if (!chatSessionId) {
+        showAlert('Cannot rate this message as no chat session exists', 'warning');
+        return;
+      }
+      
+      // Get the message ID (if available)
+      const messageId = responseIdElement ? responseIdElement.textContent : null;
+      
+      // Use the global companyId variable that was set during initialization
+      if (!companyId) {
+        showAlert('Company ID not found. Please refresh the page and try again.', 'warning');
+        return;
+      }
+      
+      // Update the UI to show the selected rating
+      const thumbsUp = messageElement.querySelector('.thumbs-up');
+      const thumbsDown = messageElement.querySelector('.thumbs-down');
+      const feedbackElement = messageElement.querySelector('.rating-feedback');
+      
+      if (!thumbsUp || !thumbsDown || !feedbackElement) {
+        showAlert('Rating elements not found', 'warning');
+        return;
+      }
+      
+      // Remove any existing selected class from thumbs
+      thumbsUp.classList.remove('selected');
+      thumbsDown.classList.remove('selected');
+      
+      // Add the selected class to the clicked button
+      if (rating === 'positive') {
+        thumbsUp.classList.add('selected');
+        feedbackElement.textContent = 'Marked as helpful!';
+      } else if (rating === 'negative') {
+        thumbsDown.classList.add('selected');
+        feedbackElement.textContent = 'Marked as not helpful.';
+      } else {
+        feedbackElement.textContent = 'Rating submitted!';
+      }
+      
+      try {
+        // Create the payload
+        const ratingPayload = {
+          company_id: companyId,
+          session_id: chatSessionId,
+          rating: starRating || (rating === 'positive' ? 5 : 1),
+          feedback: rating
+        };
+        
+        // Log rating submission for debugging
+        console.log('Submitting rating with payload:', ratingPayload);
+        console.log('Rating endpoint URL:', '/api/chatbot/rate');
+        
+        // Submit the rating to the backend
+        const response = await fetch('/api/chatbot/rate', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(ratingPayload)
+        });
+        
+        // For debugging response
+        let responseText;
+        try {
+          responseText = await response.text();
+          console.log('Raw rating response:', responseText);
+        } catch (e) {
+          console.error('Error reading response text:', e);
+        }
+        
+        if (!response.ok) {
+          throw new Error(`Rating submission failed: ${response.status} ${response.statusText}`);
+        }
+        
+        let data;
+        try {
+          data = responseText ? JSON.parse(responseText) : null;
+        } catch (e) {
+          console.error('Error parsing rating response as JSON:', e);
+          data = { status: 'error', message: 'Failed to parse response' };
+        }
+        
+        console.log('Rating submission response data:', data);
+        
+        if (data && (data.status === 'success' || data.success)) {
+          // Success feedback is already shown
+          showAlert('Thank you for your feedback!', 'success');
+        } else {
+          feedbackElement.textContent = 'Rating not saved.';
+          console.error('Failed to save rating:', data.message);
+          showAlert('Failed to save rating: ' + (data.message || 'Please try again.'), 'warning');
+        }
+      } catch (error) {
+        console.error('Error submitting rating:', error);
+        feedbackElement.textContent = 'Error saving rating.';
+        showAlert('Error submitting rating: ' + error.message, 'danger');
+      }
+    }
+
+    // Function to handle clearing the chat
+    async function clearChat() {
+      // Clear the chat container
+      const chatContainer = document.getElementById('chat-container');
+      if (chatContainer) {
+        chatContainer.innerHTML = '';
+      }
+      
+      // Clear conversation history
+      clearConversationHistory();
+      
+      // Re-initialize the chatbot status
+      try {
+        await checkChatbotStatus();
+        showAlert('Chat history cleared', 'success');
+      } catch (error) {
+        console.error('Error reinitializing chat:', error);
+        showAlert('Error reinitializing chat: ' + error.message, 'danger');
+      }
+    }
+
+    // Function to reset the chatbot
+    async function resetChatbot() {
+      try {
+        // Check if the chatbot exists
+        const infoResponse = await fetch(`/api/chatbot/info?company_id=${companyId}`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (infoResponse.ok) {
+          const infoData = await infoResponse.json();
+          console.log('Chatbot info response:', infoData);
+          
+          // Handle different API response formats
+          let chatbot = null;
+          if (infoData.success && infoData.chatbot) {
+            chatbot = infoData.chatbot;
+          } else if (infoData.status === 'success' && infoData.data) {
+            chatbot = infoData.data;
+          }
+          
+          if (chatbot) {
+            console.log('Found chatbot:', chatbot);
+            
+            // Determine if the chatbot is trained based on multiple potential indicators
+            // We need to check various fields since different API versions might use different fields
+            const hasTrained = 
+              // Explicit is_trained flag
+              (chatbot.is_trained === true) || 
+              // Check if trained_model exists and is not null
+              (chatbot.trained_model !== null && chatbot.trained_model !== undefined) ||
+              // Check if last_trained_at exists and is not null
+              (chatbot.last_trained_at !== null && chatbot.last_trained_at !== undefined) ||
+              // Check for specific training fields in configuration
+              (chatbot.configuration && chatbot.configuration.trained === true);
+            
+            console.log('Chatbot training status determined as:', hasTrained);
+            
+            // Set the global state
+            isChatbotTrained = hasTrained;
+            botName = chatbot.bot_name || chatbot.name || 'Chatbot';
+            
+            // Local storage can help persist training state across refreshes
+            const savedTrainingState = localStorage.getItem('chatbot_trained_state');
+            if (savedTrainingState === 'true' && !isChatbotTrained) {
+              console.log('Using saved training state from localStorage');
+              isChatbotTrained = true;
+            } else {
+              // Save current state to localStorage
+              localStorage.setItem('chatbot_trained_state', isChatbotTrained);
+            }
+            
+            if (!isChatbotTrained) {
+              addMessage("Hello! I don't have any trained knowledge yet. Please upload documents in the Chatbot Builder and train me before testing.", 'bot');
+              
+              // Add a train chatbot button
+              const cardHeader = document.querySelector('.card-header > div > div');
+              if (!document.querySelector('.btn-outline-primary')) {
+                const trainButton = document.createElement('button');
+                trainButton.className = 'btn btn-sm btn-outline-primary ml-2';
+                trainButton.innerHTML = '<i class="fas fa-graduation-cap"></i> Train Chatbot';
+                trainButton.addEventListener('click', trainChatbot);
+                cardHeader.appendChild(trainButton);
+              }
+              
+              // Show a warning alert
+              showAlert("Your chatbot needs training. Please go to the Chatbot Builder, add content, and save changes to train your chatbot.", "warning");
+            } else {
+              addMessage(`Hello! I'm ${botName}. How can I help you today?`, 'bot');
+              
+              // Add a message about rating after a delay
+              setTimeout(() => {
+                addMessage("Don't forget to rate my responses using the stars or thumbs buttons! Your feedback helps me improve.", 'bot');
+              }, 1000);
+              
+              // Remove any existing train button if chatbot is already trained
+              const trainButton = document.querySelector('.btn-outline-primary');
+              if (trainButton && trainButton.innerHTML.includes('Train Chatbot')) {
+                trainButton.remove();
+              }
+            }
+            
+            // Create a chat session if needed
+            if (!chatSessionId) {
+              try {
+                const sessionResponse = await fetch('/api/chatbot/session', {
+                  method: 'POST',
+                  credentials: 'include',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    company_id: companyId,
+                    chatbot_id: chatbot.id
+                  })
+                });
+                
+                const sessionData = await sessionResponse.json();
+                
+                if (sessionData.success && sessionData.session_id) {
+                  chatSessionId = sessionData.session_id;
+                  localStorage.setItem('chat_session_id', chatSessionId);
+                  console.log('Created new chat session:', chatSessionId);
+                }
+              } catch (sessionError) {
+                console.error('Error creating chat session:', sessionError);
+              }
+            }
+          } else {
+            console.error('No chatbot found in response:', infoData);
+            addMessage("Hello! It looks like you haven't created a chatbot yet. Please go to the Chatbot Builder to create and train a chatbot first.", 'bot');
+            document.getElementById('user-input').disabled = true;
+            document.getElementById('send-button').disabled = true;
+            showAlert("No chatbot found. Please create one in the Chatbot Builder.", "warning");
+          }
+        } else {
+          console.error('Error fetching chatbot info:', infoResponse.status, infoResponse.statusText);
+          addMessage("I couldn't connect to the chatbot service. Please try again later or contact support if the issue persists.", 'bot');
+        }
+        
+        // Add the View Knowledge Base button
+        addViewKnowledgeBaseOption();
+        
+        // Add the View Statistics button
+        addViewStatisticsOption();
+      } catch (error) {
+        console.error('Error checking chatbot status:', error);
+        addMessage("There was an error checking the chatbot status. Please try refreshing the page.", 'bot');
+      }
+    }
+
+    // Function to show alerts
+    function showAlert(message, type = 'info') {
+      const alertsContainer = document.getElementById('alerts-container');
+      if (!alertsContainer) return;
+      
+      const alertElement = document.createElement('div');
+      alertElement.className = `alert alert-${type} alert-dismissible fade show`;
+      alertElement.role = 'alert';
+      
+      alertElement.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      
+      alertsContainer.appendChild(alertElement);
+      
+      // Auto-dismiss non-error alerts after 5 seconds
+      if (type !== 'danger') {
+        setTimeout(() => {
+          alertElement.classList.remove('show');
+          setTimeout(() => {
+            alertElement.remove();
+          }, 150);
+        }, 5000);
+      }
+      
+      // Set up click handler for close button
+      const closeButton = alertElement.querySelector('.btn-close');
+      if (closeButton) {
+        closeButton.addEventListener('click', () => {
+          alertElement.classList.remove('show');
+          setTimeout(() => {
+            alertElement.remove();
+          }, 150);
+        });
+      }
+    }
+
+    // Functions for conversation history management
+    function getConversationHistory() {
+      return conversationHistory.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.message
+      }));
+    }
+
+    function saveMessageToHistory(sender, message, messageId = null) {
+      const now = new Date();
+      const historyItem = {
+        sender: sender,
+        message: message,
+        timestamp: now
+      };
+      
+      if (messageId) {
+        historyItem.messageId = messageId;
+      }
+      
+      conversationHistory.push(historyItem);
+      
+      // Keep only the last 10 messages to avoid sending too much data
+      if (conversationHistory.length > 10) {
+        conversationHistory = conversationHistory.slice(conversationHistory.length - 10);
+      }
+      
+      // Optionally save to localStorage for persistence
+      try {
+        localStorage.setItem('conversation_history', JSON.stringify(conversationHistory));
+      } catch (e) {
+        console.warn('Could not save conversation history to localStorage:', e);
+      }
+    }
+
+    function loadConversationHistory() {
+      try {
+        const savedHistory = localStorage.getItem('conversation_history');
+        if (savedHistory) {
+          conversationHistory = JSON.parse(savedHistory);
+          
+          // Validate the structure
+          if (Array.isArray(conversationHistory) && 
+              conversationHistory.every(item => 
+                item.sender && 
+                (item.sender === 'user' || item.sender === 'bot') && 
+                typeof item.message === 'string'
+              )) {
+            return true;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not load conversation history from localStorage:', e);
+      }
+      
+      // Reset if invalid or not found
+      conversationHistory = [];
+      return false;
+    }
+
+    // Function to clear conversation history
+    function clearConversationHistory() {
+      conversationHistory = [];
+      localStorage.removeItem('conversation_history');
+      localStorage.removeItem('chat_session_id');
+      chatSessionId = null;
+    }
+
+    // Function to send a message to the chatbot
+    async function sendMessage() {
+      const userInput = document.getElementById('user-input');
+      const userMessage = userInput.value.trim();
+      
+      if (!userMessage) return;
+      
+      // Clear the input field
+      userInput.value = '';
+      
+      // Reset textarea height
+      userInput.style.height = 'auto';
+      
+      // Add user message to chat
+      addMessage(userMessage, 'user');
+      
+      // Show typing indicator
+      document.getElementById('typing-indicator').style.display = 'block';
+      
+      // Disable input while processing
+      userInput.disabled = true;
+      document.getElementById('send-button').disabled = true;
+      
+      try {
+        // Prepare request data
+        const requestData = {
+          company_id: companyId,
+          query: userMessage,
+          session_id: chatSessionId,
+          conversation_history: getConversationHistory()
+        };
+        
+        console.log('Sending request with data:', requestData);
+        
+        // For debugging
+        console.log('Fetch URL:', '/api/chatbot/inference');
+        console.log('Request body:', JSON.stringify(requestData, null, 2));
+        
+        // Send the message to the chatbot API
+        const response = await fetch('/api/chatbot/inference', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API call failed with status: ${response.status}`);
+        }
+        
+        // For debugging response
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+        
+        let data;
+        try {
+          // Parse the response as JSON
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('Error parsing response as JSON:', parseError);
+          throw new Error(`Invalid response format: ${responseText.substring(0, 100)}`);
+        }
+        
+        console.log('Response from chatbot API:', data);
+        
+        if (data.success || data.status === 'success') {
+          // Extract the answer and session ID
+          const answer = data.response || data.answer || data.message || 'Sorry, I could not generate a response.';
+          const messageId = data.message_id || data.id || null;
+          
+          console.log(`Got answer: "${answer.substring(0, 50)}${answer.length > 50 ? '...' : ''}" with ID: ${messageId || 'none'}`);
+          
+          // Update session ID if provided
+          if (data.session_id && !chatSessionId) {
+            chatSessionId = data.session_id;
+            localStorage.setItem('chat_session_id', chatSessionId);
+            console.log('Updated chat session ID:', chatSessionId);
+          }
+          
+          // Add the bot's response to the chat with a message ID to enable ratings
+          addMessage(answer, 'bot', messageId || `temp-${Date.now()}`);
+        } else {
+          // Handle error responses
+          const errorMessage = data.message || data.error || 'An error occurred.';
+          addMessage(`Sorry, I encountered an error: ${errorMessage}`, 'bot');
+          showAlert(errorMessage, 'danger');
+        }
+      } catch (error) {
+        console.error('Error sending message to chatbot:', error);
+        addMessage(`I'm sorry, but I encountered a technical issue: ${error.message}`, 'bot');
+        showAlert(`Error: ${error.message}`, 'danger');
+      } finally {
+        // Hide typing indicator
+        document.getElementById('typing-indicator').style.display = 'none';
+        
+        // Re-enable input
+        userInput.disabled = false;
+        document.getElementById('send-button').disabled = false;
+        
+        // Focus on input field
+        userInput.focus();
+      }
+    }
+
+    // Set up event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM fully loaded at', new Date().toISOString());
+      
+      // Initialize Auth and test interface
+      initTestInterface();
+      
+      // Set up logout handler
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          logout();
+        });
+      }
+      
+      const dropdownLogoutBtn = document.getElementById('dropdownLogoutBtn');
+      if (dropdownLogoutBtn) {
+        dropdownLogoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          logout();
+        });
+      }
+      
+      // Add event listeners for user interactions
+      const sendButton = document.getElementById('send-button');
+      if (sendButton) {
+        sendButton.addEventListener('click', sendMessage);
+      }
+      
+      const userInput = document.getElementById('user-input');
+      if (userInput) {
+        userInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent default to avoid newline
+            sendMessage();
+          }
+        });
+        
+        // Add auto-resize on input
+        userInput.addEventListener('input', autoResizeTextarea);
+        
+        // Initialize textarea height
+        setTimeout(autoResizeTextarea, 0);
+      }
+      
+      const clearChatBtn = document.getElementById('clearChatBtn');
+      if (clearChatBtn) {
+        clearChatBtn.addEventListener('click', clearChat);
+      }
+      
+      const refreshChatbotBtn = document.getElementById('refreshChatbotBtn');
+      if (refreshChatbotBtn) {
+        refreshChatbotBtn.addEventListener('click', async function() {
+          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+          this.disabled = true;
+          
+          try {
+            // Clear the chat container
+            const chatContainer = document.getElementById('chat-container');
+            if (chatContainer) {
+              chatContainer.innerHTML = '';
+            }
+            
+            // Re-initialize
+            await initTestInterface();
+            showAlert('Chatbot status refreshed successfully', 'success');
+          } catch (error) {
+            console.error('Error refreshing chatbot status:', error);
+            showAlert('Failed to refresh chatbot status: ' + error.message, 'danger');
+          } finally {
+            this.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Status';
+            this.disabled = false;
+          }
+        });
+      }
+      
+      // Toggle user dropdown
+      const userInfo = document.querySelector('.user-info');
+      if (userInfo) {
+        userInfo.addEventListener('click', function() {
+          const dropdownMenu = document.querySelector('.user-dropdown-menu');
+          if (dropdownMenu) {
+            dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
+          }
+        });
+      }
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(event) {
+        const userInfo = document.querySelector('.user-info');
+        const dropdownMenu = document.querySelector('.user-dropdown-menu');
+        
+        if (userInfo && dropdownMenu && !userInfo.contains(event.target) && !dropdownMenu.contains(event.target)) {
+          dropdownMenu.style.display = 'none';
+        }
+      });
+      
+      // Try to load saved conversation history
+      if (loadConversationHistory()) {
+        console.log('Loaded saved conversation history with', conversationHistory.length, 'messages');
       }
     });
+    
+    // Function to auto-resize textarea based on content
+    function autoResizeTextarea() {
+      const textarea = document.getElementById('user-input');
+      if (!textarea) return;
+      
+      // Reset height to auto to get the correct scrollHeight
+      textarea.style.height = 'auto';
+      
+      // Set the height to the scrollHeight (content height)
+      const newHeight = Math.min(textarea.scrollHeight, 150);
+      textarea.style.height = newHeight + 'px';
+    }
   </script>
 </body>
 </html>

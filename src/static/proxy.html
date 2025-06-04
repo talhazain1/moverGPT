@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Proxy</title>
+</head>
+<body>
+    <script>
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const action = urlParams.get('action');
+        const apiKey = urlParams.get('apiKey');
+        const chatbotId = urlParams.get('chatbotId');
+        const companyId = urlParams.get('companyId');
+        const sessionId = urlParams.get('sessionId');
+        const message = urlParams.get('message');
+        const websiteUrl = urlParams.get('websiteUrl');
+        
+        // Get the base URL (origin)
+        const baseUrl = window.location.origin;
+        
+        // Handle different actions
+        switch (action) {
+            case 'init':
+                initSession();
+                break;
+            case 'messages':
+                getMessages();
+                break;
+            case 'inference':
+                getInference();
+                break;
+            default:
+                sendError('Invalid action');
+        }
+        
+        // Initialize a chat session
+        async function initSession() {
+            try {
+                const response = await fetch(`${baseUrl}/api/chatbot/session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        chatbot_id: chatbotId,
+                        company_id: companyId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Send the result back to the parent window
+                window.parent.postMessage({
+                    source: 'chatbot-proxy',
+                    action: 'init',
+                    status: data.status || 'error',
+                    session_id: data.session_id,
+                    message: data.message,
+                    created_at: data.created_at
+                }, '*');
+            } catch (error) {
+                sendError('Failed to initialize session: ' + error.message);
+            }
+        }
+        
+        // Get messages for a session
+        async function getMessages() {
+            try {
+                const response = await fetch(`${baseUrl}/api/chatbot/session/${sessionId}/messages`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                // Send the result back to the parent window
+                window.parent.postMessage({
+                    source: 'chatbot-proxy',
+                    action: 'messages',
+                    status: data.status || 'success',
+                    messages: data.messages || [],
+                    session_id: sessionId
+                }, '*');
+            } catch (error) {
+                sendError('Failed to fetch messages: ' + error.message);
+            }
+        }
+        
+        // Get inference response
+        async function getInference() {
+            try {
+                const response = await fetch(`${baseUrl}/api/chatbot/inference`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        message: message,
+                        company_id: companyId,
+                        query: message,
+                        website_url: websiteUrl
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Send the result back to the parent window
+                window.parent.postMessage({
+                    source: 'chatbot-proxy',
+                    action: 'inference',
+                    status: data.status || 'success',
+                    response: data.response,
+                    message: data.message,
+                    session_id: sessionId
+                }, '*');
+            } catch (error) {
+                sendError('Failed to get inference: ' + error.message);
+            }
+        }
+        
+        // Send error message to parent window
+        function sendError(errorMessage) {
+            window.parent.postMessage({
+                source: 'chatbot-proxy',
+                action: action,
+                status: 'error',
+                message: errorMessage
+            }, '*');
+        }
+    </script>
+</body>
+</html>

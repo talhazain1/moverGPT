@@ -1,0 +1,89 @@
+from werkzeug.utils import secure_filename
+import os
+import uuid
+from datetime import datetime, timedelta
+from core.database import db
+from admin_panel.models import SupportTicket, SupportMessage, MessageAttachment, KnowledgeBase, Chatbot, Message
+from companies.models import Company, CompanyFeatureSettings
+from admin.decorators import require_admin_role, require_admin_permission
+from admin.models import AdminRole, AdminPermission, AdminUser
+from flask_login import current_user, login_required, login_user, logout_user
+from sqlalchemy import desc, func
+from sqlalchemy.sql import text
+from core.utils import verify_jwt
+from users.models import User  # For accessing client data
+from werkzeug.security import check_password_hash, generate_password_hash
+import io
+import csv
+import logging
+from flask import Blueprint, request, jsonify, current_app
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+
+support = Blueprint('support', __name__)
+admin_panel = Blueprint('admin_panel', __name__)
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# ... [rest of the file until the get_support_tickets function] ...
+
+@admin_panel.route('/support/tickets', methods=['GET'])
+@login_required
+def get_support_tickets():
+    try:
+        # Get all tickets for super admin, or company-specific for other admins
+        if current_user.role.name == AdminRole.SUPER_ADMIN.value:
+            tickets = SupportTicket.query.all()
+        else:
+            if not current_user.company_id:
+                return jsonify({'error': 'Company not assigned to admin user'}), 400
+            tickets = SupportTicket.query.filter_by(company_id=current_user.company_id).all()
+        
+        # Process tickets to improve company name display
+        processed_tickets = []
+        for ticket in tickets:
+            company_name = None
+            if ticket.company:
+                # If company name is generic (like 'Company 6'), use user info instead
+                if ticket.company.name and ticket.company.name.startswith('Company '):
+                    if ticket.user and ticket.user.company_name:
+                        company_name = ticket.user.company_name
+                    elif ticket.user and ticket.user.user_name:
+                        company_name = f"{ticket.user.user_name}'s Company"
+                    else:
+                        company_name = ticket.company.name
+                else:
+                    company_name = ticket.company.name
+            
+            processed_tickets.append({
+                'id': ticket.id,
+                'ticket_number': ticket.ticket_number,
+                'remarks': ticket.remarks,
+                'subject': ticket.subject,
+                'details': ticket.details,
+                'topic': ticket.topic,
+                'status': ticket.status,
+                'created_at': ticket.created_at.isoformat(),
+                'updated_at': ticket.updated_at.isoformat() if ticket.updated_at else None,
+                'company_name': company_name,
+                'user_name': ticket.user.user_name if ticket.user else None,
+                'user_email': ticket.user.user_email if ticket.user else None,
+                'attachments': [{
+                    'filename': att.file_name,
+                    'file_path': att.file_path
+                } for att in ticket.attachments]
+            })
+        
+        return jsonify({
+            'tickets': processed_tickets
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error in get_support_tickets: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+# ... [rest of the file] ...

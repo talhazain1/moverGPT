@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Analysis - Admin Panel</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/assets/auth.js"></script>
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #6c757d;
+      --success-color: #2ecc71;
+      --info-color: #3498db;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+      --light-color: #f8f9fa;
+      --dark-color: #343a40;
+      --gray-100: #f8f9fa;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --gray-400: #ced4da;
+      --gray-500: #adb5bd;
+      --gray-600: #6c757d;
+      --gray-700: #495057;
+      --gray-800: #343a40;
+      --gray-900: #212529;
+      --border-radius: 0.25rem;
+      --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    /* Booking details card styles */
+    #bookingDetailsCard {
+      border-left: 4px solid #4361ee;
+      background-color: #f8f9fa;
+    }
+    
+    #bookingDetailsCard .card-title {
+      color: #4361ee;
+      font-weight: 600;
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    #bookingDetailsCard p {
+      margin-bottom: 0.5rem;
+    }
+    
+    #bookingDetailsCard strong {
+      color: #495057;
+    }
+    
+    #bookingReference {
+      font-weight: 600;
+      color: #4361ee;
+    }
+    
+    #bookingStatusAlert {
+      margin-bottom: 0;
+    }
+    
+    #bookingDate {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+    
+    /* Enhance user/bot message styling */
+    .user-message {
+      background-color: #e3f2fd;
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+      position: relative;
+      max-width: 80%;
+      margin-left: auto;
+      clear: both;
+      border-top-right-radius: 0;
+    }
+    
+    .bot-message {
+      background-color: #f1f1f1;
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+      position: relative;
+      max-width: 80%;
+      margin-right: auto;
+      clear: both;
+      border-top-left-radius: 0;
+    }
+    
+    .message-sender {
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+    
+    .message-time {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-left: 0.5rem;
+    }
+    
+    .message-text {
+      margin-top: 0.25rem;
+      white-space: pre-wrap;
+    }
+    
+    /* Chat filter styles */
+    .badge {
+      padding: 0.35em 0.65em;
+    }
+  </style>
+</head>
+<body>
+  <div class="alert-container"></div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <img id="sidebarLogo" src="https://ui-avatars.com/api/?name=Company&background=random" alt="Logo" class="sidebar-logo" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px;">
+          <span id="sidebarCompanyName">Loading...</span>
+        </div>
+        <button class="sidebar-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li class="sidebar-item">
+          <a href="/static/dashboard.html" class="sidebar-link">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/profile.html" class="sidebar-link">
+            <i class="fas fa-user-circle"></i>
+            <span>Profile</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chatbot_builder.html" class="sidebar-link">
+            <i class="fas fa-robot"></i>
+            <span>Chatbot Builder</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/test.html" class="sidebar-link">
+            <i class="fas fa-vial"></i>
+            <span>Test Chatbot</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/cost_calculator.html" class="sidebar-link">
+            <i class="fas fa-calculator"></i>
+            <span>Moving Cost Calculator</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/moving_parameters.html" class="sidebar-link">
+            <i class="fas fa-sliders-h"></i>
+            <span>Moving Parameters</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chat_analysis.html" class="sidebar-link active">
+            <i class="fas fa-comments-dollar"></i>
+            <span>Chat Analysis</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/pricing.html" class="sidebar-link">
+            <i class="fas fa-tag"></i>
+            <span>Pricing Plans</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="#" id="logoutBtn" class="sidebar-link">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="main-header">
+        <div class="header-left">
+          <h4>Chat Analysis</h4>
+        </div>
+        
+        <div class="header-right">
+          <div class="user-dropdown">
+            <div class="user-info">
+              <div>
+                <div class="user-name">User</div>
+                <div class="user-role" style="font-size: 0.7rem; color: var(--gray-600);">Member</div>
+              </div>
+              <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" class="user-avatar">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Page Container -->
+      <div class="page-container">
+        <div class="mb-4">
+          <h2>Chat Analysis</h2>
+          <p>Analyze your chatbot conversations and client interactions.</p>
+        </div>
+            
+        <div class="row mb-4">
+          <div class="col-md-3">
+            <div class="card bg-primary text-white">
+              <div class="card-body">
+                <h5 class="card-title">Total Chats</h5>
+                <h2 id="totalChats">0</h2>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-success text-white">
+              <div class="card-body">
+                <h5 class="card-title">Bookings</h5>
+                <h2 id="totalBookings">0</h2>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-danger text-white">
+              <div class="card-body">
+                <h5 class="card-title">Complaints</h5>
+                <h2 id="totalComplaints">0</h2>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-warning text-white">
+              <div class="card-body">
+                <h5 class="card-title">Potential Clients</h5>
+                <h2 id="potentialClients">0</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+            
+        <!-- Chat Filter Controls -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Filter Conversations</h5>
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label for="chatTypeFilter" class="form-label">Conversation Type</label>
+                <select class="form-select" id="chatTypeFilter">
+                  <option value="all">All Conversations</option>
+                  <option value="booking">Bookings</option>
+                  <option value="complaint">Complaints</option>
+                  <option value="potential">Potential Clients</option>
+                  <option value="general">General Conversations</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="dateRangeFilter" class="form-label">Date Range</label>
+                <select class="form-select" id="dateRangeFilter">
+                  <option value="7">Last 7 Days</option>
+                  <option value="30">Last 30 Days</option>
+                  <option value="90">Last 90 Days</option>
+                  <option value="all">All Time</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="searchChats" class="form-label">Search</label>
+                <input type="text" class="form-control" id="searchChats" placeholder="Search by content or customer...">
+              </div>
+              <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-primary w-100" id="applyFiltersBtn">Apply Filters</button>
+              </div>
+            </div>
+          </div>
+        </div>
+            
+        <!-- Chat Conversations Table -->
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Conversation List</h5>
+            <button id="deleteSelectedBtn" class="btn btn-danger btn-sm mb-3">Delete Selected</button>
+            <div class="table-responsive">
+              <table class="table table-striped table-hover" id="chatTable">
+                <thead>
+                  <tr>
+                    <th><input type="checkbox" id="selectAll"></th>
+                    <th>ID</th>
+                    <th>Date & Time</th>
+                    <th>Type</th>
+                    <th>Customer</th>
+                    <th>Content Preview</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="chatTableBody">
+                  <!-- Chat data will be loaded here -->
+                </tbody>
+              </table>
+            </div>
+            <div id="chatTablePagination" class="d-flex justify-content-between align-items-center mt-3">
+              <div>
+                <span id="totalChatsCount">0</span> conversations found
+              </div>
+              <nav aria-label="Chat list pagination">
+                <ul class="pagination mb-0">
+                  <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                  <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                  <li class="page-item"><a class="page-link" href="#">2</a></li>
+                  <li class="page-item"><a class="page-link" href="#">3</a></li>
+                  <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Detail Modal -->
+  <div class="modal fade" id="chatDetailModal" tabindex="-1" aria-labelledby="chatDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="chatDetailModalLabel">Chat Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="card-title">Chat Information</h6>
+                  <p><strong>ID:</strong> <span id="chatDetailId"></span></p>
+                  <p><strong>Date:</strong> <span id="chatDetailDate"></span></p>
+                  <p><strong>Type:</strong> <span id="chatDetailType"></span></p>
+                  <p><strong>Status:</strong> <span id="chatDetailStatus"></span></p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="card-title">Customer Information</h6>
+                  <p><strong>Name:</strong> <span id="customerName"></span></p>
+                  <p><strong>Email:</strong> <span id="customerEmail"></span></p>
+                  <p><strong>Phone:</strong> <span id="customerPhone"></span></p>
+                  <div id="customerAdditionalInfo" style="display: none;">
+                    <hr>
+                    <p><strong>Origin:</strong> <span id="customerOrigin"></span></p>
+                    <p><strong>Destination:</strong> <span id="customerDestination"></span></p>
+                    <p><strong>Move Size:</strong> <span id="customerMoveSize"></span></p>
+                    <p><strong>Move Date:</strong> <span id="customerMoveDate"></span></p>
+                    <p><strong>Additional Services:</strong> <span id="customerAdditionalServices"></span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Booking Details Card (shown only for booking type chats) -->
+          <div class="card mb-3" id="bookingDetailsCard" style="display: none;">
+            <div class="card-body">
+              <h6 class="card-title">Booking Details</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <p><strong>Booking Reference:</strong> <span id="bookingReference"></span></p>
+                  <p><strong>Move Date:</strong> <span id="moveDate"></span></p>
+                  <p><strong>Origin:</strong> <span id="origin"></span></p>
+                  <p><strong>Destination:</strong> <span id="destination"></span></p>
+                  <p><strong>Distance:</strong> <span id="distanceMiles"></span></p>
+                </div>
+                <div class="col-md-6">
+                  <p><strong>Move Size:</strong> <span id="moveSize"></span></p>
+                  <p><strong>Additional Services:</strong> <span id="additionalServices"></span></p>
+                  <p><strong>Estimated Time:</strong> <span id="estimatedTime"></span></p>
+                  <p><strong>Special Requirements:</strong> <span id="specialRequirements"></span></p>
+                  <p><strong>Quote:</strong> <span id="totalCost"></span></p>
+                </div>
+              </div>
+              <div class="row mt-2">
+                <div class="col-12">
+                  <div class="alert alert-success" id="bookingStatusAlert">
+                    <strong>Status:</strong> <span id="bookingStatus"></span>
+                    <span id="bookingDate" class="float-end"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Complaint Details Card (shown only for complaint type chats) -->
+          <div class="card mb-3" id="complaintDetailsCard" style="display: none;">
+            <div class="card-body">
+              <h6 class="card-title">Complaint Details</h6>
+              <p><strong>Customer Name:</strong> <span id="complaintCustomerName"></span></p>
+              <p><strong>Email:</strong> <span id="complaintCustomerEmail"></span></p>
+              <p><strong>Phone:</strong> <span id="complaintCustomerPhone"></span></p>
+              <p><strong>Description:</strong></p>
+              <p id="complaintDescription"></p>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title">Conversation</h6>
+              <div class="chat-messages" id="chatMessagesContainer">
+                <!-- Chat messages will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-secondary" id="exportPdfBtn">Export to PDF</button>
+          <button type="button" class="btn btn-primary" id="followUpBtn">Follow Up</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmDeleteMessage">Are you sure?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  
+  <script>
+    // Alert function
+    function showAlert(message, type = 'info') {
+      const alertContainer = document.querySelector('.alert-container');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type} alert-dismissible fade show`;
+      alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      alertContainer.appendChild(alert);
+      
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+
+    // Setup custom confirm modal for deletion
+    let chatsToDelete = [];
+    function openConfirmDeleteModal(ids, message) {
+      chatsToDelete = ids;
+      document.getElementById('confirmDeleteMessage').textContent = message;
+      const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+      modal.show();
+    }
+    // Confirm delete modal button handler
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+      const modalEl = document.getElementById('confirmDeleteModal');
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      modal.hide();
+      try {
+        await Promise.all(chatsToDelete.map(id => authenticatedFetch(`/api/metrics/chat/${id}`, { method: 'DELETE' })));
+        showAlert(`${chatsToDelete.length} chat(s) deleted`, 'success');
+        loadChatAnalysisData();
+      } catch (err) {
+        console.error('Error deleting chat(s):', err);
+        showAlert('Error deleting chat(s)', 'danger');
+      }
+    });
+
+    // Function to load chats for the Chat Analysis page
+    async function loadChatAnalysisData() {
+      try {
+        // First update the counters with loading state
+        document.getElementById('totalChats').textContent = '...';
+        document.getElementById('totalBookings').textContent = '...';
+        document.getElementById('totalComplaints').textContent = '...';
+        document.getElementById('potentialClients').textContent = '...';
+        
+        // Clear the table while loading
+        const tableBody = document.getElementById('chatTableBody');
+        tableBody.innerHTML = '<tr><td colspan="8" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Loading chats...</td></tr>';
+        
+        // Get filter values
+        const chatType = document.getElementById('chatTypeFilter').value;
+        const dateRange = document.getElementById('dateRangeFilter').value;
+        const searchQuery = document.getElementById('searchChats').value;
+        
+        // Fetch chat analysis data from the server
+        const response = await authenticatedFetch('/api/metrics/chat/analysis', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            chatType: chatType,
+            dateRange: dateRange,
+            searchQuery: searchQuery
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to load chat analysis: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Chat data received:', data);
+        
+        // Update counters
+        document.getElementById('totalChats').textContent = data.totalChats || '0';
+        document.getElementById('totalBookings').textContent = data.totalBookings || '0';
+        document.getElementById('totalComplaints').textContent = data.totalComplaints || '0';
+        document.getElementById('potentialClients').textContent = data.potentialClients || '0';
+        
+        // Deduplicate chats based on ID to avoid showing the same conversation multiple times
+        let uniqueChats = [];
+        const seenIds = new Map(); // Using a Map instead of Set to store the most recent occurrence of each ID
+        
+        if (data.chats && data.chats.length > 0) {
+          // Process chats in reverse to keep the most recent entry for each ID
+          for (let i = data.chats.length - 1; i >= 0; i--) {
+            const chat = data.chats[i];
+            if (!seenIds.has(chat.id)) {
+              seenIds.set(chat.id, chat);
+            }
+          }
+          
+          // Convert Map values to array and sort by date (newest first)
+          uniqueChats = Array.from(seenIds.values()).sort((a, b) => {
+            return new Date(b.timestamp) - new Date(a.timestamp);
+          });
+          
+          console.log(`Deduplicated from ${data.chats.length} to ${uniqueChats.length} chats`);
+        }
+        
+        // Update total count with deduplicated count
+        document.getElementById('totalChatsCount').textContent = uniqueChats.length || '0';
+        
+        // Populate the chat table
+        tableBody.innerHTML = '';
+        
+        if (uniqueChats.length > 0) {
+          uniqueChats.forEach(chat => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><input type="checkbox" class="chat-select" data-chat-id="${chat.id}"></td>
+              <td>${chat.id}</td>
+              <td>${new Date(chat.timestamp).toLocaleString()}</td>
+              <td><span class="badge ${getChatTypeBadgeClass(chat.type)}">${chat.type}</span></td>
+              <td>${chat.customer || 'Anonymous'}</td>
+              <td>${chat.preview}</td>
+              <td><span class="badge ${getStatusBadgeClass(chat.status)}">${chat.status}</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary view-chat-btn" data-chat-id="${chat.id}">View</button>
+                <button class="btn btn-sm btn-danger delete-chat-btn" data-chat-id="${chat.id}">Delete</button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+          
+          // Add event listeners to view buttons
+          document.querySelectorAll('.view-chat-btn').forEach(button => {
+            button.addEventListener('click', () => {
+              const chatId = button.getAttribute('data-chat-id');
+              openChatDetail(chatId);
+            });
+          });
+          // Add event listeners to delete buttons using custom confirm modal
+          document.querySelectorAll('.delete-chat-btn').forEach(button => {
+            button.addEventListener('click', () => {
+              const chatId = button.getAttribute('data-chat-id');
+              openConfirmDeleteModal([chatId], 'Are you sure you want to delete this chat?');
+            });
+          });
+          // Setup select-all checkbox functionality
+          const selectAllCheckbox = document.getElementById('selectAll');
+          if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', () => {
+              document.querySelectorAll('.chat-select').forEach(cb => cb.checked = selectAllCheckbox.checked);
+            });
+          }
+          // Setup mass delete button functionality
+          const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+          if (deleteSelectedBtn) {
+            deleteSelectedBtn.addEventListener('click', () => {
+              const selectedIds = Array.from(document.querySelectorAll('.chat-select:checked')).map(cb => cb.getAttribute('data-chat-id'));
+              if (selectedIds.length === 0) {
+                showAlert('No chats selected for deletion', 'warning');
+                return;
+              }
+              openConfirmDeleteModal(selectedIds, `Are you sure you want to delete ${selectedIds.length} selected chat(s)?`);
+            });
+          }
+        } else {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="8" class="text-center">No chat data found</td>
+            </tr>
+          `;
+        }
+        
+      } catch (error) {
+        console.error('Error loading chat analysis data:', error);
+        showAlert('Failed to load chat analysis data', 'danger');
+        
+        // Reset counters
+        document.getElementById('totalChats').textContent = '0';
+        document.getElementById('totalBookings').textContent = '0';
+        document.getElementById('totalComplaints').textContent = '0';
+        document.getElementById('potentialClients').textContent = '0';
+        
+        // Show error in table
+        const tableBody = document.getElementById('chatTableBody');
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center text-danger">Error loading chat data: ${error.message}</td>
+          </tr>
+        `;
+      }
+    }
+    
+    // Helper function to get badge class for chat type
+    function getChatTypeBadgeClass(type) {
+      switch(type?.toLowerCase()) {
+        case 'booking': return 'bg-success';
+        case 'complaint': return 'bg-danger';
+        case 'potential': return 'bg-warning';
+        case 'general': return 'bg-info';
+        default: return 'bg-secondary';
+      }
+    }
+    
+    // Helper function to get badge class for status
+    function getStatusBadgeClass(status) {
+      switch(status?.toLowerCase()) {
+        case 'completed':
+        case 'confirmed': return 'bg-success';
+        case 'pending': return 'bg-warning';
+        case 'cancelled': return 'bg-danger';
+        case 'open': return 'bg-primary';
+        default: return 'bg-secondary';
+      }
+    }
+    
+    // Function to open chat detail modal
+    async function openChatDetail(chatId) {
+      try {
+        // Show loading state
+        const modal = new bootstrap.Modal(document.getElementById('chatDetailModal'));
+        modal.show();
+        
+        // Helper function to safely set text content of an element
+        function safeSetText(elementId, text) {
+          const element = document.getElementById(elementId);
+          if (element) {
+            element.textContent = text;
+          } else {
+            console.warn(`Element with ID ${elementId} not found`);
+          }
+        }
+        
+        // Helper function to safely hide/show an element
+        function safeSetDisplay(elementId, displayValue) {
+          const element = document.getElementById(elementId);
+          if (element) {
+            element.style.display = displayValue;
+          } else {
+            console.warn(`Element with ID ${elementId} not found`);
+          }
+        }
+        
+        // Reset all fields
+        safeSetText('chatDetailId', 'Loading...');
+        safeSetText('chatDetailDate', '');
+        safeSetText('chatDetailType', '');
+        safeSetText('chatDetailStatus', '');
+        safeSetText('customerName', '');
+        safeSetText('customerEmail', '');
+        safeSetText('customerPhone', '');
+        
+        // Reset additional customer fields if they exist
+        safeSetText('customerOrigin', 'N/A');
+        safeSetText('customerDestination', 'N/A');
+        safeSetText('customerMoveSize', 'N/A');
+        safeSetText('customerMoveDate', 'N/A');
+        safeSetText('customerAdditionalServices', 'N/A');
+        
+        // Reset chat messages container
+        const chatMessagesContainer = document.getElementById('chatMessagesContainer');
+        if (chatMessagesContainer) {
+          chatMessagesContainer.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        }
+        
+        // Hide customer additional info by default
+        safeSetDisplay('customerAdditionalInfo', 'none');
+        
+        // Hide booking details card by default
+        safeSetDisplay('bookingDetailsCard', 'none');
+        
+        // Hide complaint details card by default
+        safeSetDisplay('complaintDetailsCard', 'none');
+        
+        // Fetch chat detail data
+        const response = await authenticatedFetch(`/api/metrics/chat/${chatId}/detail`, {
+          method: 'GET'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to load chat detail: ${response.status}`);
+        }
+        
+        const chat = await response.json();
+        
+        // Update modal with chat details
+        safeSetText('chatDetailId', chat.id);
+        safeSetText('chatDetailDate', new Date(chat.timestamp).toLocaleString());
+        safeSetText('chatDetailType', chat.type);
+        safeSetText('chatDetailStatus', chat.status);
+        
+        // Extract customer info from chat data
+        // Try to get customer info from different possible locations in the data
+        let customerName = 'Anonymous';
+        let customerEmail = 'N/A';
+        let customerPhone = 'N/A';
+        
+        // Try direct customer object first
+        if (chat.customer) {
+          customerName = chat.customer.name || chat.customer.fullName || customerName;
+          customerEmail = chat.customer.email || customerEmail;
+          customerPhone = chat.customer.phone || chat.customer.phoneNumber || customerPhone;
+        } 
+        // Then try to extract from metadata if available
+        else if (chat.metadata && chat.metadata.customer) {
+          customerName = chat.metadata.customer.name || chat.metadata.customer.fullName || customerName;
+          customerEmail = chat.metadata.customer.email || customerEmail;
+          customerPhone = chat.metadata.customer.phone || chat.metadata.customer.phoneNumber || customerPhone;
+        } 
+        // Try to extract from booking details if available
+        else if (chat.booking && chat.booking.customer) {
+          customerName = chat.booking.customer.name || chat.booking.customer.fullName || customerName;
+          customerEmail = chat.booking.customer.email || customerEmail;
+          customerPhone = chat.booking.customer.phone || chat.booking.customer.phoneNumber || customerPhone;
+        }
+        
+        // Extract structured information from messages
+        let structuredData = {};
+        let hasExtractedFromStructuredFormat = false;
+        
+        // Try to extract from messages if available
+        if (chat.messages && chat.messages.length > 0) {
+          // First, check for structured booking confirmation/summary messages
+          for (const message of chat.messages) {
+            if (!message.message) continue;
+            
+            const messageText = message.message;
+            
+            // Check if this is a structured confirmation message
+            if (messageText.includes("Please confirm your booking details") || 
+                messageText.includes("booking details") || 
+                messageText.includes("moving details") ||
+                messageText.includes("Booking Summary") ||
+                messageText.includes("Moving Details")) {
+              
+              // Try to parse structured data in bullet point or list format
+              const lines = messageText.split('\n');
+              
+              // Check for customer information section
+              let inCustomerSection = false;
+              let inMovingDetailsSection = false;
+              
+              for (const line of lines) {
+                const cleanLine = line.trim();
+                
+                // Detect sections
+                if (cleanLine.includes("Customer Information")) {
+                  inCustomerSection = true;
+                  inMovingDetailsSection = false;
+                  continue;
+                } else if (cleanLine.includes("Moving Details")) {
+                  inMovingDetailsSection = true;
+                  inCustomerSection = false;
+                  continue;
+                }
+                
+                // Check for bullet points or similar formatting
+                if (cleanLine.startsWith('•') || cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
+                  // Extract key-value using colon as separator
+                  const parts = cleanLine.substring(1).split(':');
+                  
+                  if (parts.length >= 2) {
+                    const key = parts[0].trim().toLowerCase();
+                    const value = parts[1].trim();
+                    
+                    if (inCustomerSection) {
+                      // Handle customer info specifically
+                      if (key.includes('name')) {
+                        if (value && value !== 'N/A' && customerName === 'Anonymous') {
+                          customerName = value;
+                        }
+                      } else if (key.includes('email')) {
+                        if (value && value !== 'N/A' && customerEmail === 'N/A') {
+                          customerEmail = value;
+                        }
+                      } else if (key.includes('phone')) {
+                        if (value && value !== 'N/A' && customerPhone === 'N/A') {
+                          customerPhone = value;
+                        }
+                      }
+                    } else {
+                      // Store structured data for both sections
+                      structuredData[key] = value;
+                      
+                      // Handle specific moving details data
+                      if (key === 'from') {
+                        structuredData['origin'] = value;
+                      } else if (key === 'to') {
+                        structuredData['destination'] = value;
+                      } else if (key === 'size') {
+                        structuredData['move size'] = value;
+                      } else if (key === 'date') {
+                        structuredData['move date'] = value;
+                      } else if (key.includes('service')) {
+                        structuredData['additional services'] = value;
+                      }
+                    }
+                    
+                    // Mark that we found structured data
+                    hasExtractedFromStructuredFormat = true;
+                  }
+                } else if (cleanLine.includes(':')) {
+                  // Handle "Key: Value" format without bullet points
+                  const parts = cleanLine.split(':');
+                  
+                  if (parts.length >= 2) {
+                    const key = parts[0].trim().toLowerCase();
+                    const value = parts[1].trim();
+                    
+                    if (inCustomerSection) {
+                      // Handle customer info specifically
+                      if (key.includes('name')) {
+                        if (value && value !== 'N/A' && customerName === 'Anonymous') {
+                          customerName = value;
+                        }
+                      } else if (key.includes('email')) {
+                        if (value && value !== 'N/A' && customerEmail === 'N/A') {
+                          customerEmail = value;
+                        }
+                      } else if (key.includes('phone')) {
+                        if (value && value !== 'N/A' && customerPhone === 'N/A') {
+                          customerPhone = value;
+                        }
+                      }
+                    } else {
+                      // Store structured data for both sections
+                      structuredData[key] = value;
+                      
+                      // Handle specific moving details data
+                      if (key === 'from') {
+                        structuredData['origin'] = value;
+                      } else if (key === 'to') {
+                        structuredData['destination'] = value;
+                      } else if (key === 'size') {
+                        structuredData['move size'] = value;
+                      } else if (key === 'date') {
+                        structuredData['move date'] = value;
+                      } else if (key.includes('service')) {
+                        structuredData['additional services'] = value;
+                      }
+                    }
+                    
+                    // Mark that we found structured data
+                    hasExtractedFromStructuredFormat = true;
+                  }
+                }
+              }
+              
+              // If we found structured data, break the loop
+              if (hasExtractedFromStructuredFormat) {
+                break;
+              }
+            }
+          }
+          
+          // If we haven't found structured data, try pattern matching on individual messages
+          if (!hasExtractedFromStructuredFormat) {
+            // Search for common patterns in messages
+            for (const message of chat.messages) {
+              if (!message.message) continue;
+              
+              const messageText = message.message.toLowerCase();
+              
+              // Look for email pattern
+              const emailMatch = messageText.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
+              if (emailMatch && customerEmail === 'N/A') {
+                customerEmail = emailMatch[0];
+              }
+              
+              // Look for phone pattern (simple version)
+              const phoneMatch = messageText.match(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/) || 
+                                messageText.match(/\b\d{10,15}\b/);
+              if (phoneMatch && customerPhone === 'N/A') {
+                customerPhone = phoneMatch[0];
+              }
+              
+              // Look for name introduction patterns while avoiding "moving from" as a name
+              if ((messageText.includes("my name is") || 
+                   messageText.includes("i am") || 
+                   messageText.includes("i'm")) && 
+                   !messageText.includes("moving from")) {
+                
+                const nameMatches = messageText.match(/(my name is|i am|i'm) ([A-Za-z]+ ?[A-Za-z]+)/i);
+                if (nameMatches && nameMatches[2] && customerName === 'Anonymous') {
+                  customerName = nameMatches[2].trim();
+                }
+              }
+            }
+          }
+        }
+        
+        // Fallback: detect plain name messages
+        if (customerName === 'Anonymous' && chat.messages) {
+          for (const message of chat.messages) {
+            if (message.sender === 'user' && message.message) {
+              const text = message.message.trim();
+              const words = text.split(/\s+/);
+              if (words.length >= 2 && words.length <= 4 && words.every(w => /^[A-Z][a-z]+$/.test(w))) {
+                customerName = text;
+                break;
+              }
+            }
+          }
+        }
+        
+        // Update customer information
+        safeSetText('customerName', customerName);
+        safeSetText('customerEmail', customerEmail);
+        safeSetText('customerPhone', customerPhone);
+        
+        // Populate additional customer information from booking or chat data
+        let hasAdditionalInfo = false;
+        
+        // Handle different data sources for move information
+        if (chat.booking) {
+          // Show the additional customer info section if it exists
+          const customerAdditionalInfo = document.getElementById('customerAdditionalInfo');
+          if (customerAdditionalInfo) {
+            customerAdditionalInfo.style.display = 'block';
+            hasAdditionalInfo = true;
+            
+            // Origin and destination
+            const origin = chat.booking.origin || chat.booking.from || chat.booking.pickup || 'N/A';
+            const destination = chat.booking.destination || chat.booking.to || chat.booking.delivery || 'N/A';
+            safeSetText('customerOrigin', origin);
+            safeSetText('customerDestination', destination);
+            
+            // Move size
+            const moveSize = chat.booking.move_size || chat.booking.size || chat.booking.volume || 'N/A';
+            safeSetText('customerMoveSize', moveSize);
+            
+            // Format the move date nicely
+            let moveDate = 'N/A';
+            if (chat.booking.move_date) {
+              const moveDateObj = new Date(chat.booking.move_date);
+              moveDate = moveDateObj.toLocaleDateString(undefined, { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              });
+            }
+            safeSetText('customerMoveDate', moveDate);
+            
+            // Additional services
+            const additionalServices = chat.booking.services || 
+              chat.booking.additional_services || 
+              chat.booking.extras || 'None';
+            safeSetText('customerAdditionalServices', additionalServices);
+          }
+        } 
+        // If we have extracted structured data, use it
+        else if (hasExtractedFromStructuredFormat) {
+          safeSetDisplay('customerAdditionalInfo', 'block');
+          hasAdditionalInfo = true;
+          
+          safeSetText('customerOrigin', structuredData['origin'] || 'N/A');
+          safeSetText('customerDestination', structuredData['destination'] || 'N/A');
+          safeSetText('customerMoveSize', structuredData['move size'] || structuredData['size'] || 'N/A');
+          safeSetText('customerMoveDate', structuredData['moving date'] || structuredData['move date'] || structuredData['date'] || 'N/A');
+          safeSetText('customerAdditionalServices', structuredData['additional services'] || structuredData['services'] || 'None');
+        }
+                  // Try to extract move info from messages if available
+        else if (chat.messages && chat.messages.length > 0) {
+          // Extract move information from messages using pattern matching
+          let origin = null;
+          let destination = null;
+          let moveSize = null;
+          let moveDate = null;
+          let additionalServices = [];
+          
+          for (const message of chat.messages) {
+            if (!message.message) continue;
+            
+            const messageText = message.message;
+            const messageTextLower = messageText.toLowerCase();
+            
+            // Look for booking summary formats
+            if (messageText.includes("Booking Summary") || messageText.includes("Customer Information")) {
+              // Process line by line for structured data format
+              const lines = messageText.split('\n');
+              
+              for (const line of lines) {
+                const cleanLine = line.trim();
+                
+                // Extract customer name from Customer Information section
+                if (cleanLine.includes("Name:")) {
+                  const nameMatch = cleanLine.match(/Name:?\s+([A-Za-z\s]+)/i);
+                  if (nameMatch && nameMatch[1] && nameMatch[1].trim() !== 'N/A' && customerName === 'Anonymous') {
+                    customerName = nameMatch[1].trim();
+                  }
+                }
+                
+                // Match dash/bullet point format common in summaries (- From: Alaska)
+                if (cleanLine.startsWith("-") && cleanLine.includes("From:")) {
+                  const fromMatch = cleanLine.match(/- From:?\s+([A-Za-z\s]+)/i);
+                  if (fromMatch && fromMatch[1] && fromMatch[1].trim() !== 'N/A') {
+                    origin = fromMatch[1].trim();
+                    hasAdditionalInfo = true;
+                  }
+                }
+                
+                if (cleanLine.startsWith("-") && cleanLine.includes("To:")) {
+                  const toMatch = cleanLine.match(/- To:?\s+([A-Za-z\s]+)/i);
+                  if (toMatch && toMatch[1] && toMatch[1].trim() !== 'N/A') {
+                    destination = toMatch[1].trim();
+                    hasAdditionalInfo = true;
+                  }
+                }
+                
+                // Extract name from Customer Information section with dash format
+                if (cleanLine.startsWith("-") && cleanLine.includes("Name:")) {
+                  const nameMatch = cleanLine.match(/- Name:?\s+([A-Za-z\s]+)/i);
+                  if (nameMatch && nameMatch[1] && nameMatch[1].trim() !== 'N/A' && customerName === 'Anonymous') {
+                    customerName = nameMatch[1].trim();
+                  }
+                }
+              }
+              
+              // Fallback to regex matching on the whole message
+              if (origin === null) {
+                const fromMatch = messageText.match(/From:?\s+([A-Za-z\s]+)/i);
+                if (fromMatch && fromMatch[1] && fromMatch[1].trim() !== 'N/A') {
+                  origin = fromMatch[1].trim();
+                  hasAdditionalInfo = true;
+                }
+              }
+              
+              if (destination === null) {
+                const toMatch = messageText.match(/To:?\s+([A-Za-z\s]+)/i);
+                if (toMatch && toMatch[1] && toMatch[1].trim() !== 'N/A') {
+                  destination = toMatch[1].trim();
+                  hasAdditionalInfo = true;
+                }
+              }
+            }
+            
+            // Look for origin/destination patterns
+            if (messageTextLower.includes("moving from") || messageTextLower.includes("relocate from")) {
+              const fromMatch = messageText.match(/(moving from|relocate from) ([^.!?]+) to ([^.!?]+)/i);
+              if (fromMatch) {
+                origin = origin || fromMatch[2].trim();
+                destination = destination || fromMatch[3].trim();
+                hasAdditionalInfo = true;
+              }
+            }
+            
+            // Look for move size
+            if (messageText.includes("bedroom") || messageText.includes("house") || 
+                messageText.includes("apartment") || messageText.includes("condo")) {
+              const sizeMatch = messageText.match(/\b(\d+)(-|\s)?(bedroom|br|bed)\b/i) || 
+                             messageText.match(/\b(studio|one|two|three|four|five)(-|\s)?(bedroom|br|bed)\b/i);
+              if (sizeMatch) {
+                moveSize = moveSize || sizeMatch[0].trim();
+                hasAdditionalInfo = true;
+              }
+            }
+            
+            // Look for move date
+            const dateMatch = messageText.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2}(st|nd|rd|th)?( \d{4})?\b/i) ||
+                           messageText.match(/\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/) ||
+                           messageText.match(/\b\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}\b/);
+            if (dateMatch) {
+              moveDate = moveDate || dateMatch[0].trim();
+              hasAdditionalInfo = true;
+            }
+            
+            // Look for additional services
+            const services = [
+              "packing", "unpacking", "storage", "insurance", 
+              "assembly", "disassembly", "piano", "furniture",
+              "cleaning", "protection", "fragile", "specialty"
+            ];
+            
+            for (const service of services) {
+              if (messageText.includes(service) && !additionalServices.includes(service)) {
+                additionalServices.push(service);
+                hasAdditionalInfo = true;
+              }
+            }
+          }
+          
+          // Only show additional info section if we extracted some data
+          if (hasAdditionalInfo) {
+            safeSetDisplay('customerAdditionalInfo', 'block');
+            safeSetText('customerOrigin', origin || 'N/A');
+            safeSetText('customerDestination', destination || 'N/A');
+            safeSetText('customerMoveSize', moveSize || 'N/A');
+            safeSetText('customerMoveDate', moveDate || 'N/A');
+            safeSetText('customerAdditionalServices', 
+              additionalServices.length > 0 ? additionalServices.join(', ') : 'None');
+          }
+        }
+        
+        // Show booking details if this is a booking
+        if (chat.type === 'booking' && chat.booking) {
+          safeSetDisplay('bookingDetailsCard', 'block');
+          safeSetText('bookingReference', chat.booking.booking_reference || chat.booking.reference || 'N/A');
+          
+          // Format the move date nicely
+          let formattedDate = 'N/A';
+          if (chat.booking.move_date) {
+            const moveDate = new Date(chat.booking.move_date);
+            formattedDate = moveDate.toLocaleDateString(undefined, { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            });
+          }
+          safeSetText('moveDate', formattedDate);
+          
+          // Origin and destination - try different possible field names
+          safeSetText('origin', chat.booking.origin || chat.booking.from || chat.booking.pickup || 'N/A');
+          safeSetText('destination', chat.booking.destination || chat.booking.to || chat.booking.delivery || 'N/A');
+          
+          // Move size and related details
+          safeSetText('moveSize', chat.booking.move_size || chat.booking.size || chat.booking.volume || 'N/A');
+          safeSetText('totalCost', formatCurrency(chat.booking.total_cost || chat.booking.cost || chat.booking.price || 'N/A'));
+          safeSetText('distanceMiles', 
+            chat.booking.distance_miles ? `${chat.booking.distance_miles} miles` : 
+            chat.booking.distance ? `${chat.booking.distance} miles` : 'N/A');
+          
+          // Additional services
+          safeSetText('additionalServices', 
+            chat.booking.services || 
+            chat.booking.additional_services || 
+            chat.booking.extras || 'None');
+            
+          // Estimated time
+          safeSetText('estimatedTime', 
+            chat.booking.estimated_time || 
+            chat.booking.duration || 
+            chat.booking.time || 'N/A');
+            
+          // Special requirements
+          safeSetText('specialRequirements', 
+            chat.booking.special_requirements || 
+            chat.booking.requirements || 
+            chat.booking.notes || 
+            chat.booking.special_notes || 'None');
+          
+          // Update the status alert with the appropriate color
+          const statusAlert = document.getElementById('bookingStatusAlert');
+          const statusText = document.getElementById('bookingStatus');
+          const bookingDate = document.getElementById('bookingDate');
+          
+          if (statusText) statusText.textContent = chat.booking.status || 'N/A';
+          
+          // Format creation date
+          if (bookingDate) {
+            if (chat.booking.created_at) {
+              bookingDate.textContent = `Booked on ${new Date(chat.booking.created_at).toLocaleDateString()}`;
+            } else {
+              bookingDate.textContent = '';
+            }
+          }
+          
+          // Set the appropriate alert color based on status
+          if (statusAlert) {
+            switch(chat.booking.status?.toLowerCase()) {
+              case 'confirmed':
+                statusAlert.className = 'alert alert-success';
+                break;
+              case 'pending':
+                statusAlert.className = 'alert alert-warning';
+                break;
+              case 'cancelled':
+                statusAlert.className = 'alert alert-danger';
+                break;
+              case 'completed':
+                statusAlert.className = 'alert alert-info';
+                break;
+              default:
+                statusAlert.className = 'alert alert-secondary';
+            }
+          }
+        }
+        
+        // Show complaint details if this is a complaint
+        if (chat.type === 'complaint') {
+          safeSetDisplay('complaintDetailsCard', 'block');
+          safeSetText('complaintCustomerName', customerName);
+          safeSetText('complaintCustomerEmail', customerEmail);
+          safeSetText('complaintCustomerPhone', customerPhone);
+          const complaintMsg = chat.messages.find(m => m.sender === 'user');
+          safeSetText('complaintDescription', complaintMsg ? complaintMsg.message : 'N/A');
+        }
+        
+        // Show/hide follow up button based on chat type and status
+        const followUpBtn = document.getElementById('followUpBtn');
+        if (followUpBtn) {
+          if (chat.type === 'potential' || (chat.type === 'booking' && chat.status === 'pending')) {
+            followUpBtn.style.display = 'inline-block';
+            followUpBtn.textContent = chat.type === 'potential' ? 'Follow Up with Potential Client' : 'Follow Up on Booking';
+            followUpBtn.dataset.chatId = chat.id;
+            followUpBtn.dataset.customerEmail = customerEmail !== 'N/A' ? customerEmail : '';
+          } else {
+            followUpBtn.style.display = 'none';
+          }
+        }
+        
+        // Populate chat messages
+        if (!chatMessagesContainer) {
+          console.error('Chat messages container not found');
+          return;
+        }
+        
+        chatMessagesContainer.innerHTML = '';
+        
+        if (chat.messages && chat.messages.length > 0) {
+          chat.messages.forEach(message => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.sender === 'user' ? 'user-message' : 'bot-message'}`;
+            messageDiv.innerHTML = `
+              <div class="message-content">
+                <div class="message-meta">
+                  <span class="message-sender">${message.sender === 'user' ? customerName !== 'Anonymous' ? customerName : 'Customer' : 'Chatbot'}</span>
+                  <span class="message-time">${new Date(message.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div class="message-text">${message.message}</div>
+              </div>
+            `;
+            chatMessagesContainer.appendChild(messageDiv);
+          });
+        } else {
+          chatMessagesContainer.innerHTML = '<div class="text-center">No messages found</div>';
+        }
+        
+      } catch (error) {
+        console.error('Error loading chat detail:', error);
+        const chatMessagesContainer = document.getElementById('chatMessagesContainer');
+        if (chatMessagesContainer) {
+          chatMessagesContainer.innerHTML = '<div class="text-center text-danger">Failed to load chat details</div>';
+        }
+      }
+    }
+    
+    // Handle follow up button click
+    document.getElementById('followUpBtn').addEventListener('click', function() {
+      const chatId = this.dataset.chatId;
+      const customerEmail = this.dataset.customerEmail;
+      
+      if (customerEmail) {
+        // Create email with customer email
+        const subject = 'Following up on your recent conversation';
+        window.location.href = `mailto:${customerEmail}?subject=${encodeURIComponent(subject)}`;
+      } else {
+        showAlert('No customer email available for follow-up', 'warning');
+      }
+    });
+    
+    // Add event listener for Apply Filters button
+    document.getElementById('applyFiltersBtn').addEventListener('click', loadChatAnalysisData);
+    
+    // Set up logout button event
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      logout();
+    });
+    
+    // Function to update the sidebar with company info
+    function updateSidebarCompanyInfo(user) {
+      const sidebarLogo = document.getElementById('sidebarLogo');
+      const sidebarCompanyName = document.getElementById('sidebarCompanyName');
+      
+      if (user.company_logo) {
+        sidebarLogo.src = user.company_logo;
+      } else if (user.company_name) {
+        sidebarLogo.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.company_name)}&background=random`;
+      }
+      
+      sidebarCompanyName.textContent = user.company_name || 'Company Admin';
+    }
+    
+    // Get user info and update the header
+    async function updateUserInfo() {
+      try {
+        const response = await authenticatedFetch('/api/users/profile', {
+          method: 'GET'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch user profile');
+        }
+        
+        const data = await response.json();
+        if (data.user) {
+          const user = data.user;
+          document.querySelector('.user-name').textContent = user.user_name || 'User';
+          document.querySelector('.user-role').textContent = user.role || 'Member';
+          
+          // Update avatar with fallback to default if no logo
+          const avatarImg = document.querySelector('.user-avatar');
+          if (user.company_logo) {
+            avatarImg.src = user.company_logo;
+          } else {
+            avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_name || 'User')}&background=random`;
+          }
+          
+          // Update sidebar info
+          updateSidebarCompanyInfo(user);
+        }
+      } catch (err) {
+        console.error('Error updating user info:', err);
+      }
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', async function() {
+      try {
+        // Check authentication
+        const user = await checkAuth();
+        if (!user) {
+          window.location.href = '/static/login.html';
+          return;
+        }
+        
+        // Update user info in header and sidebar
+        updateUserInfo();
+        
+        // Load chat analysis data
+        loadChatAnalysisData();
+      } catch (err) {
+        console.error('Error initializing page:', err);
+        showAlert('Error initializing page. Please try again later.', 'danger');
+      }
+    });
+
+    // Helper function to format currency
+    function formatCurrency(value) {
+      if (value === 'N/A' || !value) return 'N/A';
+      
+      // If already formatted with currency symbol, return as is
+      if (typeof value === 'string' && (value.startsWith('$') || value.startsWith('£') || value.startsWith('€'))) {
+        return value;
+      }
+      
+      // Try to convert to number and format
+      try {
+        const num = parseFloat(value);
+        return new Intl.NumberFormat('en-US', { 
+          style: 'currency', 
+          currency: 'USD' 
+        }).format(num);
+      } catch (e) {
+        return value;
+      }
+    }
+
+    // Export to PDF functionality (capture full conversation)
+    document.getElementById('exportPdfBtn').addEventListener('click', function() {
+      const modalBody = document.getElementById('chatDetailModal').querySelector('.modal-body');
+      // Save original scrolling styles
+      const origOverflow = modalBody.style.overflow;
+      const origMaxHeight = modalBody.style.maxHeight;
+      // Save chat messages container styles
+      const chatMessages = modalBody.querySelector('.chat-messages');
+      let origChatOverflow, origChatMaxHeight;
+      if (chatMessages) {
+        origChatOverflow = chatMessages.style.overflowY;
+        origChatMaxHeight = chatMessages.style.maxHeight;
+      }
+      // Expand to full content
+      modalBody.style.overflow = 'visible';
+      modalBody.style.maxHeight = 'none';
+      // Expand chat messages to display full thread
+      if (chatMessages) {
+        chatMessages.style.overflowY = 'visible';
+        chatMessages.style.maxHeight = 'none';
+      }
+
+      const chatId = document.getElementById('chatDetailId').textContent.trim();
+      // Generate PDF of the full modal body
+      html2pdf().from(modalBody).set({
+        margin: [10, 10, 10, 10],
+        filename: `chat_${chatId}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'pt', format: 'letter', orientation: 'portrait' }
+      }).save().finally(() => {
+        // Restore original styles
+        modalBody.style.overflow = origOverflow;
+        modalBody.style.maxHeight = origMaxHeight;
+        // Restore chat messages container styles
+        if (chatMessages) {
+          chatMessages.style.overflowY = origChatOverflow;
+          chatMessages.style.maxHeight = origChatMaxHeight;
+        }
+      });
+    });
+  </script>
+</body>
+</html> 

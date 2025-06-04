@@ -1,15 +1,13 @@
-"""
-Subscription management and feature access control.
-"""
-
-from .features import Features, has_feature, get_available_features
+from .features import Feature, SubscriptionPlan, get_available_features, get_plan_pricing, has_feature
 from .decorators import require_feature
-from .routes import subscriptions_bp
+from .routes import subscription_bp
 
 __all__ = [
-    'Features',
-    'has_feature',
+    'Feature',
+    'SubscriptionPlan',
     'get_available_features',
+    'get_plan_pricing',
+    'has_feature',
     'require_feature',
-    'subscriptions_bp'
+    'subscription_bp'
 ] 

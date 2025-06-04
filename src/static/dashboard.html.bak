@@ -1,0 +1,2504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Company Dashboard - Admin Panel</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/assets/auth.js"></script>
+  <style>
+    /* Additional custom styles */
+    .avatar-sm {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .badge-soft-info {
+      background-color: rgba(67, 97, 238, 0.15);
+      color: #4361ee;
+    }
+    
+    .mr-1 {
+      margin-right: 0.25rem !important;
+    }
+    
+    .mr-2 {
+      margin-right: 0.5rem !important;
+    }
+    
+    .font-size-12 {
+      font-size: 12px !important;
+    }
+    
+    .font-size-13 {
+      font-size: 13px !important;
+    }
+    
+    .d-flex {
+      display: flex !important;
+    }
+    
+    .align-items-center {
+      align-items: center !important;
+    }
+    
+    .justify-content-between {
+      justify-content: space-between !important;
+    }
+    
+    .mb-0 {
+      margin-bottom: 0 !important;
+    }
+    
+    .p-2 {
+      padding: 0.5rem !important;
+    }
+
+    /* Support Button Styles */
+    .support-button {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .support-button:hover {
+      transform: scale(1.1);
+      background-color: var(--primary-color-dark);
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1050;
+    }
+
+    .modal.show {
+      display: block;
+    }
+
+    .modal-dialog {
+      position: relative;
+      width: auto;
+      margin: 0.5rem;
+      pointer-events: none;
+    }
+
+    .modal-content {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      pointer-events: auto;
+      background-color: #fff;
+      background-clip: padding-box;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 0.3rem;
+      outline: 0;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 1rem;
+      border-bottom: 1px solid #dee2e6;
+      border-top-left-radius: 0.3rem;
+      border-top-right-radius: 0.3rem;
+    }
+
+    .modal-body {
+      position: relative;
+      flex: 1 1 auto;
+      padding: 1rem;
+    }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 1rem;
+      border-top: 1px solid #dee2e6;
+      border-bottom-right-radius: 0.3rem;
+      border-bottom-left-radius: 0.3rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="alert-container"></div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <img id="sidebarLogo" src="https://ui-avatars.com/api/?name=Company&background=random" alt="Logo" class="sidebar-logo" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px;">
+          <span id="sidebarCompanyName">Loading...</span>
+        </div>
+        <button class="sidebar-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li class="sidebar-item">
+          <a href="/static/dashboard.html" class="sidebar-link active">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/profile.html" class="sidebar-link">
+            <i class="fas fa-user-circle"></i>
+            <span>Profile</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chatbot_builder.html" class="sidebar-link">
+            <i class="fas fa-robot"></i>
+            <span>Chatbot Builder</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/test.html" class="sidebar-link">
+            <i class="fas fa-vial"></i>
+            <span>Test Chatbot</span>
+          </a>
+        </li>
+        <!-- <li class="sidebar-item">
+          <a href="/static/admin.html" class="sidebar-link">
+            <i class="fas fa-cog"></i>
+            <span>Admin Settings</span>
+          </a>
+        </li> -->
+        <li class="sidebar-item">
+          <a href="/static/pricing.html" class="sidebar-link">
+            <i class="fas fa-tag"></i>
+            <span>Pricing Plans</span>
+          </a>
+        </li>
+        <!-- <li class="sidebar-item">
+          <a href="/static/index.html" class="sidebar-link">
+            <i class="fas fa-home"></i>
+            <span>Landing Page</span>
+          </a>
+        </li> -->
+        <li class="sidebar-item">
+          <a href="#" id="logoutBtn" class="sidebar-link">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="main-header">
+        <div class="header-left">
+          <!-- <button class="header-toggle d-lg-none">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h4>Dashboard</h4> -->
+        </div>
+        
+        <div class="header-right">
+          <div class="user-dropdown">
+            <div class="user-info">
+              <div>
+                <div class="user-name">User</div>
+                <div class="user-role" style="font-size: 0.7rem; color: var(--gray-600);">Member</div>
+              </div>
+              <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" class="user-avatar">
+            </div>
+            
+            <div class="user-dropdown-menu" style="display: none; position: absolute; top: 100%; right: 0; background: white; box-shadow: var(--box-shadow); border-radius: var(--border-radius); padding: 0.5rem 0; min-width: 200px; margin-top: 0.5rem; z-index: 1000;">
+              <a href="/static/profile.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+                <i class="fas fa-user-circle"></i> Manage Profile
+              </a>
+              <a href="/static/admin.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+                <i class="fas fa-cog"></i> Settings
+              </a>
+              <div style="height: 1px; background-color: var(--gray-200); margin: 0.5rem 0;"></div>
+              <a href="#" id="dropdownLogoutBtn" style="display: block; padding: 0.5rem 1rem; color: var(--danger-color);">
+                <i class="fas fa-sign-out-alt"></i> Logout
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Page Container -->
+      <div class="page-container">
+        <!-- Chatbot Statistics Row -->
+        <div class="row" style="display: flex; flex-wrap: wrap; margin: 0 -10px;">
+          <div class="col-lg-12" style="flex: 0 0 100%; max-width: 100%; padding: 0 10px;">
+            <div class="card mb-4">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Your Chatbots</h5>
+                <a href="/static/chatbot_builder.html" class="btn btn-sm btn-primary">
+                  <i class="fas fa-plus"></i> New Chatbot
+                </a>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Version</th>
+                        <th>Total Messages</th>
+                        <th>Satisfaction Rate</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="chatbotTable">
+                      <tr>
+                        <td colspan="5" class="text-center">Loading chatbots...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="widget-container">
+          <div class="widget">
+            <div class="widget-header">
+              <h5 class="widget-title">Total Chatbots</h5>
+              <div class="widget-icon primary">
+                <i class="fas fa-robot"></i>
+              </div>
+            </div>
+            <div class="widget-value" id="totalChatbots">-</div>
+            <div class="widget-subtitle">Active chatbots</div>
+          </div>
+          
+          <div class="widget">
+            <div class="widget-header">
+              <h5 class="widget-title">Total Conversations</h5>
+              <div class="widget-icon info">
+                <i class="fas fa-comments"></i>
+              </div>
+            </div>
+            <div class="widget-value" id="totalConversations">-</div>
+            <div class="widget-subtitle">All time</div>
+          </div>
+          
+          <div class="widget">
+            <div class="widget-header">
+              <h5 class="widget-title">Satisfaction Rate</h5>
+              <div class="widget-icon success">
+                <i class="fas fa-smile"></i>
+              </div>
+            </div>
+            <div class="widget-value" id="satisfactionRate">-</div>
+            <div class="widget-subtitle">Based on user feedback</div>
+          </div>
+          
+          <div class="widget">
+            <div class="widget-header">
+              <h5 class="widget-title">Subscription</h5>
+              <div class="widget-icon secondary">
+                <i class="fas fa-crown"></i>
+              </div>
+            </div>
+            <div class="widget-value" id="subscriptionPlanWidget">Pro</div>
+            <div class="widget-subtitle" id="subscriptionExpiryWidget">Expires on Dec 31, 2023</div>
+          </div>
+        </div>
+        
+        <div class="row" style="display: flex; flex-wrap: wrap; margin: 0 -10px;">
+          <div class="col-lg-8" style="flex: 0 0 66.666667%; max-width: 66.666667%; padding: 0 10px;">
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="card-title">Conversations Overview</h5>
+              </div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="conversationsChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-lg-4" style="flex: 0 0 33.333333%; max-width: 33.333333%; padding: 0 10px;">
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="card-title">Chatbot Performance</h5>
+              </div>
+              <div class="card-body">
+                <div class="chart-container" style="height: 200px;">
+                  <canvas id="performanceChart"></canvas>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">Subscription Status</h5>
+              </div>
+              <div class="card-body" id="subscriptionStatus">
+                <p>Your current subscription expires on: <strong id="subscriptionExpiry">--/--/----</strong></p>
+                <div class="progress mb-3" style="height: 10px; background-color: var(--gray-200); border-radius: 10px; overflow: hidden;">
+                  <div class="progress-bar bg-primary" role="progressbar" style="width: 75%; height: 100%;"></div>
+                </div>
+                <a href="/static/pricing.html" class="btn btn-outline-primary btn-block mt-3">
+                  <i class="fas fa-sync-alt"></i> Manage Subscription
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Company Details</h5>
+          </div>
+          <div class="card-body">
+            <div id="dashboardDisplay" class="mb-4"></div>
+            
+            <h5 class="mb-3">Edit Profile</h5>
+            <form id="updateProfileForm">
+              <div class="row" style="display: flex; flex-wrap: wrap; margin: 0 -10px;">
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="user_name" class="form-label">Name</label>
+                    <input type="text" id="user_name" name="user_name" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="user_phone" class="form-label">Phone</label>
+                    <input type="text" id="user_phone" name="user_phone" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="company_name" class="form-label">Company Name</label>
+                    <input type="text" id="company_name" name="company_name" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="company_phone" class="form-label">Company Phone</label>
+                    <input type="text" id="company_phone" name="company_phone" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="company_website" class="form-label">Company Website</label>
+                    <input type="text" id="company_website" name="company_website" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="niche" class="form-label">Niche</label>
+                    <input type="text" id="niche" name="niche" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-12" style="flex: 0 0 100%; max-width: 100%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="business_address" class="form-label">Business Address</label>
+                    <textarea id="business_address" name="business_address" class="form-control"></textarea>
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="subscription_plan" class="form-label">Current Plan</label>
+                    <input type="text" id="subscription_plan" name="subscription_plan" class="form-control" readonly style="background-color: var(--gray-200);">
+                  </div>
+                </div>
+              </div>
+              
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Update Profile
+              </button>
+            </form>
+            
+            <pre id="updateResult" style="display: none;"></pre>
+            
+            <h5 class="mt-4 mb-3">Upload Company Logo</h5>
+            <form id="uploadLogoForm" enctype="multipart/form-data">
+              <div class="form-group">
+                <label for="logo" class="form-label">Choose Logo (PNG/JPG)</label>
+                <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg" required class="form-control">
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Upload Logo
+              </button>
+            </form>
+            
+            <pre id="uploadLogoResult" style="display: none;"></pre>
+          </div>
+        </div>
+        
+        <!-- Knowledge Base Section -->
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title">Knowledge Base</h5>
+            <button class="btn btn-primary" id="addFaqBtn">
+              <i class="fas fa-plus"></i> Add FAQ
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Question</th>
+                    <th>Answer</th>
+                    <th>Category</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="faqTable">
+                  <tr>
+                    <td colspan="4" class="text-center">Loading FAQs...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Help and Support Section -->
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Help and Support Tickets</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Ticket ID</th>
+                    <th>Subject</th>
+                    <th>Topic</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Remarks</th>
+                    <th>Media</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ticketsTable">
+                  <tr>
+                    <td colspan="8" class="text-center">Loading tickets...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Support Button -->
+  <button class="support-button" id="supportButton">
+    <i class="fas fa-headset"></i>
+  </button>
+
+  <!-- Support Modal -->
+  <div class="modal" id="supportModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Create Support Ticket</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="supportTicketForm">
+            <div class="mb-3">
+              <label for="ticketSubject" class="form-label">Subject</label>
+              <input type="text" class="form-control" id="ticketSubject" required>
+            </div>
+            <div class="mb-3">
+              <label for="ticketTopic" class="form-label">Topic</label>
+              <select class="form-select" id="ticketTopic" required>
+                <option value="">Select a topic</option>
+                <option value="billing">Billing</option>
+                <option value="api">API</option>
+                <option value="knowledge_base">Knowledge Base</option>
+                <option value="chatbot_integration">Chatbot Integration</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="ticketDetails" class="form-label">Details</label>
+              <textarea class="form-control" id="ticketDetails" rows="4" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="ticketMedia" class="form-label">Attach Media (Optional)</label>
+              <input type="file" class="form-control" id="ticketMedia" accept="image/*,video/*,.pdf,.doc,.docx">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="submitTicketBtn">Submit Ticket</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Details Modal -->
+  <div class="modal" id="ticketDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Ticket Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <dl class="row">
+            <dt class="col-sm-3">Ticket ID</dt>
+            <dd class="col-sm-9" id="ticketId"></dd>
+            
+            <dt class="col-sm-3">Subject</dt>
+            <dd class="col-sm-9" id="ticketSubject"></dd>
+            
+            <dt class="col-sm-3">Topic</dt>
+            <dd class="col-sm-9" id="ticketTopic"></dd>
+            
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9" id="ticketStatus"></dd>
+            
+            <dt class="col-sm-3">Created At</dt>
+            <dd class="col-sm-9" id="ticketCreatedAt"></dd>
+            
+            <dt class="col-sm-3">Details</dt>
+            <dd class="col-sm-9" id="ticketDetails"></dd>
+            
+            <dt class="col-sm-3">Admin Remarks</dt>
+            <dd class="col-sm-9" id="ticketRemarks">
+              <div class="alert alert-info" id="noRemarksAlert" style="display: none;">
+                No remarks provided by admin yet.
+              </div>
+              <div id="remarksContent" style="display: none;"></div>
+            </dd>
+          </dl>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit FAQ Modal -->
+  <div class="modal fade" id="editFaqModal" tabindex="-1" aria-labelledby="editFaqModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="editFaqForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editFaqModalLabel">Edit FAQ</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editFaqId">
+            <div class="mb-3">
+              <label for="editFaqQuestion" class="form-label">Question</label>
+              <input type="text" class="form-control" id="editFaqQuestion" required>
+            </div>
+            <div class="mb-3">
+              <label for="editFaqAnswer" class="form-label">Answer</label>
+              <textarea class="form-control" id="editFaqAnswer" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="editFaqCategory" class="form-label">Category</label>
+              <input type="text" class="form-control" id="editFaqCategory" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Alert function
+    function showAlert(message, type = 'info') {
+      const alertContainer = document.querySelector('.alert-container');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type} alert-dismissible fade show`;
+      alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      alertContainer.appendChild(alert);
+      
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+
+    // Link Add FAQ button to chatbot_builder.html
+    document.getElementById('addFaqBtn').addEventListener('click', function() {
+      window.location.href = '/static/chatbot_builder.html';
+    });
+
+    // Original functionality maintained with enhancements
+    async function fetchProfile() {
+      try {
+        const response = await authenticatedFetch('/api/users/profile');
+        const data = await response.json();
+        if (data.user) {
+          displayUser(data.user);
+          populateForm(data.user);
+          updateSubscriptionInfo(data.user);
+        } else {
+          document.getElementById("dashboardDisplay").innerText = JSON.stringify(data, null, 2);
+        }
+      } catch (err) {
+        document.getElementById("dashboardDisplay").innerText = "Error fetching profile: " + err;
+        showAlert('Error fetching profile data', 'danger');
+      }
+    }
+    
+    function displayUser(u) {
+      const dashDiv = document.getElementById("dashboardDisplay");
+      if (!dashDiv) return;
+
+      let logoHtml = "";
+      if (u.company_logo) {
+        logoHtml = `<img src="${u.company_logo}" alt="Logo" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; float: right; margin-left: 1rem;" class="company-logo-trigger">`;
+      }
+      
+      dashDiv.innerHTML = `
+        <div class="card mb-0" style="border: none; background-color: transparent; box-shadow: none;">
+          <div class="card-body p-0">
+            ${logoHtml}
+            <h4 class="mb-3">${u.company_name || 'Your Company'}</h4>
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong><i class="fas fa-user"></i> Name:</strong> ${u.user_name || 'N/A'}</p>
+                <p><strong><i class="fas fa-envelope"></i> Email:</strong> ${u.user_email || 'N/A'}</p>
+                <p><strong><i class="fas fa-phone"></i> Phone:</strong> ${u.user_phone || 'N/A'}</p>
+                <p><strong><i class="fas fa-id-card"></i> Company ID:</strong> ${u.company_id || 'N/A'}</p>
+              </div>
+              <div class="col-md-6">
+                <p><strong><i class="fas fa-building"></i> Company Phone:</strong> ${u.company_phone || 'N/A'}</p>
+                <p><strong><i class="fas fa-map-marker-alt"></i> Address:</strong> ${u.business_address || 'N/A'}</p>
+                <p><strong><i class="fas fa-globe"></i> Website:</strong> ${u.company_website ? `<a href="${u.company_website}" target="_blank">${u.company_website}</a>` : 'N/A'}</p>
+                <p><strong><i class="fas fa-tag"></i> Niche:</strong> ${u.niche || 'N/A'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Update sidebar with company info
+      updateSidebarCompanyInfo(u);
+      
+      // Add click handler for company logo dropdown if logo exists
+      const logoElement = document.querySelector('.company-logo-trigger');
+      if (logoElement) {
+        const logoDropdownMenu = document.createElement('div');
+        logoDropdownMenu.className = 'logo-dropdown-menu';
+        logoDropdownMenu.style.display = 'none';
+        logoDropdownMenu.style.position = 'absolute';
+        logoDropdownMenu.style.top = '110px';
+        logoDropdownMenu.style.right = '20px';
+        logoDropdownMenu.style.backgroundColor = 'white';
+        logoDropdownMenu.style.boxShadow = 'var(--box-shadow)';
+        logoDropdownMenu.style.borderRadius = 'var(--border-radius)';
+        logoDropdownMenu.style.padding = '0.5rem 0';
+        logoDropdownMenu.style.minWidth = '200px';
+        logoDropdownMenu.style.zIndex = '1000';
+        
+        logoDropdownMenu.innerHTML = `
+          <a href="/static/profile.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+            <i class="fas fa-user-circle"></i> Manage Profile
+          </a>
+          <a href="/static/admin.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+            <i class="fas fa-cog"></i> Settings
+          </a>
+          <div style="height: 1px; background-color: var(--gray-200); margin: 0.5rem 0;"></div>
+          <a href="#" id="logoLogoutBtn" style="display: block; padding: 0.5rem 1rem; color: var(--danger-color);">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </a>
+        `;
+        
+        document.querySelector('.main-content').appendChild(logoDropdownMenu);
+        
+        logoElement.addEventListener('click', function() {
+          logoDropdownMenu.style.display = logoDropdownMenu.style.display === 'none' ? 'block' : 'none';
+        });
+        
+        document.addEventListener('click', function(event) {
+          if (!logoElement.contains(event.target) && !logoDropdownMenu.contains(event.target)) {
+            logoDropdownMenu.style.display = 'none';
+          }
+        });
+      }
+    }
+    
+    function updateSubscriptionInfo(user) {
+      const expiryElement = document.getElementById("subscriptionExpiry");
+      const planWidget = document.getElementById("subscriptionPlanWidget");
+      const expiryWidget = document.getElementById("subscriptionExpiryWidget");
+      const satisfactionRate = document.getElementById("satisfactionRate");
+      
+      // Set placeholders until we get real data
+      planWidget.textContent = "Loading...";
+      expiryElement.textContent = "Loading...";
+      expiryWidget.textContent = "Loading...";
+      satisfactionRate.textContent = "-";
+      
+      // Immediately fetch detailed subscription info
+      fetchSubscriptionDetails();
+    }
+    
+    // Fetch detailed subscription information
+    async function fetchSubscriptionDetails() {
+      try {
+        const response = await fetch('/api/subscriptions/details', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        console.log('Subscription details response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Subscription details full response:', data);
+          
+          if (data.success === false) {
+            console.error('Error in subscription response:', data.error);
+            setSubscriptionFallbackValues();
+            return;
+          }
+          
+          // Update the dashboard widgets with subscription data
+          updateDashboardWithSubscriptionData(data);
+        } else {
+          // Don't redirect to login on failure, just use fallback values
+          console.error('Failed to fetch subscription details:', response.statusText);
+          setSubscriptionFallbackValues();
+        }
+      } catch (err) {
+        console.error('Error fetching subscription details:', err);
+        setSubscriptionFallbackValues();
+      }
+    }
+    
+    // Function to update the dashboard with subscription data
+    function updateDashboardWithSubscriptionData(data) {
+      // Update plan display
+      const planWidget = document.getElementById("subscriptionPlanWidget");
+      if (data.subscription && data.subscription.plan_display_name) {
+        planWidget.textContent = data.subscription.plan_display_name;
+      } else {
+        planWidget.textContent = "Free";
+      }
+      
+      // Update expiry info if available
+      const expiryElement = document.getElementById("subscriptionExpiry");
+      const expiryWidget = document.getElementById("subscriptionExpiryWidget");
+      
+      if (data.subscription && data.subscription.expires_at) {
+        const expiryDate = new Date(data.subscription.expires_at);
+        const formattedDate = expiryDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short', 
+          day: 'numeric'
+        });
+        
+        expiryElement.textContent = formattedDate;
+        
+        if (data.subscription.days_remaining > 0) {
+          expiryWidget.textContent = `Expires in ${data.subscription.days_remaining} days`;
+        } else {
+          expiryWidget.textContent = "Subscription expired";
+        }
+      } else {
+        expiryElement.textContent = "Not available";
+        expiryWidget.textContent = "No active subscription";
+      }
+      
+      // Update subscription status section with limits and usage
+      const subscriptionStatus = document.getElementById("subscriptionStatus");
+      
+      let progressPercentage = 0;
+      let chatbotsUsed = 0;
+      let chatbotsLimit = 'Unlimited';
+      let messagesUsed = 0;
+      let messagesLimit = 'Unlimited';
+      
+      if (data.usage) {
+        chatbotsUsed = data.usage.chatbots || 0;
+        messagesUsed = data.usage.messages || 0;
+      }
+      
+      if (data.limits) {
+        chatbotsLimit = data.limits.chatbot || 'Unlimited';
+        messagesLimit = data.limits.api_access || 'Unlimited';
+        
+        // Calculate progress percentage
+        if (chatbotsLimit !== 'Unlimited' && chatbotsUsed > 0) {
+          progressPercentage = Math.min(Math.round((chatbotsUsed / chatbotsLimit) * 100), 100);
+        }
+      }
+      
+      subscriptionStatus.innerHTML = `
+        <p>Your current subscription expires on: <strong>${expiryElement.textContent}</strong></p>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <small>Chatbots: ${chatbotsUsed} / ${chatbotsLimit}</small>
+            <small>Messages: ${messagesUsed} / ${messagesLimit}</small>
+          </div>
+          <div class="progress mb-1" style="height: 10px; background-color: var(--gray-200); border-radius: 10px; overflow: hidden;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: ${progressPercentage}%; height: 100%;"></div>
+          </div>
+        </div>
+        <a href="/static/pricing.html" class="btn btn-outline-primary btn-block mt-3">
+          <i class="fas fa-sync-alt"></i> Manage Subscription
+        </a>
+      `;
+      
+      // Display appropriate warning based on subscription status
+      if (data.subscription) {
+        let shouldShowWarning = false;
+        let warningMessage = '';
+        
+        if (data.subscription.status !== 'active') {
+          shouldShowWarning = true;
+          warningMessage = 'Your subscription is inactive.';
+        } else if (data.subscription.days_remaining < 0) {
+          shouldShowWarning = true;
+          warningMessage = 'Your subscription has expired.';
+        } else if (data.subscription.days_remaining < 7) {
+          shouldShowWarning = true;
+          warningMessage = 'Your subscription will expire soon.';
+        } else if (data.subscription.plan === 'free' || data.subscription.plan === 'free_trial') {
+          shouldShowWarning = true;
+          warningMessage = 'You are using a free plan.';
+        }
+        
+        if (shouldShowWarning) {
+          subscriptionStatus.innerHTML += `
+            <div class="alert alert-warning mt-3">
+              <i class="fas fa-exclamation-triangle"></i> ${warningMessage} Upgrade to continue using premium features.
+            </div>
+          `;
+        }
+      }
+    }
+    
+    // Set fallback values if we can't fetch subscription data
+    function setSubscriptionFallbackValues() {
+      const planWidget = document.getElementById("subscriptionPlanWidget");
+      const expiryElement = document.getElementById("subscriptionExpiry");
+      const expiryWidget = document.getElementById("subscriptionExpiryWidget");
+      
+      planWidget.textContent = "Free";
+      expiryElement.textContent = "Not available";
+      expiryWidget.textContent = "No subscription data";
+      
+      const subscriptionStatus = document.getElementById("subscriptionStatus");
+      subscriptionStatus.innerHTML = `
+        <p>Your current subscription: <strong>Free Plan</strong></p>
+        <div class="mb-3">
+          <div class="progress mb-1" style="height: 10px; background-color: var(--gray-200); border-radius: 10px; overflow: hidden;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: 0%; height: 100%;"></div>
+          </div>
+        </div>
+        <a href="/static/pricing.html" class="btn btn-outline-primary btn-block mt-3">
+          <i class="fas fa-sync-alt"></i> Upgrade Subscription
+        </a>
+        <div class="alert alert-warning mt-3">
+          <i class="fas fa-exclamation-triangle"></i> You are using a free plan. Upgrade to access premium features.
+        </div>
+      `;
+    }
+    
+    function populateForm(u) {
+      document.getElementById('user_name').value = u.user_name || "";
+      document.getElementById('user_phone').value = u.user_phone || "";
+      document.getElementById('company_name').value = u.company_name || "";
+      document.getElementById('company_phone').value = u.company_phone || "";
+      document.getElementById('business_address').value = u.business_address || "";
+      document.getElementById('company_website').value = u.company_website || "";
+      document.getElementById('niche').value = u.niche || "";
+      document.getElementById('subscription_plan').value = u.subscription_plan || "N/A";
+    }
+    
+    document.getElementById('updateProfileForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const payload = {
+        user_name: document.getElementById('user_name').value,
+        user_phone: document.getElementById('user_phone').value,
+        company_name: document.getElementById('company_name').value,
+        company_phone: document.getElementById('company_phone').value,
+        business_address: document.getElementById('business_address').value,
+        company_website: document.getElementById('company_website').value,
+        niche: document.getElementById('niche').value
+      };
+      try {
+        const response = await fetch('/api/users/update_profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (data.user) {
+          displayUser(data.user);
+          populateForm(data.user);
+          showAlert('Profile updated successfully!', 'success');
+        } else {
+          showAlert('Error updating profile', 'danger');
+        }
+        document.getElementById('updateResult').innerText = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('updateResult').innerText = "Error: " + err;
+        showAlert('Error: ' + err, 'danger');
+      }
+    });
+    
+    document.getElementById('uploadLogoForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formEl = document.getElementById('uploadLogoForm');
+      const formData = new FormData(formEl);
+      try {
+        const response = await fetch('/api/users/upload_logo', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        });
+        const data = await response.json();
+        if (data.user) {
+          displayUser(data.user);
+          populateForm(data.user);
+          showAlert('Logo uploaded successfully!', 'success');
+        } else {
+          showAlert('Error uploading logo', 'danger');
+        }
+        document.getElementById('uploadLogoResult').innerText = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('uploadLogoResult').innerText = "Error: " + err;
+        showAlert('Error: ' + err, 'danger');
+      }
+    });
+    
+    // Fetch metrics from the server
+    async function fetchMetrics() {
+      try {
+        const response = await fetch('/api/metrics/dashboard', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          console.error(`Error fetching metrics: ${response.status} ${response.statusText}`);
+          // Use fallback values instead of redirecting
+          setMetricsFallbackValues();
+          return;
+        }
+        
+        const data = await response.json();
+        console.log('Metrics response:', data);
+        
+        if (!data.success) {
+          console.error('Failed to fetch metrics:', data.error || 'Unknown error');
+          setMetricsFallbackValues();
+          return;
+        }
+        
+        // Update the dashboard with metrics
+        document.getElementById('totalChatbots').textContent = data.total_chatbots || '0';
+        document.getElementById('totalConversations').textContent = data.total_conversations || '0';
+        
+        // Update satisfaction rate from API
+        const satisfactionElement = document.getElementById('satisfactionRate');
+        if (data.satisfaction_rate !== undefined) {
+          satisfactionElement.textContent = `${data.satisfaction_rate}%`;
+        } else {
+          satisfactionElement.textContent = "0%";
+        }
+        
+        // Update chatbot table if data is available
+        updateChatbotTable(data.chatbots || []);
+        
+        // Update charts if needed
+        updateCharts(data);
+        
+        // Update user info in header
+        updateUserInfo();
+        
+      } catch (err) {
+        console.error('Error fetching metrics:', err);
+        setMetricsFallbackValues();
+      }
+    }
+    
+    // Set fallback values if we can't fetch metrics
+    function setMetricsFallbackValues() {
+      // Set default text values
+      const totalChatbots = document.getElementById('totalChatbots');
+      if (totalChatbots) totalChatbots.textContent = '0';
+      
+      const totalConversations = document.getElementById('totalConversations');
+      if (totalConversations) totalConversations.textContent = '0';
+      
+      const satisfactionRate = document.getElementById('satisfactionRate');
+      if (satisfactionRate) satisfactionRate.textContent = '0%';
+      
+      const chatbotTable = document.getElementById('chatbotTable');
+      if (chatbotTable) chatbotTable.innerHTML = '<tr><td colspan="5" class="text-center">No chatbots found</td></tr>';
+      
+      // Update charts with empty data if they exist
+      if (window.conversationsChart && window.conversationsChart.data && window.conversationsChart.data.datasets) {
+        window.conversationsChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        window.conversationsChart.update();
+      }
+      
+      if (window.performanceChart && window.performanceChart.data && window.performanceChart.data.datasets) {
+        window.performanceChart.data.datasets[0].data = [0, 0, 0, 0];
+        window.performanceChart.update();
+      }
+    }
+    
+    // Function to update the chatbot table with data
+    function updateChatbotTable(chatbots) {
+      const tableBody = document.getElementById('chatbotTable');
+      
+      if (!chatbots || chatbots.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No chatbots found</td></tr>';
+        return;
+      }
+      
+      let tableHtml = '';
+      
+      chatbots.forEach(chatbot => {
+        const satisfactionRateFormatted = typeof chatbot.satisfaction_rate === 'number' 
+          ? `${chatbot.satisfaction_rate.toFixed(1)}%` 
+          : 'N/A';
+          
+        tableHtml += `
+          <tr>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="avatar-sm bg-light rounded-circle text-center mr-2" style="width: 32px; height: 32px; line-height: 32px; margin-right: 10px;">
+                  <i class="fas fa-robot text-primary"></i>
+                </div>
+                <div>
+                  <h6 class="mb-0">${chatbot.bot_name || 'Untitled Chatbot'}</h6>
+                  <small class="text-muted">ID: ${chatbot.id}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge badge-soft-info p-2 font-size-12">v${chatbot.version || 1}</span>
+            </td>
+            <td>
+              <div class="font-size-13">${chatbot.total_messages || 0}</div>
+              <small class="text-muted">Total</small>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="progress flex-grow-1" style="height: 6px; width: 80px; background-color: var(--gray-200); border-radius: 10px; overflow: hidden; margin-right: 10px;">
+                  <div class="progress-bar bg-success" role="progressbar" style="width: ${chatbot.satisfaction_rate || 0}%; height: 100%;"></div>
+                </div>
+                <span class="font-size-13">${satisfactionRateFormatted}</span>
+              </div>
+            </td>
+            <td>
+              <div class="btn-group">
+                <a href="/static/test.html?chatbot=${chatbot.id}" class="btn btn-sm btn-primary mr-1" title="Test Chatbot">
+                  <i class="fas fa-vial"></i>
+                </a>
+                <a href="/static/chatbot_builder.html?edit=${chatbot.id}" class="btn btn-sm btn-info mr-1" title="Edit Chatbot">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <button class="btn btn-sm btn-danger delete-chatbot" data-id="${chatbot.id}" data-name="${chatbot.bot_name || 'Untitled Chatbot'}" title="Delete Chatbot">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      
+      tableBody.innerHTML = tableHtml;
+      
+      // Attach event listeners to delete buttons
+      attachChatbotDeleteHandlers();
+    }
+    
+    // Function to handle chatbot deletion
+    function attachChatbotDeleteHandlers() {
+      document.querySelectorAll('.delete-chatbot').forEach(button => {
+        button.addEventListener('click', function() {
+          const chatbotId = this.getAttribute('data-id');
+          const chatbotName = this.getAttribute('data-name');
+          
+          if (confirm(`Are you sure you want to delete the chatbot "${chatbotName}"? This will delete all associated FAQs and information.`)) {
+            deleteChatbot(chatbotId);
+          }
+        });
+      });
+    }
+    
+    // Function to delete a chatbot
+    async function deleteChatbot(chatbotId) {
+      try {
+        console.log(`Attempting to delete chatbot with ID: ${chatbotId}`);
+        
+        // Use authenticatedFetch which has proper authentication handling
+        const response = await authenticatedFetch(`/api/chatbot/${chatbotId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log(`Delete response status: ${response.status}`);
+        
+        if (response.ok) {
+          try {
+            const data = await response.json();
+            console.log('Delete response data:', data);
+            showAlert(data.message || 'Chatbot deleted successfully!', 'success');
+          } catch (e) {
+            console.log('Could not parse JSON response, but operation was successful');
+            showAlert('Chatbot deleted successfully!', 'success');
+          }
+          
+          // Refresh the chatbot list and metrics
+          fetchMetrics();
+          return;
+        }
+        
+        // If the request was not ok, try to get error details
+        try {
+          const errorData = await response.json();
+          console.error('Error response data:', errorData);
+          showAlert('Error deleting chatbot: ' + (errorData.error || errorData.message || 'Unknown error'), 'danger');
+        } catch (e) {
+          // If we can't parse the JSON, try to get the text
+          const errorText = await response.text();
+          console.error('Error response text:', errorText);
+          showAlert(`Error deleting chatbot: Server returned ${response.status}`, 'danger');
+        }
+      } catch (err) {
+        console.error('Error deleting chatbot:', err);
+        showAlert('Error deleting chatbot: ' + err, 'danger');
+      }
+    }
+    
+    // Helper to get cookie
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+    
+    function updateCharts(metrics) {
+      // Update the conversations chart with real data if available
+      if (metrics.monthly_conversations && window.conversationsChart) {
+        window.conversationsChart.data.datasets[0].data = metrics.monthly_conversations;
+        window.conversationsChart.update();
+      }
+      
+      // Update the performance chart with real data if available
+      if (metrics.performance_data && window.performanceChart) {
+        window.performanceChart.data.datasets[0].data = [
+          metrics.performance_data.excellent || 0,
+          metrics.performance_data.good || 0,
+          metrics.performance_data.average || 0,
+          metrics.performance_data.poor || 0
+        ];
+        window.performanceChart.update();
+      }
+    }
+    
+    // Function to update user info in header
+    async function updateUserInfo() {
+      try {
+        const response = await fetch('/api/users/profile', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch user profile');
+        }
+        
+        const data = await response.json();
+        if (data.user) {
+          const user = data.user;
+          document.querySelector('.user-name').textContent = user.user_name || 'User';
+          document.querySelector('.user-role').textContent = user.role || 'Member';
+          
+          // Update avatar with fallback to default if no logo
+          const avatarImg = document.querySelector('.user-avatar');
+          if (user.company_logo) {
+            avatarImg.src = user.company_logo;
+          } else {
+            avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_name || 'User')}&background=random`;
+          }
+        }
+      } catch (err) {
+        console.error('Error updating user info:', err);
+      }
+    }
+    
+    // Toggle the user dropdown menu
+    document.querySelector('.user-info').addEventListener('click', function() {
+      const dropdownMenu = document.querySelector('.user-dropdown-menu');
+      dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    // Close the dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const userInfo = document.querySelector('.user-info');
+      const dropdownMenu = document.querySelector('.user-dropdown-menu');
+      
+      if (!userInfo.contains(event.target) && !dropdownMenu.contains(event.target)) {
+        dropdownMenu.style.display = 'none';
+      }
+    });
+    
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      logout();
+    });
+    
+    document.getElementById('dropdownLogoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      logout();
+    });
+    
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', async function() {
+      try {
+        // Initialize charts first to prevent any errors
+        initCharts();
+        
+        // Check authentication first
+        const user = await checkAuth();
+        if (!user) {
+          window.location.href = '/static/login.html';
+          return;
+        }
+        
+        // If authenticated, proceed with dashboard initialization
+        displayUser(user);
+        populateForm(user);
+        updateSubscriptionInfo(user);
+        
+        // Fetch metrics and other data
+        await fetchMetrics();
+        
+        // Refresh metrics every 30 seconds
+        setInterval(fetchMetrics, 30000);
+
+        // Add event listeners after elements are created
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          logout();
+        });
+        
+        document.getElementById('dropdownLogoutBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          logout();
+        });
+
+        // Only add logoLogoutBtn event listener if the element exists
+        const logoLogoutBtn = document.getElementById('logoLogoutBtn');
+        if (logoLogoutBtn) {
+          logoLogoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+          });
+        }
+      } catch (err) {
+        console.error('Error initializing dashboard:', err);
+        showAlert('Error initializing dashboard', 'danger');
+        window.location.href = '/static/login.html';
+      }
+    });
+    
+    // Initialize charts with default data
+    function initCharts() {
+      try {
+        // Initialize conversations chart
+        const conversationsCtx = document.getElementById('conversationsChart').getContext('2d');
+        window.conversationsChart = new Chart(conversationsCtx, {
+          type: 'line',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+              label: 'Conversations',
+              data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              backgroundColor: 'rgba(67, 97, 238, 0.2)',
+              borderColor: 'rgba(67, 97, 238, 1)',
+              borderWidth: 2,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0
+                }
+              }
+            }
+          }
+        });
+        
+        // Initialize performance chart
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        window.performanceChart = new Chart(performanceCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Excellent', 'Good', 'Average', 'Poor'],
+            datasets: [{
+              data: [0, 0, 0, 0],
+              backgroundColor: [
+                'rgba(52, 191, 163, 0.7)',
+                'rgba(67, 97, 238, 0.7)',
+                'rgba(255, 193, 7, 0.7)',
+                'rgba(220, 53, 69, 0.7)'
+              ],
+              borderColor: [
+                'rgba(52, 191, 163, 1)',
+                'rgba(67, 97, 238, 1)',
+                'rgba(255, 193, 7, 1)',
+                'rgba(220, 53, 69, 1)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Error initializing charts:', err);
+      }
+    }
+
+    // Support Modal Functions
+    document.getElementById('supportButton').addEventListener('click', function() {
+      document.getElementById('supportModal').classList.add('show');
+    });
+
+    document.querySelector('.btn-close').addEventListener('click', function() {
+      document.getElementById('supportModal').classList.remove('show');
+    });
+
+    document.getElementById('submitTicketBtn').addEventListener('click', async function() {
+      console.log('DEBUG: Starting submitTicketBtn click handler');
+      
+      const form = document.getElementById('supportTicketForm');
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const formData = new FormData();
+      
+      // Get form values and log them
+      const subject = document.getElementById('ticketSubject').value;
+      const topic = document.getElementById('ticketTopic').value;
+      const details = document.getElementById('ticketDetails').value;
+      
+      console.log('DEBUG: Form values:');
+      console.log('DEBUG: subject =', subject);
+      console.log('DEBUG: topic =', topic);
+      console.log('DEBUG: details =', details);
+      
+      formData.append('subject', subject);
+      formData.append('topic', topic);
+      formData.append('details', details);
+      
+      const mediaFile = document.getElementById('ticketMedia').files[0];
+      if (mediaFile) {
+        console.log('DEBUG: Media file:');
+        console.log('DEBUG: name =', mediaFile.name);
+        console.log('DEBUG: size =', mediaFile.size);
+        console.log('DEBUG: type =', mediaFile.type);
+        formData.append('media', mediaFile);
+      }
+
+      try {
+        console.log('DEBUG: Submitting ticket to API');
+        const response = await fetch('/api/support/tickets', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        });
+
+        console.log('DEBUG: API response status:', response.status);
+        const data = await response.json();
+        console.log('DEBUG: API response data:', data);
+        
+        if (data.success) {
+          showAlert('Ticket submitted successfully!', 'success');
+          document.getElementById('supportModal').classList.remove('show');
+          form.reset();
+          fetchTickets(); // Refresh tickets table
+        } else {
+          showAlert('Error submitting ticket: ' + (data.error || 'Unknown error'), 'danger');
+        }
+      } catch (err) {
+        console.error('DEBUG: Error submitting ticket:', err);
+        showAlert('Error submitting ticket: ' + err, 'danger');
+      }
+    });
+
+    // FAQ Functions
+    async function fetchFAQs() {
+      try {
+        const response = await fetch('/api/chatbot/info', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch FAQs');
+        }
+
+        const data = await response.json();
+        
+        // Handle different API response formats
+        let faqs = [];
+        if (data.success && data.chatbot && data.chatbot.knowledge_base && data.chatbot.knowledge_base.faqs) {
+          faqs = data.chatbot.knowledge_base.faqs;
+        } else if (data.status === 'success' && data.data && data.data.knowledge_base && data.data.knowledge_base.faqs) {
+          faqs = data.data.knowledge_base.faqs;
+        }
+        
+        updateFAQTable(faqs);
+        window.faqs = faqs;
+        attachFaqEventHandlers();
+      } catch (err) {
+        console.error('Error fetching FAQs:', err);
+        document.getElementById('faqTable').innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center">Error loading FAQs</td>
+          </tr>
+        `;
+      }
+    }
+
+    function updateFAQTable(faqs) {
+      const tableBody = document.getElementById('faqTable');
+      
+      if (!faqs || faqs.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center">No FAQs found</td>
+          </tr>
+        `;
+        return;
+      }
+
+      let tableHtml = '';
+      faqs.forEach(faq => {
+        tableHtml += `
+          <tr>
+            <td>${faq.question}</td>
+            <td>${faq.answer}</td>
+            <td>${faq.category}</td>
+            <td>
+              <div class="btn-group">
+                <button class="btn btn-sm btn-danger delete-faq" data-id="${faq.id}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      tableBody.innerHTML = tableHtml;
+    }
+
+    // Attach event listeners for edit and delete FAQ buttons
+    function attachFaqEventHandlers() {
+      document.querySelectorAll('.edit-faq').forEach(button => {
+        button.addEventListener('click', function() {
+          console.log('Edit FAQ button clicked');
+          const id = this.getAttribute('data-id');
+          console.log('FAQ ID:', id);
+          const faq = window.faqs.find(f => f.id == id);
+          console.log('Found FAQ:', faq);
+          if (faq) openEditFaqModal(faq);
+        });
+      });
+      document.querySelectorAll('.delete-faq').forEach(button => {
+        button.addEventListener('click', async function() {
+          const id = this.getAttribute('data-id');
+          if (!confirm('Are you sure you want to delete this FAQ?')) return;
+          try {
+            const response = await fetch(`/api/chatbot/info/faqs/${id}`, {
+              method: 'DELETE',
+              credentials: 'include'
+            });
+            const data = await response.json();
+            if (data.success) {
+              showAlert('FAQ deleted successfully!', 'success');
+              fetchFAQs();
+            } else {
+              showAlert('Error deleting FAQ: ' + (data.error || 'Unknown error'), 'danger');
+            }
+          } catch (err) {
+            showAlert('Error deleting FAQ: ' + err, 'danger');
+          }
+        });
+      });
+    }
+
+    // Open edit FAQ modal
+    function openEditFaqModal(faq) {
+      console.log('Opening edit FAQ modal for:', faq);
+      document.getElementById('editFaqId').value = faq.id;
+      document.getElementById('editFaqQuestion').value = faq.question;
+      document.getElementById('editFaqAnswer').value = faq.answer;
+      document.getElementById('editFaqCategory').value = faq.category;
+      console.log('Modal form filled with data');
+      try {
+        console.log('Bootstrap available:', !!window.bootstrap);
+        console.log('Modal element exists:', !!document.getElementById('editFaqModal'));
+        const modalEl = document.getElementById('editFaqModal');
+        console.log('Modal element:', modalEl);
+        // If Bootstrap is not available, try to make the modal visible manually
+        if (!window.bootstrap) {
+          modalEl.classList.add('show');
+          modalEl.style.display = 'block';
+          document.body.classList.add('modal-open');
+          const backdrop = document.createElement('div');
+          backdrop.className = 'modal-backdrop fade show';
+          document.body.appendChild(backdrop);
+          console.log('Manually showing modal because Bootstrap is not available');
+          return;
+        }
+        const modal = new bootstrap.Modal(modalEl);
+        console.log('Modal instance created');
+        modal.show();
+        console.log('Modal show() called');
+      } catch (err) {
+        console.error('Error showing modal:', err);
+        alert('Could not open the edit modal. Please check the console for details.');
+      }
+    }
+
+    // Handle edit FAQ form submission
+    document.getElementById('editFaqForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('editFaqId').value;
+      const payload = {
+        question: document.getElementById('editFaqQuestion').value,
+        answer: document.getElementById('editFaqAnswer').value,
+        category: document.getElementById('editFaqCategory').value
+      };
+      try {
+        const response = await fetch(`/api/chatbot/info/faqs/${id}`, {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAlert('FAQ updated successfully!', 'success');
+          bootstrap.Modal.getInstance(document.getElementById('editFaqModal')).hide();
+          fetchFAQs();
+        } else {
+          showAlert('Error updating FAQ: ' + (data.error || 'Unknown error'), 'danger');
+        }
+      } catch (err) {
+        showAlert('Error updating FAQ: ' + err, 'danger');
+      }
+    });
+
+    // Tickets Functions
+    async function fetchTickets() {
+      try {
+        console.log('DEBUG: Starting fetchTickets() function');
+        
+        const response = await fetch('/api/support/tickets', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        console.log('DEBUG: API response status:', response.status);
+        if (!response.ok) {
+          throw new Error('Failed to fetch tickets');
+        }
+
+        const data = await response.json();
+        console.log('DEBUG: API tickets data:', data);
+        
+        // Log individual ticket fields
+        if (data.tickets && data.tickets.length > 0) {
+          console.log('DEBUG: First ticket from API:', data.tickets[0]);
+          console.log('DEBUG: First ticket keys:', Object.keys(data.tickets[0]));
+          Object.keys(data.tickets[0]).forEach(key => {
+            console.log(`DEBUG: First ticket['${key}'] =`, data.tickets[0][key]);
+          });
+        }
+        
+        updateTicketsTable(data.tickets || []);
+      } catch (err) {
+        console.error('DEBUG: Error fetching tickets:', err);
+        document.getElementById('ticketsTable').innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center">Error loading tickets</td>
+          </tr>
+        `;
+      }
+    }
+
+    function updateTicketsTable(tickets) {
+      const tableBody = document.getElementById('ticketsTable');
+      
+      if (!tickets || tickets.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center">No tickets found</td>
+          </tr>
+        `;
+        return;
+      }
+
+      let tableHtml = '';
+      tickets.forEach(ticket => {
+        tableHtml += `
+          <tr>
+            <td>${ticket.ticket_number || 'N/A'}</td>
+            <td>${ticket.subject || 'N/A'}</td>
+            <td>${ticket.topic || 'N/A'}</td>
+            <td>
+              <span class="badge ${getStatusBadgeClass(ticket.status)}">
+                ${ticket.status || 'N/A'}
+              </span>
+            </td>
+            <td>${ticket.created_at ? new Date(ticket.created_at).toLocaleString() : 'N/A'}</td>
+            <td>
+              ${ticket.remarks ? 
+                `<button class="btn btn-sm btn-info" onclick="showTicketRemarks(${ticket.id}, '${ticket.remarks.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">
+                  <i class="fas fa-eye"></i>
+                </button>` 
+                : 'N/A'}
+            </td>
+            <td>
+              ${ticket.media_url ? `
+                <a href="${ticket.media_url}" target="_blank" class="btn btn-sm btn-info">
+                  <i class="fas fa-paperclip"></i>
+                </a>
+              ` : ''}
+            </td>
+            <td>
+              <button class="btn btn-sm btn-info" onclick="viewTicketDetails(${ticket.id})">
+                <i class="fas fa-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tableBody.innerHTML = tableHtml;
+    }
+
+    function getStatusBadgeClass(status) {
+      switch(status?.toLowerCase()) {
+        case 'open': return 'bg-primary';
+        case 'in_progress': return 'bg-warning';
+        case 'resolved': return 'bg-success';
+        case 'closed': return 'bg-secondary';
+        default: return 'bg-secondary';
+      }
+    }
+
+    // Add function to show ticket remarks in a popup
+    function showTicketRemarks(ticketId, remarks) {
+      // Create a simple modal to display remarks
+      const modalHtml = `
+        <div class="modal fade" id="remarksModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Admin Remarks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="p-3 bg-light rounded">
+                  <p class="mb-0">${remarks}</p>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Remove existing modal if any
+      const existingModal = document.getElementById('remarksModal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      // Add new modal to body
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      
+      // Initialize and show the modal
+      const modalElement = document.getElementById('remarksModal');
+      const modal = new bootstrap.Modal(modalElement);
+      
+      // Add event listener for modal close
+      modalElement.addEventListener('hidden.bs.modal', function () {
+        modalElement.remove();
+      });
+      
+      modal.show();
+    }
+
+    // Initialize FAQ and Tickets data
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchFAQs();
+      fetchTickets();
+    });
+
+    // Add this function to update the sidebar with company info
+    function updateSidebarCompanyInfo(user) {
+      const sidebarLogo = document.getElementById('sidebarLogo');
+      const sidebarCompanyName = document.getElementById('sidebarCompanyName');
+      
+      if (user.company_logo) {
+        sidebarLogo.src = user.company_logo;
+      } else if (user.company_name) {
+        sidebarLogo.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.company_name)}&background=random`;
+      }
+      
+      sidebarCompanyName.textContent = user.company_name || 'Company Admin';
+    }
+
+    // Add this function to properly show ticket details modal
+    function viewTicketDetails(ticketId) {
+      // Add extensive debugging
+      console.log(`DEBUG: Starting viewTicketDetails for ticket ${ticketId}`);
+      
+      // First, clean up any existing modals
+      const existingModal = document.getElementById('ticketDetailsModal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      // Remove any lingering backdrops
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => backdrop.remove());
+      
+      // Reset body classes
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('padding-right');
+
+      // Add modal-specific styling to ensure it's visible and clickable
+      const modalStyle = document.createElement('style');
+      modalStyle.id = 'ticket-modal-style';
+      modalStyle.textContent = `
+        .modal-backdrop {
+          z-index: 1040 !important;
+          background-color: rgba(0, 0, 0, 0.5) !important;
+        }
+        .modal {
+          z-index: 1050 !important;
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          outline: 0;
+        }
+        .modal.show {
+          display: block !important;
+        }
+        .modal-dialog {
+          position: relative;
+          width: auto;
+          margin: 1.75rem auto;
+          pointer-events: all;
+          max-width: 500px;
+        }
+        .modal-content {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          pointer-events: auto;
+          background-color: #fff;
+          border-radius: 0.3rem;
+          outline: 0;
+          box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .modal-dialog-centered {
+          display: flex;
+          align-items: center;
+          min-height: calc(100% - 3.5rem);
+        }
+      `;
+      document.head.appendChild(modalStyle);
+
+      fetch(`/api/support/tickets/${ticketId}`)
+        .then(response => {
+          console.log(`DEBUG: Fetch response status: ${response.status}`);
+          if (!response.ok) {
+            throw new Error(`Request failed with status ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log(`DEBUG: Full fetch response data:`, data);
+          
+          // Check if data is wrapped in a ticket property or direct
+          const ticket = data.ticket || data;
+          console.log(`DEBUG: Extracted ticket object:`, ticket);
+          
+          // Log all ticket properties
+          console.log(`DEBUG: All ticket keys:`, Object.keys(ticket));
+          
+          // Log each ticket property value
+          Object.keys(ticket).forEach(key => {
+            console.log(`DEBUG: Ticket['${key}'] =`, ticket[key]);
+          });
+          
+          // Make sure we have the ticket data in the expected format
+          // The API might return either {ticket: {...}} or just {...}
+          if (!ticket || typeof ticket !== 'object') {
+            throw new Error('Invalid ticket data received');
+          }
+          
+          // Create debug info for display in modal - will be hidden in production
+          const debugInfo = `            <div style="font-size: 10px; color: #999; margin-bottom: 10px; border: 1px solid #eee; padding: 5px;">
+              DEBUG INFO:<br>
+              Keys: ${Object.keys(ticket).join(', ')}<br>
+              ${Object.keys(ticket).map(key => `${key}: ${JSON.stringify(ticket[key])}`).join('<br>')}
+            </div>
+          `;
+          
+          // Create the modal HTML with fallback values for missing data
+          const modalHtml = `
+            <div class="modal fade" id="ticketDetailsModal" tabindex="-1" role="dialog" aria-labelledby="ticketDetailsModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="ticketDetailsModalLabel">Ticket Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeTicketModalBtn"></button>
+                  </div>
+                  <div class="modal-body">
+                    ${debugInfo}
+                    <div class="mb-3">
+                      <strong>Ticket ID:</strong> ${ticket.ticket_number || ticket.id || 'N/A'}
+                    </div>
+                    <div class="mb-3">
+                      <strong>Subject:</strong> ${ticket.subject || 'N/A'}
+                    </div>
+                    <div class="mb-3">
+                      <strong>Status:</strong> 
+                      <span class="badge ${getStatusBadgeClass(ticket.status || 'N/A')}">${ticket.status || 'N/A'}</span>
+                    </div>
+                    <div class="mb-3">
+                      <strong>Created:</strong> ${ticket.created_at ? new Date(ticket.created_at).toLocaleString() : 'N/A'}
+                    </div>
+                    <div class="mb-3">
+                      <strong>Topic:</strong> ${ticket.topic || 'N/A'}
+                    </div>
+                    <div class="mb-3">
+                      <strong>Details:</strong>
+                      <p class="mt-2">${ticket.details || 'N/A'}</p>
+                    </div>
+                    ${ticket.remarks ? `
+                    <div class="mb-3">
+                      <strong>Admin Remarks:</strong>
+                      <div class="p-3 bg-light rounded mt-2">
+                        <p class="mb-0">${ticket.remarks}</p>
+                      </div>
+                    </div>
+                    ` : ''}
+                    ${ticket.media_url ? `
+                    <div class="mb-3">
+                      <strong>Media Attachment:</strong>
+                      <div class="mt-2">
+                        <a href="${ticket.media_url}" target="_blank" class="btn btn-sm btn-info">
+                          <i class="fas fa-paperclip"></i> View Attachment
+                        </a>
+                      </div>
+                    </div>
+                    ` : ''}
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeTicketModal()" id="closeTicketModalFooterBtn">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          // Add modal to the DOM
+          document.body.insertAdjacentHTML('beforeend', modalHtml);
+          
+          // Get modal element
+          const modalElement = document.getElementById('ticketDetailsModal');
+          
+          // Add additional close button event handlers for safety
+          document.getElementById('closeTicketModalBtn').addEventListener('click', closeTicketModal);
+          document.getElementById('closeTicketModalFooterBtn').addEventListener('click', closeTicketModal);
+          
+          // Add click event to close when backdrop is clicked
+          modalElement.addEventListener('click', function(event) {
+            // Close the modal if the backdrop is clicked (not the modal content)
+            if (event.target === modalElement) {
+              closeTicketModal();
+            }
+          });
+          
+          // Initialize modal
+          const modal = new bootstrap.Modal(modalElement, {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+          });
+          
+          // Add event listener for hidden.bs.modal event
+          modalElement.addEventListener('hidden.bs.modal', function() {
+            closeTicketModal();
+          });
+          
+          // Show the modal
+          modal.show();
+        })
+        .catch(error => {
+          console.error('Error fetching ticket details:', error);
+          alert('Failed to load ticket details: ' + error.message);
+        });
+    }
+
+    // Helper function to close the ticket modal and clean up
+    function closeTicketModal() {
+      // Get the modal element
+      const modalElement = document.getElementById('ticketDetailsModal');
+      
+      // Try to hide the modal using Bootstrap
+      if (modalElement) {
+        // Try to get the Bootstrap modal instance and hide it
+        try {
+          const modalInstance = bootstrap.Modal.getInstance(modalElement);
+          if (modalInstance) {
+            modalInstance.hide();
+          }
+        } catch (error) {
+          console.error('Error hiding modal:', error);
+        }
+        
+        // Remove the modal element directly
+        modalElement.remove();
+      }
+      
+      // Remove any lingering backdrops
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => backdrop.remove());
+      
+      // Remove modal-specific style
+      const modalStyle = document.getElementById('ticket-modal-style');
+      if (modalStyle) {
+        modalStyle.remove();
+      }
+      
+      // Reset body classes and styles
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('padding-right');
+      
+      // Force refresh modal placement
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+      }, 100);
+    }
+
+    // Script Generator Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM Content Loaded - Initializing script generator');
+      
+      // Bootstrap modal and other elements
+      const modalElement = document.getElementById('scriptGeneratorModal');
+      const generateScriptBtn = document.getElementById('generateScriptBtn');
+      const closeScriptModalBtn = document.getElementById('closeScriptModalBtn');
+      const generateCodeBtn = document.getElementById('generateCodeBtn');
+      const startOverBtn = document.getElementById('startOverBtn');
+      const copyScriptBtn = document.getElementById('copyScriptBtn');
+      const websiteStackSelect = document.getElementById('websiteStack');
+      const chatbotSelect = document.getElementById('chatbotSelect');
+      const scriptForm = document.getElementById('scriptGeneratorForm');
+      const generatedScriptContainer = document.getElementById('generatedScriptContainer');
+      const generatedScript = document.getElementById('generatedScript');
+      const wordpressInstructions = document.getElementById('wordpressInstructions');
+      
+      // Check if elements exist
+      console.log('Modal element exists:', !!modalElement);
+      console.log('Generate script button exists:', !!generateScriptBtn);
+      console.log('Form exists:', !!scriptForm);
+      
+      // Initialize the modal - FIXED: Ensure proper initialization with better error handling
+      let scriptModal = null;
+      
+      // Initialize modal with retry mechanism
+      function initModal() {
+        if (typeof bootstrap !== 'undefined') {
+          if (modalElement) {
+            try {
+              scriptModal = new bootstrap.Modal(modalElement);
+              console.log('Bootstrap modal initialized successfully');
+            } catch (error) {
+              console.error('Error initializing Bootstrap modal:', error);
+            }
+          }
+        } else {
+          // Retry after a short delay
+          setTimeout(initModal, 100);
+        }
+      }
+      
+      // Call the initialization function
+      initModal();
+      
+      // Open the modal when the button is clicked
+      if (generateScriptBtn) {
+        // FIXED: Use both addEventListener and onclick for better compatibility
+        generateScriptBtn.addEventListener('click', handleGenerateScriptClick);
+        generateScriptBtn.onclick = handleGenerateScriptClick;
+        
+        function handleGenerateScriptClick(e) {
+          console.log('Generate script button clicked');
+          if (e) e.preventDefault();
+          
+          // Ensure modal is initialized
+          if (!scriptModal && typeof bootstrap !== 'undefined' && modalElement) {
+            try {
+              scriptModal = new bootstrap.Modal(modalElement);
+            } catch (error) {
+              console.error('Error initializing modal on click:', error);
+            }
+          }
+          
+          // Populate the chatbot select dropdown
+          populateChatbotSelect();
+          
+          // Reset the form
+          if (scriptForm) {
+            scriptForm.reset();
+          }
+          
+          // Set default values for form fields
+          if (document.getElementById('buttonText')) {
+            document.getElementById('buttonText').value = 'Chat with us';
+          }
+          if (document.getElementById('buttonIcon')) {
+            document.getElementById('buttonIcon').value = '💬';
+          }
+          if (document.getElementById('widgetTitle')) {
+            document.getElementById('widgetTitle').value = 'Chat Support';
+          }
+          if (document.getElementById('primaryColor')) {
+            document.getElementById('primaryColor').value = '#4361ee';
+          }
+          
+          // Hide the generated script container and show the form
+          if (generatedScriptContainer) {
+            generatedScriptContainer.style.display = 'none';
+          }
+          if (generateCodeBtn) {
+            generateCodeBtn.style.display = 'block';
+          }
+          if (startOverBtn) {
+            startOverBtn.style.display = 'none';
+          }
+          
+          // Show the modal - FIXED: Better handling of different modal showing methods
+          if (scriptModal) {
+            try {
+              scriptModal.show();
+              console.log('Modal shown with Bootstrap');
+            } catch (error) {
+              console.error('Error showing modal with Bootstrap:', error);
+              showModalFallback();
+            }
+          } else {
+            showModalFallback();
+          }
+          
+          // Fallback method to show modal
+          function showModalFallback() {
+            // Try jQuery if available
+            if (typeof jQuery !== 'undefined' && jQuery.fn.modal) {
+              try {
+                jQuery(modalElement).modal('show');
+                console.log('Modal shown with jQuery');
+                return;
+              } catch (error) {
+                console.error('Error showing modal with jQuery:', error);
+              }
+            }
+            
+            // Manual fallback as last resort
+            try {
+              if (modalElement) {
+                modalElement.style.display = 'block';
+                modalElement.classList.add('show');
+                document.body.classList.add('modal-open');
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+                console.log('Modal shown manually');
+              }
+            } catch (error) {
+              console.error('Error showing modal manually:', error);
+            }
+          }
+          
+          return false;
+        }
+      }
+      
+      // FIXED: Ensure button interactivity
+      if (closeScriptModalBtn) {
+        closeScriptModalBtn.addEventListener('click', function() {
+          console.log('Close button clicked');
+          hideModal();
+        });
+      }
+      
+      function hideModal() {
+        if (scriptModal) {
+          try {
+            scriptModal.hide();
+          } catch (error) {
+            hideModalFallback();
+          }
+        } else {
+          hideModalFallback();
+        }
+        
+        function hideModalFallback() {
+          if (typeof jQuery !== 'undefined' && jQuery.fn.modal) {
+            try {
+              jQuery(modalElement).modal('hide');
+              return;
+            } catch (error) {
+              console.error('Error hiding modal with jQuery:', error);
+            }
+          }
+          
+          if (modalElement) {
+            modalElement.style.display = 'none';
+            modalElement.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+          }
+        }
+      }
+      
+      // FIXED: Additional event handlers for form interactions
+      // Website stack change handler
+      if (websiteStackSelect) {
+        websiteStackSelect.addEventListener('change', function() {
+          console.log('Website stack changed:', this.value);
+          if (this.value === 'wordpress') {
+            // Show specific WordPress options if needed
+            if (wordpressInstructions) {
+              wordpressInstructions.style.display = 'block';
+            }
+          } else {
+            // Hide WordPress specific options
+            if (wordpressInstructions) {
+              wordpressInstructions.style.display = 'none';
+            }
+          }
+        });
+      }
+      
+      // Generate code button handler - FIXED: Ensure form validation works
+      if (generateCodeBtn) {
+        generateCodeBtn.addEventListener('click', function() {
+          console.log('Generate code button clicked');
+          
+          // Validate the form with better handling
+          if (scriptForm) {
+            if (!scriptForm.checkValidity()) {
+              try {
+                // This will trigger browser's native validation UI
+                scriptForm.reportValidity();
+              } catch (error) {
+                // Fallback for older browsers
+                alert('Please fill in all required fields before generating code.');
+              }
+              return;
+            }
+          }
+          
+          // Get the form values
+          const websiteStack = websiteStackSelect ? websiteStackSelect.value : 'html';
+          const websiteUrl = document.getElementById('websiteUrl') ? document.getElementById('websiteUrl').value : '';
+          const chatbotId = chatbotSelect ? chatbotSelect.value : '';
+          const buttonPosition = document.getElementById('buttonPosition') ? document.getElementById('buttonPosition').value : 'bottom-right';
+          const buttonText = document.getElementById('buttonText') ? document.getElementById('buttonText').value : 'Chat with us';
+          const buttonIcon = document.getElementById('buttonIcon') ? document.getElementById('buttonIcon').value : '💬';
+          const widgetTitle = document.getElementById('widgetTitle') ? document.getElementById('widgetTitle').value : 'Chat Support';
+          const primaryColor = document.getElementById('primaryColor') ? document.getElementById('primaryColor').value : '#4361ee';
+          
+          // Generate the appropriate code based on the website stack
+          if (websiteStack === 'html') {
+            // Generate HTML/CSS embed code
+            const htmlCode = generateHtmlCode(chatbotId, buttonPosition, buttonText, buttonIcon, widgetTitle, primaryColor);
+            if (generatedScript) {
+              generatedScript.textContent = htmlCode;
+            }
+            if (wordpressInstructions) {
+              wordpressInstructions.style.display = 'none';
+            }
+          } else if (websiteStack === 'wordpress') {
+            // Generate WordPress instructions
+            if (generatedScript) {
+              generatedScript.textContent = generateWordPressInstructions(chatbotId);
+            }
+            if (wordpressInstructions) {
+              wordpressInstructions.style.display = 'block';
+            }
+          }
+          
+          // Show the generated code container and hide the generate button
+          if (generatedScriptContainer) {
+            generatedScriptContainer.style.display = 'block';
+          }
+          if (generateCodeBtn) {
+            generateCodeBtn.style.display = 'none';
+          }
+          if (startOverBtn) {
+            startOverBtn.style.display = 'block';
+          }
+        });
+      }
+      
+      // Start over button handler
+      if (startOverBtn) {
+        startOverBtn.addEventListener('click', function() {
+          console.log('Start over button clicked');
+          // Hide the generated script container and show the form
+          if (generatedScriptContainer) {
+            generatedScriptContainer.style.display = 'none';
+          }
+          if (generateCodeBtn) {
+            generateCodeBtn.style.display = 'block';
+          }
+          if (startOverBtn) {
+            startOverBtn.style.display = 'none';
+          }
+          
+          // Reset the form
+          if (scriptForm) {
+            scriptForm.reset();
+          }
+          
+          // Set default values
+          if (document.getElementById('buttonText')) {
+            document.getElementById('buttonText').value = 'Chat with us';
+          }
+          if (document.getElementById('buttonIcon')) {
+            document.getElementById('buttonIcon').value = '💬';
+          }
+          if (document.getElementById('widgetTitle')) {
+            document.getElementById('widgetTitle').value = 'Chat Support';
+          }
+          if (document.getElementById('primaryColor')) {
+            document.getElementById('primaryColor').value = '#4361ee';
+          }
+        });
+      }
+      
+      // Copy script button handler
+      if (copyScriptBtn) {
+        copyScriptBtn.addEventListener('click', function() {
+          console.log('Copy script button clicked');
+          if (generatedScript) {
+            try {
+              navigator.clipboard.writeText(generatedScript.textContent)
+                .then(() => {
+                  alert('Script copied to clipboard!');
+                })
+                .catch(err => {
+                  console.error('Could not copy text: ', err);
+                  fallbackCopyTextToClipboard(generatedScript.textContent);
+                });
+            } catch (error) {
+              fallbackCopyTextToClipboard(generatedScript.textContent);
+            }
+          }
+        });
+      }
+      
+      // Function to populate the chatbot select dropdown
+      function populateChatbotSelect() {
+        if (chatbotSelect) {
+          // Clear existing options
+          chatbotSelect.innerHTML = '';
+          
+          // Add a default option
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = 'Select a chatbot';
+          defaultOption.disabled = true;
+          defaultOption.selected = true;
+          chatbotSelect.appendChild(defaultOption);
+          
+          // Fetch chatbots from the server
+          fetch('/api/chatbots')
+            .then(response => response.json())
+            .then(data => {
+              if (data && Array.isArray(data.chatbots)) {
+                data.chatbots.forEach(chatbot => {
+                  const option = document.createElement('option');
+                  option.value = chatbot.id;
+                  option.textContent = chatbot.name;
+                  chatbotSelect.appendChild(option);
+                });
+              }
+            })
+            .catch(error => {
+              console.error('Error fetching chatbots:', error);
+            });
+        }
+      }
+      
+      // Fallback method for copying text to clipboard
+      function fallbackCopyTextToClipboard(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.top = '0';
+        textArea.style.left = '0';
+        textArea.style.width = '2em';
+        textArea.style.height = '2em';
+        textArea.style.padding = '0';
+        textArea.style.border = 'none';
+        textArea.style.outline = 'none';
+        textArea.style.boxShadow = 'none';
+        textArea.style.background = 'transparent';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) {
+            alert('Script copied to clipboard!');
+          } else {
+            console.error('Failed to copy');
+          }
+        } catch (err) {
+          console.error('Error during copy:', err);
+        }
+        
+        document.body.removeChild(textArea);
+      }
+      
+      // Function to generate HTML/CSS embed code
+      function generateHtmlCode(chatbotId, buttonPosition, buttonText, buttonIcon, widgetTitle, primaryColor) {
+        // Comment explaining the initChatbot reference
+        return "<!-- Chatbot Widget Start -->" +
+               "<script src=\"https://yourdomain.com/static/embed/chatbot-embed.js\"></script>" +
+               "<script>" +
+               "  document.addEventListener('DOMContentLoaded', function() {" +
+               "    /* Note: initChatbot function is defined in chatbot-embed.js */" +
+               "    initChatbot({" +
+               "      chatbotId: \"" + chatbotId + "\"," +
+               "      buttonPosition: \"" + buttonPosition + "\"," +
+               "      buttonText: \"" + buttonText + "\"," +
+               "      buttonIcon: \"" + buttonIcon + "\"," +
+               "      widgetTitle: \"" + widgetTitle + "\"," +
+               "      primaryColor: \"" + primaryColor + "\"" +
+               "    });" +
+               "  });" +
+               "</script>" +
+               "<!-- Chatbot Widget End -->";
+      }
+      
+      // Function to generate WordPress instructions
+      function generateWordPressInstructions(chatbotId) {
+        return "// WordPress plugin installation steps:" +
+               "\n1. Download the WordPress plugin ZIP file below" +
+               "\n2. Go to your WordPress admin dashboard" +
+               "\n3. Navigate to Plugins > Add New > Upload Plugin" +
+               "\n4. Select the downloaded ZIP file and click \"Install Now\"" +
+               "\n5. After installation, click \"Activate Plugin\"" +
+               "\n6. Go to Settings > Chatbot Settings" +
+               "\n7. Enter your Chatbot ID: " + chatbotId +
+               "\n8. Save changes";
+      }
+    });
+  </script>
+</body>
+</html>

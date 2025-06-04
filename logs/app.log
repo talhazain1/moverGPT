@@ -1,0 +1,2 @@
+2025-05-16 18:58:22,442 INFO: Updated chatbot 9 stats: total=12, positive=8, rate=66.66666666666666% [in /Users/TalhaZain/Final_proj/final_chatbot_platform/project_root/backend/src/chatbot/views.py:2158]
+2025-05-16 18:58:22,459 INFO: Rating saved for message 678: 5 [in /Users/TalhaZain/Final_proj/final_chatbot_platform/project_root/backend/src/chatbot/views.py:2166]

@@ -1,0 +1,196 @@
+{
+  "faqs": [
+    {
+      "answer": "Gaanabajado.com is a professional DJ service known for energizing concerts, weddings, and private events with high-quality music and performance.",
+      "question": "What is Gaanabajado.com?"
+    },
+    {
+      "answer": "We perform at concerts, weddings, corporate events, private parties, nightclubs, and festivals.",
+      "question": "What type of events do you perform at?"
+    },
+    {
+      "answer": "You can book our services through the form on our website or by contacting us directly via email or phone.",
+      "question": "How do I book your DJ services?"
+    },
+    {
+      "answer": "Yes, we are available for events across the country and internationally upon request.",
+      "question": "Do you travel for gigs?"
+    },
+    {
+      "answer": "Yes, we work closely with clients to curate personalized playlists that suit the event’s vibe.",
+      "question": "Do you offer custom playlists?"
+    },
+    {
+      "answer": "We specialize in Bollywood, EDM, Hip-Hop, House, Punjabi, Pop, Retro, and more.",
+      "question": "What music genres do you play?"
+    },
+    {
+      "answer": "Yes, we provide professional-grade sound systems, lighting, and visual effects as part of our package.",
+      "question": "Do you provide sound and lighting equipment?"
+    },
+    {
+      "answer": "Of course! We’re happy to take live requests unless the host prefers a preset playlist.",
+      "question": "Can we make song requests during the event?"
+    },
+    {
+      "answer": "Yes, our DJs can also act as MCs or collaborate with professional hosts for your event.",
+      "question": "Do you provide MC services?"
+    },
+    {
+      "answer": "We recommend booking 4–6 weeks in advance to secure your desired date and DJ.",
+      "question": "How early should we book?"
+    },
+    {
+      "answer": "Yes, we love curating music for Bollywood Nights, 90s Throwbacks, Neon Parties, and more.",
+      "question": "Do you offer themed nights?"
+    },
+    {
+      "answer": "Yes, we can coordinate with live instrumentalists, vocalists, and performers to elevate the show.",
+      "question": "Can you collaborate with live musicians?"
+    },
+    {
+      "answer": "Cancellations made at least 14 days in advance are eligible for a partial refund of the deposit.",
+      "question": "What is your cancellation policy?"
+    },
+    {
+      "answer": "Yes, we always have a backup DJ ready in case of emergencies.",
+      "question": "Do you have backup DJs in case of emergency?"
+    },
+    {
+      "answer": "Yes, we’re fully equipped to handle both indoor and outdoor events.",
+      "question": "Do you offer outdoor event services?"
+    },
+    {
+      "answer": "Yes, we can schedule a virtual or in-person consultation prior to booking.",
+      "question": "Can I meet the DJ before the event?"
+    },
+    {
+      "answer": "A standard set runs 2–4 hours, but we offer extended sessions depending on your event.",
+      "question": "How long is your typical set?"
+    },
+    {
+      "answer": "Yes, we host training sessions and one-on-one mentorship for aspiring DJs.",
+      "question": "Do you offer DJ training or workshops?"
+    },
+    {
+      "answer": "Yes, a 30% deposit is required to confirm the booking.",
+      "question": "Is there a deposit required?"
+    },
+    {
+      "answer": "Yes, though we recommend using our high-quality gear for the best sound experience.",
+      "question": "Can we provide our own equipment?"
+    },
+    {
+      "answer": "Yes, we provide synced visuals and LED content if the venue setup supports it.",
+      "question": "Do you offer custom visuals or LED content?"
+    },
+    {
+      "answer": "We offer extended hours upon request, subject to availability and additional charges.",
+      "question": "What if the event is running late?"
+    },
+    {
+      "answer": "Absolutely! We love being part of destination weddings and travel is never an issue.",
+      "question": "Do you play at destination weddings?"
+    },
+    {
+      "answer": "Yes, we provide mellow background music and curated ambiance before the main party starts.",
+      "question": "Can you play during cocktail hours or dinners?"
+    },
+    {
+      "answer": "We tailor sound levels based on the venue, crowd size, and local noise regulations.",
+      "question": "How loud will the music be?"
+    },
+    {
+      "answer": "Definitely. Let us know what songs to avoid and we’ll stick to your preferences.",
+      "question": "Can we create a 'Do Not Play' list?"
+    },
+    {
+      "answer": "Yes, we carry liability insurance for all public performances and equipment use.",
+      "question": "Are your DJs insured?"
+    },
+    {
+      "answer": "We do accept urgent bookings based on availability—reach out ASAP to confirm.",
+      "question": "Do you take last-minute bookings?"
+    },
+    {
+      "answer": "Yes, we’ll guide you through music selection and help shape the energy of your event.",
+      "question": "Can you help us choose event music?"
+    },
+    {
+      "answer": "We’re based in India but available for bookings across cities and international locations.",
+      "question": "What cities do you serve?"
+    },
+    {
+      "answer": "Yes, we have flexible hourly, half-day, and full-day pricing options.",
+      "question": "Do you offer hourly rates?"
+    },
+    {
+      "answer": "Yes, we offer discounted rates for fundraisers and nonprofit collaborations.",
+      "question": "Do you support charity or nonprofit events?"
+    },
+    {
+      "answer": "Yes, family-friendly and clean edits are available upon request.",
+      "question": "Do you play clean versions of songs?"
+    },
+    {
+      "answer": "You can email bookings@gaanabajado.com or use the contact form on our website.",
+      "question": "How can I contact you?"
+    },
+    {
+      "answer": "Our DJs typically play non-stop but can coordinate with event flow to time any pauses.",
+      "question": "Do you take breaks during a set?"
+    },
+    {
+      "answer": "Yes, date changes are possible with at least 7 days’ notice and subject to availability.",
+      "question": "Can I change my event date after booking?"
+    },
+    {
+      "answer": "We mix live and adapt to the crowd’s energy in real time—no pre-recorded sets.",
+      "question": "Do you mix live or use pre-recorded tracks?"
+    },
+    {
+      "answer": "Yes, every booking is secured with a formal service agreement outlining all terms.",
+      "question": "Do you offer contract agreements?"
+    },
+    {
+      "answer": "Yes, you can check out our performance highlights on Instagram and YouTube.",
+      "question": "Do you have promo videos or past event clips?"
+    },
+    {
+      "answer": "Yes, we specialize in blending genres across cultures for fusion weddings and global events.",
+      "question": "Can you DJ a fusion or multicultural event?"
+    },
+    {
+      "answer": "It depends on the event. We can assign a solo DJ or a team depending on the size and setup.",
+      "question": "Do you perform with a co-DJ or solo?"
+    },
+    {
+      "answer": "We arrive at least 2 hours before start time to set up, soundcheck, and coordinate.",
+      "question": "How soon do you arrive before the event?"
+    },
+    {
+      "answer": "Yes, travel and lodging costs are added for events outside our base city.",
+      "question": "Do you charge extra for out-of-town gigs?"
+    },
+    {
+      "answer": "Yes, we offer branded DJ setups and visuals for corporate or promotional events.",
+      "question": "Can we brand your DJ booth or visuals?"
+    },
+    {
+      "answer": "Yes, we can perform on consecutive days for multi-day weddings or festivals.",
+      "question": "Can you DJ back-to-back days?"
+    },
+    {
+      "answer": "We come with backup equipment and an on-site tech to ensure smooth performance.",
+      "question": "How do you handle technical issues during a show?"
+    },
+    {
+      "answer": "We aim to exceed expectations and work closely with you to deliver the perfect musical experience.",
+      "question": "Do you offer a satisfaction guarantee?"
+    },
+    {
+      "answer": "Our team will help assess your event type, guest size, and budget to recommend the right fit.",
+      "question": "How do I know which package is best for me?"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "faqs": [
+    {
+      "question": "What courses are offered at Soni Ke Nakhray Music and Dance Academy?",
+      "answer": "We offer a variety of courses in classical and contemporary dance styles, vocal training, instrumental music, and performance workshops."
+    },
+    {
+      "question": "Do you have classes for all age groups?",
+      "answer": "Yes, we have programs for children, teens, and adults, suitable for beginners as well as advanced learners."
+    },
+    {
+      "question": "Can I take a trial class before enrolling?",
+      "answer": "Yes, we offer trial classes so you can experience the teaching style and class environment before making a commitment."
+    },
+    {
+      "question": "What is the duration and frequency of classes?",
+      "answer": "Most classes are held 1-2 times a week, and course durations range from monthly sessions to year-long programs."
+    },
+    {
+      "question": "Do you conduct stage performances or competitions?",
+      "answer": "Yes, students regularly perform at academy-organized events and participate in local and national competitions."
+    },
+    {
+      "question": "Are online classes available?",
+      "answer": "Yes, we offer online classes for both music and dance for students who prefer to learn from home."
+    },
+    {
+      "question": "Do I need to bring my own instruments?",
+      "answer": "For initial classes, we provide instruments. Students enrolled in long-term courses are encouraged to have their own."
+    },
+    {
+      "question": "Is there a registration or admission fee?",
+      "answer": "Yes, a one-time registration fee applies at the time of admission. Fee details are available on our website or at the front desk."
+    },
+    {
+      "question": "Do you offer certification upon course completion?",
+      "answer": "Yes, students who complete the full course receive a certificate from Soni Ke Nakhray Music and Dance Academy."
+    },
+    {
+      "question": "How can I contact the academy for inquiries?",
+      "answer": "You can call us at (123) 456-7890 or email info@sonikenakhray.com for any questions or registration help."
+    }
+  ]
+}

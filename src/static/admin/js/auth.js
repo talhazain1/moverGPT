@@ -1,109 +1,192 @@
 // Authentication state
 let currentAdmin = null;
+let authCheckInProgress = false;
 
-// Check if user is authenticated
+/**
+ * Check if the user is authenticated
+ * @returns {Promise<Object|null>} The admin user object if authenticated, null otherwise
+ */
 async function checkAuth() {
+    if (authCheckInProgress) {
+        // Return a promise that resolves when the current check is done
+        return new Promise((resolve) => {
+            const checkInterval = setInterval(() => {
+                if (!authCheckInProgress) {
+                    clearInterval(checkInterval);
+                    resolve(currentAdmin);
+                }
+            }, 100);
+        });
+    }
+
+    authCheckInProgress = true;
+
     try {
         const response = await fetch('/api/admin/check-auth', {
             method: 'GET',
-            credentials: 'include'
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             if (data.authenticated) {
                 currentAdmin = data.admin;
-                return true;
+                authCheckInProgress = false;
+                return currentAdmin;
             }
         }
-        return false;
+        
+        // If we get here, not authenticated
+        currentAdmin = null;
+        authCheckInProgress = false;
+        return null;
     } catch (error) {
-        console.error('Auth check failed:', error);
-        return false;
+        console.error('Error checking authentication:', error);
+        currentAdmin = null;
+        authCheckInProgress = false;
+        return null;
     }
 }
 
-// Login function
+/**
+ * Authenticated fetch that handles auth
+ * @param {string} url - The URL to fetch
+ * @param {Object} options - Fetch options
+ * @returns {Promise<Response>} The fetch response
+ */
+async function authenticatedFetch(url, options = {}) {
+    // Check auth first
+    await checkAuth();
+    
+    // Include credentials to send cookies with the request
+    options.credentials = 'include';
+    
+    // Make the fetch request
+    const response = await fetch(url, options);
+    
+    // If unauthorized, redirect to login
+    if (response.status === 401) {
+        currentAdmin = null;
+        
+        // Redirect to login
+        window.location.href = '/static/login.html';
+        throw new Error('Unauthorized access');
+    }
+    
+    return response;
+}
+
+/**
+ * Login admin user
+ * @param {string} email - Admin email
+ * @param {string} password - Admin password
+ * @returns {Promise<Object|null>} The admin user object if login successful, null otherwise
+ */
 async function login(email, password) {
     try {
-        // Get the current URL to handle redirects
-        const currentUrl = window.location.href;
-        const nextUrl = new URLSearchParams(window.location.search).get('next');
-        
-        const response = await fetch('/api/admin/login' + (nextUrl ? `?next=${encodeURIComponent(nextUrl)}` : ''), {
+        const response = await fetch('/api/admin/login', {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
             },
-            credentials: 'include',
             body: JSON.stringify({ email, password })
         });
+
+        const data = await response.json();
         
         if (response.ok) {
-            const data = await response.json();
+            // The backend uses session-based authentication
+            // Store the admin user data
             currentAdmin = data.admin;
-            
-            // Handle redirect if provided
-            if (data.redirect) {
-                window.location.href = data.redirect;
-            } else {
-                window.location.href = '/admin/dashboard';
-            }
-            
-            return { success: true, data };
-        } else {
-            const error = await response.json();
-            return { success: false, error: error.error };
+            return currentAdmin;
         }
+        
+        console.error('Login failed:', data.error || data.message || 'Unknown error');
+        return null;
     } catch (error) {
-        return { success: false, error: 'Login failed' };
+        console.error('Login error:', error);
+        throw error;
     }
 }
 
-// Logout function
+/**
+ * Logout the admin user
+ */
 async function logout() {
     try {
-        const response = await fetch('/api/admin/logout', {
+        await fetch('/api/admin/logout', {
             method: 'POST',
-            credentials: 'include'
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
-        
-        if (response.ok) {
-            currentAdmin = null;
-            window.location.href = '/admin/login';
-        }
     } catch (error) {
-        console.error('Logout failed:', error);
+        console.error('Logout error:', error);
+    } finally {
+        // Clear state
+        currentAdmin = null;
+        window.location.href = '/static/login.html';
     }
 }
 
-// Get current admin
+/**
+ * Get the current admin user
+ * @returns {Object|null} The admin user object if authenticated, null otherwise
+ */
 function getCurrentAdmin() {
     return currentAdmin;
 }
 
-// Check if admin has specific permission
+/**
+ * Check if the current admin has a specific permission
+ * @param {string} permission - The permission to check
+ * @returns {boolean} True if the admin has the permission, false otherwise
+ */
 function hasPermission(permission) {
-    if (!currentAdmin) return false;
+    if (!currentAdmin || !currentAdmin.permissions) {
+        return false;
+    }
     return currentAdmin.permissions.includes(permission);
 }
 
-// Check if admin has specific role
+/**
+ * Check if the current admin has a specific role
+ * @param {string} role - The role to check
+ * @returns {boolean} True if the admin has the role, false otherwise
+ */
 function hasRole(role) {
-    if (!currentAdmin) return false;
-    return currentAdmin.role === role;
+    if (!currentAdmin || !currentAdmin.roles) {
+        return false;
+    }
+    return currentAdmin.roles.includes(role);
 }
 
-// Initialize auth state on page load
-document.addEventListener('DOMContentLoaded', async () => {
-    const isLoginPage = window.location.pathname.includes('/admin/login');
-    
-    if (!isLoginPage) {
-        const isAuthenticated = await checkAuth();
-        if (!isAuthenticated) {
-            // Store the current URL to redirect back after login
-            const currentUrl = window.location.pathname + window.location.search;
-            window.location.href = `/admin/login?next=${encodeURIComponent(currentUrl)}`;
-        }
+// Initialize page
+document.addEventListener('DOMContentLoaded', () => {
+    // If we're not on the login page, check authentication
+    if (!window.location.pathname.includes('login.html')) {
+        checkAuth().then(admin => {
+            if (!admin) {
+                // Not authenticated, save the current hash for redirect after login
+                if (window.location.hash) {
+                    localStorage.setItem('redirectHash', window.location.hash);
+                }
+                // Only redirect to login if we're not already on the login page
+                if (!window.location.pathname.includes('login.html')) {
+                    window.location.href = '/static/login.html';
+                }
+            }
+        }).catch(error => {
+            console.error('Auth check error:', error);
+            // Only redirect to login if we're not already on the login page
+            if (!window.location.pathname.includes('login.html')) {
+                window.location.href = '/static/login.html';
+            }
+        });
     }
 }); 

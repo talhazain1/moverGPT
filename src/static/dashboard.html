@@ -1,304 +1,1308 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Company Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Company Dashboard - Admin Panel</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/assets/auth.js"></script>
+  <script src="https://kit.fontawesome.com/6823100966.js" crossorigin="anonymous"></script>
   <style>
-    /* Reset & Global Styles */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Arial', sans-serif;
+    /* Additional custom styles */
+    .avatar-sm {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
-    body {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      min-height: 100vh;
-      color: #333;
+    
+    .badge-soft-info {
+      background-color: rgba(67, 97, 238, 0.15);
+      color: #4361ee;
     }
-    /* Navigation Bar */
-    nav {
-      background-color: white;
-      padding: 1rem 5%;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    
+    .mr-1 {
+      margin-right: 0.25rem !important;
+    }
+    
+    .mr-2 {
+      margin-right: 0.5rem !important;
+    }
+    
+    .font-size-12 {
+      font-size: 12px !important;
+    }
+    
+    .font-size-13 {
+      font-size: 13px !important;
+    }
+    
+    .d-flex {
+      display: flex !important;
+    }
+    
+    .align-items-center {
+      align-items: center !important;
+    }
+    
+    .justify-content-between {
+      justify-content: space-between !important;
+    }
+    
+    .mb-0 {
+      margin-bottom: 0 !important;
+    }
+    
+    .p-2 {
+      padding: 0.5rem !important;
+    }
+
+    /* Support Button Styles */
+    .support-button {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .support-button:hover {
+      transform: scale(1.1);
+      background-color: var(--primary-color-dark);
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      z-index: 1000;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1050;
     }
-    nav ul {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      list-style: none;
-    }
-    nav ul li a {
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-      transition: color 0.3s ease;
-    }
-    nav ul li a:hover {
-      color: #6366f1;
-    }
-    /* Dashboard Container */
-    .dashboard-container {
-      max-width: 1000px;
-      margin: 6rem auto 2rem;
-      padding: 2rem;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    h1, h2 {
-      color: #333;
-      margin-bottom: 1.5rem;
-    }
-    h1 {
-      font-size: 2.5rem;
-      text-align: center;
-      color: #6366f1;
-    }
-    .info-section {
-      background: #f8f9fa;
-      padding: 1.5rem;
-      border-radius: 8px;
-      margin-bottom: 2rem;
-      transition: transform 0.3s ease;
-      position: relative;
-    }
-    .info-section:hover {
-      transform: translateY(-3px);
-    }
-    .info-section h2 {
-      color: #6366f1;
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 0.5rem;
-      margin-bottom: 1rem;
-    }
-    .company-logo {
-      float: right;
-      border-radius: 50%;
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      margin-left: 1rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .edit-form {
-      background: #f8f9fa;
-      padding: 2rem;
-      border-radius: 8px;
-      margin-top: 2rem;
-    }
-    .edit-form label {
+
+    .modal.show {
       display: block;
-      margin-bottom: 0.5rem;
-      color: #333;
-      font-weight: bold;
     }
-    .edit-form input,
-    .edit-form textarea {
+
+    .modal-dialog {
+      position: relative;
+      width: auto;
+      margin: 0.5rem;
+      pointer-events: none;
+    }
+
+    .modal-content {
+      position: relative;
+      display: flex;
+      flex-direction: column;
       width: 100%;
-      padding: 0.8rem;
-      margin-bottom: 1.5rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 5px;
-      font-size: 1rem;
-      transition: border-color 0.3s ease;
+      pointer-events: auto;
+      background-color: #fff;
+      background-clip: padding-box;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 0.3rem;
+      outline: 0;
     }
-    .edit-form input:focus,
-    .edit-form textarea:focus {
-      outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
-    }
-    .edit-form button {
-      width: 100%;
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
       padding: 1rem;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      font-size: 1rem;
+      border-bottom: 1px solid #dee2e6;
+      border-top-left-radius: 0.3rem;
+      border-top-right-radius: 0.3rem;
     }
-    .edit-form button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(99,102,241,0.3);
-    }
-    pre {
-      background: #f8f9fa;
+
+    .modal-body {
+      position: relative;
+      flex: 1 1 auto;
       padding: 1rem;
-      border-radius: 5px;
-      overflow-x: auto;
-      margin-top: 1.5rem;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      border: 2px solid #e2e8f0;
     }
-    @media (max-width: 768px) {
-      nav ul {
-        flex-wrap: wrap;
-        gap: 1rem;
-      }
-      .dashboard-container {
-        margin: 6rem 20px 2rem;
-        padding: 1.5rem;
-      }
-      h1 {
-        font-size: 2rem;
-      }
-      .edit-form {
-        padding: 1.5rem;
-      }
-      .company-logo {
-        float: none;
-        display: block;
-        margin: 0 auto 1rem auto;
-      }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 1rem;
+      border-top: 1px solid #dee2e6;
+      border-bottom-right-radius: 0.3rem;
+      border-bottom-left-radius: 0.3rem;
+    }
+
+    /* Fix for modal interaction issues */
+    .modal-backdrop {
+      z-index: 1040 !important;
+    }
+    #scriptGeneratorModal {
+      z-index: 1050 !important;
+    }
+    #scriptGeneratorModal .modal-dialog {
+      z-index: 1051 !important;
+      pointer-events: all !important;
+    }
+    #scriptGeneratorModal .modal-content {
+      pointer-events: all !important;
+    }
+    #scriptGeneratorModal input,
+    #scriptGeneratorModal select,
+    #scriptGeneratorModal button,
+    #scriptGeneratorModal textarea {
+      pointer-events: all !important;
+      position: relative;
+      z-index: 1052 !important;
+    }
+    body.modal-open {
+      overflow: hidden;
+      padding-right: 0 !important;
     }
   </style>
 </head>
 <body>
-  <nav>
-    <ul>
-      <li><a href="/static/index.html">Home</a></li>
-      <li><a href="/static/profile.html">Profile</a></li>
-      <li><a href="/static/chatbot_builder.html">Chatbot Builder</a></li>
-      <li><a href="/static/admin.html">Admin</a></li>
-      <li><a href="/static/dashboard.html">Dashboard</a></li>
-      <li><a href="/static/test.html">Test Chatbot</a></li>
-      <li><a href="/static/pricing.html">Pricing</a></li>
-    </ul>
-  </nav>
-  
-  <div class="dashboard-container">
-      <h1>Company Dashboard</h1>
-      <div id="dashboardDisplay" class="info-section">
-        <!-- User details will be shown here -->
+  <div class="alert-container"></div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <img id="sidebarLogo" src="https://ui-avatars.com/api/?name=Company&background=random" alt="Logo" class="sidebar-logo" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px;">
+          <span id="sidebarCompanyName">Loading...</span>
+        </div>
+        <button class="sidebar-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
       </div>
       
-      <h2>Edit Profile</h2>
-      <form id="updateProfileForm" class="edit-form">
-          <label for="user_name">Name:</label>
-          <input type="text" id="user_name" name="user_name">
-          
-          <label for="user_phone">Phone:</label>
-          <input type="text" id="user_phone" name="user_phone">
-          
-          <label for="company_name">Company Name:</label>
-          <input type="text" id="company_name" name="company_name">
-          
-          <label for="company_phone">Company Phone:</label>
-          <input type="text" id="company_phone" name="company_phone">
-          
-          <label for="business_address">Business Address:</label>
-          <textarea id="business_address" name="business_address"></textarea>
-          
-          <label for="company_website">Company Website:</label>
-          <input type="text" id="company_website" name="company_website">
-          
-          <label for="niche">Niche:</label>
-          <input type="text" id="niche" name="niche">
-          
-          <label for="subscription_plan">Current Plan:</label>
-          <input type="text" id="subscription_plan" name="subscription_plan" readonly style="background-color: #e5e5e5;">          
-          <button type="submit">Update Profile</button>
-      </form>
-      <pre id="updateResult"></pre>
-      
-      <h2>Upload Company Logo</h2>
-      <form id="uploadLogoForm" class="edit-form" enctype="multipart/form-data">
-          <label for="logo">Choose Logo (PNG/JPG):</label>
-          <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg" required>
-          <button type="submit">Upload Logo</button>
-      </form>
-      <pre id="uploadLogoResult"></pre>
-      <div id="subscriptionExpirySection" style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 5px;">
-        <p>Your current subscription expires on: <strong id="subscriptionExpiry">--/--/----</strong></p>
-        <p>Please renew your plan to avoid service interruptions.</p>
-      </div>
-      
-  </div>
-  
-  <script>
-    async function checkAuth() {
-      try {
-        const res = await fetch('/api/users/profile', { method: 'GET', credentials: 'include' });
-        if (!res.ok) throw new Error("Unauthorized");
-        const data = await res.json();
-        if (!data.user) throw new Error("No user data");
-        return true;
-      } catch (err) {
-        console.error("Authentication error:", err);
-        window.location.href = "/static/login.html";
-        return false;
-      }
-    }
+      <ul class="sidebar-menu">
+        <li class="sidebar-item">
+          <a href="/static/dashboard.html" class="sidebar-link active">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/profile.html" class="sidebar-link">
+            <i class="fas fa-user-circle"></i>
+            <span>Profile</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chatbot_builder.html" class="sidebar-link">
+            <i class="fas fa-robot"></i>
+            <span>Chatbot Builder</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/test.html" class="sidebar-link">
+            <i class="fas fa-vial"></i>
+            <span>Test Chatbot</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/cost_calculator.html" class="sidebar-link">
+            <i class="fas fa-calculator"></i>
+            <span>Moving Cost Calculator</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/moving_parameters.html" class="sidebar-link">
+            <i class="fas fa-sliders-h"></i>
+            <span>Moving Parameters</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chat_analysis.html" class="sidebar-link">
+            <i class="fas fa-comments-dollar"></i>
+            <span>Chat Analysis</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/pricing.html" class="sidebar-link">
+            <i class="fas fa-tag"></i>
+            <span>Pricing Plans</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="#" id="logoutBtn" class="sidebar-link">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
     
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="main-header">
+        <div class="header-left">
+          <!-- <button class="header-toggle d-lg-none">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h4>Dashboard</h4> -->
+        </div>
+        
+        <div class="header-right">
+          <div class="user-dropdown">
+            <div class="user-info">
+              <div>
+                <div class="user-name">User</div>
+                <div class="user-role" style="font-size: 0.7rem; color: var(--gray-600);">Member</div>
+              </div>
+              <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" class="user-avatar">
+            </div>
+            
+            <div class="user-dropdown-menu" style="display: none; position: absolute; top: 100%; right: 0; background: white; box-shadow: var(--box-shadow); border-radius: var(--border-radius); padding: 0.5rem 0; min-width: 200px; margin-top: 0.5rem; z-index: 1000;">
+              <a href="/static/profile.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+                <i class="fas fa-user-circle"></i> Manage Profile
+              </a>
+              <a href="/static/admin.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+                <i class="fas fa-cog"></i> Settings
+              </a>
+              <div style="height: 1px; background-color: var(--gray-200); margin: 0.5rem 0;"></div>
+              <a href="#" id="dropdownLogoutBtn" style="display: block; padding: 0.5rem 1rem; color: var(--danger-color);">
+                <i class="fas fa-sign-out-alt"></i> Logout
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Page Container -->
+      <div class="page-container">
+        <!-- Chatbot Statistics Row -->
+        <div class="row" style="display: flex; flex-wrap: wrap; margin: 0 -10px;">
+          <div class="col-lg-12" style="flex: 0 0 100%; max-width: 100%; padding: 0 10px;">
+            <div class="card mb-4">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Your Chatbots</h5>
+                <div>
+                  <button id="refreshChatbots" class="btn btn-sm btn-secondary me-2">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                  </button>
+                  <a href="/static/chatbot_builder.html" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i> New Chatbot
+                  </a>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Version</th>
+                        <th>Total Messages</th>
+                        <th>Satisfaction Rate</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="chatbotTable">
+                      <tr>
+                        <td colspan="5" class="text-center">Loading chatbots...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Moving Parameters Feature Card -->
+        <div class="row" style="display: flex; flex-wrap: wrap; margin: 0 -10px;">
+          <div class="col-lg-12" style="flex: 0 0 100%; max-width: 100%; padding: 0 10px;">
+            <div class="card mb-4">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Moving Company Features</h5>
+                <a href="/static/moving_parameters.html" class="btn btn-sm btn-primary">
+                  <i class="fas fa-sliders-h"></i> Configure Parameters
+                </a>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info">
+                  <i class="fas fa-info-circle me-2"></i>
+                  Set up moving-specific parameters for your chatbot to provide accurate cost estimates and handle moving-related inquiries.
+                </div>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="feature-item border rounded p-3 mb-3">
+                      <h6><i class="fas fa-calculator text-primary me-2"></i> Cost Estimation</h6>
+                      <p class="text-muted small mb-0">Configure base rates, move sizes, and additional services to enable automatic cost estimates.</p>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="feature-item border rounded p-3 mb-3">
+                      <h6><i class="fas fa-envelope text-primary me-2"></i> Email Templates</h6>
+                      <p class="text-muted small mb-0">Customize confirmation emails sent to customers and staff after booking.</p>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="feature-item border rounded p-3 mb-3">
+                      <h6><i class="fas fa-tags text-primary me-2"></i> Price Adjustments</h6>
+                      <p class="text-muted small mb-0">Set seasonal rates and location-based price adjustments for accurate quotes.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Moving Cost Calculator Feature Card -->
+        <div class="row moving-calculator-section" style="display: flex; flex-wrap: wrap; margin: 0 -10px;">
+          <div class="col-lg-12" style="flex: 0 0 100%; max-width: 100%; padding: 0 10px;">
+            <div class="card mb-4">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Moving Cost Calculator</h5>
+                <button type="button" class="btn btn-sm btn-primary" id="generateCalculatorScript">
+                  <i class="fas fa-code"></i> Generate Embed Script
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info">
+                  <i class="fas fa-info-circle me-2"></i>
+                  The Moving Cost Calculator allows potential customers to get instant moving cost estimates directly on your website. Add the calculator to your website using the embed script.
+                </div>
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="card mb-3">
+                      <div class="card-header bg-light">
+                        <h6 class="mb-0">Recent Quote Requests</h6>
+                      </div>
+                      <div class="card-body p-0">
+                        <div class="table-responsive">
+                          <table class="table table-hover mb-0">
+                            <thead>
+                              <tr>
+                                <th>Name</th>
+                                <th>Origin</th>
+                                <th>Destination</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                              </tr>
+                            </thead>
+                            <tbody id="quoteRequestsTable">
+                              <tr>
+                                <td colspan="6" class="text-center">Loading quote requests...</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                      <div class="card-footer bg-light text-center">
+                        <a href="#" id="viewAllQuotes" class="text-primary">View all quote requests</a>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <div class="card mb-3">
+                      <div class="card-header bg-light">
+                        <h6 class="mb-0">Calculator Preview</h6>
+                      </div>
+                      <div class="card-body text-center">
+                        <div class="bg-light rounded mb-3 d-flex align-items-center justify-content-center" style="height: 280px; width: 100%;">
+                          <div class="text-center p-3">
+                            <i class="fas fa-calculator fa-3x text-primary mb-3"></i>
+                            <h5>Moving Cost Calculator</h5>
+                            <p>4-step quote generator</p>
+                          </div>
+                        </div>
+                        <p class="text-muted">This 4-step calculator helps customers get accurate moving quotes based on origin, destination, move size, and date.</p>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="testCalculator">
+                          <i class="fas fa-external-link-alt"></i> Test Calculator
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="widget-container">
+          <div class="widget">
+            <div class="widget-header">
+              <h5 class="widget-title">Total Chatbots</h5>
+              <div class="widget-icon primary">
+                <i class="fas fa-robot"></i>
+              </div>
+            </div>
+            <div class="widget-value" id="totalChatbots">-</div>
+            <div class="widget-subtitle">Active chatbots</div>
+          </div>
+          
+          <div class="widget">
+            <div class="widget-header">
+              <h5 class="widget-title">Total Conversations</h5>
+              <div class="widget-icon info">
+                <i class="fas fa-comments"></i>
+              </div>
+            </div>
+            <div class="widget-value" id="totalConversations">-</div>
+            <div class="widget-subtitle">All time</div>
+          </div>
+          
+          <div class="widget">
+            <div class="widget-header">
+              <h5 class="widget-title">Satisfaction Rate</h5>
+              <div class="widget-icon success">
+                <i class="fas fa-smile"></i>
+              </div>
+            </div>
+            <div class="widget-value" id="satisfactionRate">-</div>
+            <div class="widget-subtitle">Based on user feedback</div>
+          </div>
+          
+          <div class="widget">
+            <div class="widget-header">
+              <h5 class="widget-title">Subscription</h5>
+              <div class="widget-icon secondary">
+                <i class="fas fa-crown"></i>
+              </div>
+            </div>
+            <div class="widget-value" id="subscriptionPlanWidget">Pro</div>
+            <div class="widget-subtitle" id="subscriptionExpiryWidget">Expires on Dec 31, 2023</div>
+          </div>
+        </div>
+        
+        <div class="row" style="display: flex; flex-wrap: wrap; margin: 0 -10px;">
+          <div class="col-lg-8" style="flex: 0 0 66.666667%; max-width: 66.666667%; padding: 0 10px;">
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="card-title">Conversations Overview</h5>
+              </div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="conversationsChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-lg-4" style="flex: 0 0 33.333333%; max-width: 33.333333%; padding: 0 10px;">
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="card-title">Chatbot Performance</h5>
+              </div>
+              <div class="card-body">
+                <div class="chart-container" style="height: 200px;">
+                  <canvas id="performanceChart"></canvas>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">Subscription Status</h5>
+              </div>
+              <div class="card-body" id="subscriptionStatus">
+                <p>Your current subscription expires on: <strong id="subscriptionExpiry">--/--/----</strong></p>
+                <div class="progress mb-3" style="height: 10px; background-color: var(--gray-200); border-radius: 10px; overflow: hidden;">
+                  <div class="progress-bar bg-primary" role="progressbar" style="width: 75%; height: 100%;"></div>
+                </div>
+                <a href="/static/pricing.html" class="btn btn-outline-primary btn-block mt-3">
+                  <i class="fas fa-sync-alt"></i> Manage Subscription
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Company Details</h5>
+          </div>
+          <div class="card-body">
+            <div id="dashboardDisplay" class="mb-4"></div>
+            
+            <h5 class="mb-3">Edit Profile</h5>
+            <form id="updateProfileForm">
+              <div class="row" style="display: flex; flex-wrap: wrap; margin: 0 -10px;">
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="user_name" class="form-label">Name</label>
+                    <input type="text" id="user_name" name="user_name" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="user_phone" class="form-label">Phone</label>
+                    <input type="text" id="user_phone" name="user_phone" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="company_name" class="form-label">Company Name</label>
+                    <input type="text" id="company_name" name="company_name" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="company_phone" class="form-label">Company Phone</label>
+                    <input type="text" id="company_phone" name="company_phone" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="company_website" class="form-label">Company Website</label>
+                    <input type="text" id="company_website" name="company_website" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="niche" class="form-label">Niche</label>
+                    <input type="text" id="niche" name="niche" class="form-control">
+                  </div>
+                </div>
+                
+                <div class="col-md-12" style="flex: 0 0 100%; max-width: 100%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="business_address" class="form-label">Business Address</label>
+                    <textarea id="business_address" name="business_address" class="form-control"></textarea>
+                  </div>
+                </div>
+                
+                <div class="col-md-6" style="flex: 0 0 50%; max-width: 50%; padding: 0 10px;">
+                  <div class="form-group">
+                    <label for="subscription_plan" class="form-label">Current Plan</label>
+                    <input type="text" id="subscription_plan" name="subscription_plan" class="form-control" readonly style="background-color: var(--gray-200);">
+                  </div>
+                </div>
+              </div>
+              
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Update Profile
+              </button>
+            </form>
+            
+            <pre id="updateResult" style="display: none;"></pre>
+            
+            <h5 class="mt-4 mb-3">Upload Company Logo</h5>
+            <form id="uploadLogoForm" enctype="multipart/form-data">
+              <div class="form-group">
+                <label for="logo" class="form-label">Choose Logo (PNG/JPG)</label>
+                <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg" required class="form-control">
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Upload Logo
+              </button>
+            </form>
+            
+            <pre id="uploadLogoResult" style="display: none;"></pre>
+          </div>
+        </div>
+        
+        <!-- Knowledge Base Section -->
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title">Knowledge Base</h5>
+            <button class="btn btn-primary" id="addFaqBtn">
+              <i class="fas fa-plus"></i> Add FAQ
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Question</th>
+                    <th>Answer</th>
+                    <th>Category</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="faqTable">
+                  <tr>
+                    <td colspan="4" class="text-center">Loading FAQs...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Script Generator Section -->
+        <div class="card mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Script Generator</h5>
+            <button type="button" class="btn btn-primary" id="generateScriptBtn" data-bs-toggle="modal" data-bs-target="#scriptGeneratorModal">
+              <i class="fas fa-code"></i> Generate your script
+            </button>
+          </div>
+        </div>
+
+        <!-- Help and Support Section -->
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Help and Support Tickets</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Ticket ID</th>
+                    <th>Subject</th>
+                    <th>Topic</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Remarks</th>
+                    <th>Media</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ticketsTable">
+                  <tr>
+                    <td colspan="8" class="text-center">Loading tickets...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Chat Analysis Section -->
+        <div class="section" id="chat-analysis-section" style="display: none;">
+          <div class="row">
+            <div class="col-md-12">
+              <h2>Chat Analysis</h2>
+              <p>Analyze your chatbot conversations and client interactions.</p>
+              
+              <div class="row mb-4">
+                <div class="col-md-3">
+                  <div class="card bg-primary text-white">
+                    <div class="card-body">
+                      <h5 class="card-title">Total Chats</h5>
+                      <h2 id="totalChats">0</h2>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card bg-success text-white">
+                    <div class="card-body">
+                      <h5 class="card-title">Bookings</h5>
+                      <h2 id="totalBookings">0</h2>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card bg-warning text-white">
+                    <div class="card-body">
+                      <h5 class="card-title">Complaints</h5>
+                      <h2 id="totalComplaints">0</h2>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card bg-info text-white">
+                    <div class="card-body">
+                      <h5 class="card-title">Potential Clients</h5>
+                      <h2 id="potentialClients">0</h2>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Chat Filter Controls -->
+              <div class="card mb-4">
+                <div class="card-body">
+                  <h5 class="card-title">Filter Conversations</h5>
+                  <div class="row g-3">
+                    <div class="col-md-3">
+                      <label for="chatTypeFilter" class="form-label">Conversation Type</label>
+                      <select class="form-select" id="chatTypeFilter">
+                        <option value="all">All Conversations</option>
+                        <option value="booking">Bookings</option>
+                        <option value="complaint">Complaints</option>
+                        <option value="potential">Potential Clients</option>
+                        <option value="general">General Conversations</option>
+                      </select>
+                    </div>
+                    <div class="col-md-3">
+                      <label for="dateRangeFilter" class="form-label">Date Range</label>
+                      <select class="form-select" id="dateRangeFilter">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30">Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="all">All Time</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label for="searchChats" class="form-label">Search</label>
+                      <input type="text" class="form-control" id="searchChats" placeholder="Search by content or customer...">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                      <button class="btn btn-primary w-100" id="applyFiltersBtn">Apply Filters</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Chat Conversations Table -->
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">Conversation List</h5>
+                  <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="chatTable">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Date & Time</th>
+                          <th>Type</th>
+                          <th>Customer</th>
+                          <th>Content Preview</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="chatTableBody">
+                        <!-- Chat data will be loaded here -->
+                      </tbody>
+                    </table>
+                  </div>
+                  <div id="chatTablePagination" class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                      <span id="totalChatsCount">0</span> conversations found
+                    </div>
+                    <nav aria-label="Chat list pagination">
+                      <ul class="pagination mb-0">
+                        <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                      </ul>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Support Button -->
+  <button class="support-button" id="supportButton">
+    <i class="fas fa-headset"></i>
+  </button>
+
+  <!-- Support Modal -->
+  <div class="modal" id="supportModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Create Support Ticket</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="supportTicketForm">
+            <div class="mb-3">
+              <label for="ticketSubject" class="form-label">Subject</label>
+              <input type="text" class="form-control" id="ticketSubject" required>
+            </div>
+            <div class="mb-3">
+              <label for="ticketTopic" class="form-label">Topic</label>
+              <select class="form-select" id="ticketTopic" required>
+                <option value="">Select a topic</option>
+                <option value="billing">Billing</option>
+                <option value="api">API</option>
+                <option value="knowledge_base">Knowledge Base</option>
+                <option value="chatbot_integration">Chatbot Integration</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="ticketDetails" class="form-label">Details</label>
+              <textarea class="form-control" id="ticketDetails" rows="4" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="ticketMedia" class="form-label">Attach Media (Optional)</label>
+              <input type="file" class="form-control" id="ticketMedia" accept="image/*,video/*,.pdf,.doc,.docx">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="submitTicketBtn">Submit Ticket</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Details Modal -->
+  <div class="modal" id="ticketDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Ticket Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <dl class="row">
+            <dt class="col-sm-3">Ticket ID</dt>
+            <dd class="col-sm-9" id="ticketId"></dd>
+            
+            <dt class="col-sm-3">Subject</dt>
+            <dd class="col-sm-9" id="ticketSubject"></dd>
+            
+            <dt class="col-sm-3">Topic</dt>
+            <dd class="col-sm-9" id="ticketTopic"></dd>
+            
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9" id="ticketStatus"></dd>
+            
+            <dt class="col-sm-3">Created At</dt>
+            <dd class="col-sm-9" id="ticketCreatedAt"></dd>
+            
+            <dt class="col-sm-3">Details</dt>
+            <dd class="col-sm-9" id="ticketDetails"></dd>
+            
+            <dt class="col-sm-3">Admin Remarks</dt>
+            <dd class="col-sm-9" id="ticketRemarks">
+              <div class="alert alert-info" id="noRemarksAlert" style="display: none;">
+                No remarks provided by admin yet.
+              </div>
+              <div id="remarksContent" style="display: none;"></div>
+            </dd>
+          </dl>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit FAQ Modal -->
+  <div class="modal fade" id="editFaqModal" tabindex="-1" aria-labelledby="editFaqModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="editFaqForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editFaqModalLabel">Edit FAQ</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editFaqId">
+            <div class="mb-3">
+              <label for="editFaqQuestion" class="form-label">Question</label>
+              <input type="text" class="form-control" id="editFaqQuestion" required>
+            </div>
+            <div class="mb-3">
+              <label for="editFaqAnswer" class="form-label">Answer</label>
+              <textarea class="form-control" id="editFaqAnswer" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="editFaqCategory" class="form-label">Category</label>
+              <input type="text" class="form-control" id="editFaqCategory" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Script Generator Modal -->
+  <div class="modal fade" id="scriptGeneratorModal" tabindex="-1" aria-labelledby="scriptGeneratorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="scriptGeneratorForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="scriptGeneratorModalLabel">Generate Script</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeScriptModalBtn"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="websiteStack" class="form-label">Website Stack</label>
+              <select id="websiteStack" class="form-select" required>
+                <option value="html">HTML</option>
+                <option value="wordpress">WordPress</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="websiteUrl" class="form-label">Website URL</label>
+              <input type="text" id="websiteUrl" class="form-control" placeholder="https://example.com" required>
+            </div>
+            <div class="mb-3">
+              <label for="chatbotSelect" class="form-label">Chatbot</label>
+              <select id="chatbotSelect" class="form-select" required></select>
+            </div>
+            <div class="mb-3">
+              <label for="buttonPosition" class="form-label">Button Position</label>
+              <select id="buttonPosition" class="form-select" required>
+                <option value="bottom-right">Bottom Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="top-right">Top Right</option>
+                <option value="top-left">Top Left</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="buttonText" class="form-label">Button Text</label>
+              <input type="text" id="buttonText" class="form-control" value="Chat with us" required>
+            </div>
+            <div class="mb-3">
+              <label for="buttonIcon" class="form-label">Button Icon</label>
+              <input type="text" id="buttonIcon" class="form-control" value="💬" required>
+            </div>
+            <div class="mb-3">
+              <label for="widgetTitle" class="form-label">Widget Title</label>
+              <input type="text" id="widgetTitle" class="form-control" value="Chat Support" required>
+            </div>
+            <div class="mb-3">
+              <label for="primaryColor" class="form-label">Primary Color</label>
+              <input type="color" id="primaryColor" class="form-control form-control-color" value="#4361ee" required>
+            </div>
+            <pre id="wordpressInstructions" style="display:none;">WordPress embed code will appear here after generation.</pre>
+            <div id="generatedScriptContainer" style="display:none;">
+              <pre id="generatedScript" style="white-space: pre-wrap;"></pre>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="closeScriptModalBtn" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="generateCodeBtn">Generate Code</button>
+            <button type="button" class="btn btn-success" id="copyScriptBtn" style="display:none;">Copy</button>
+            <button type="button" class="btn btn-outline-secondary" id="startOverBtn" style="display:none;">Start Over</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Alert function
+    function showAlert(message, type = 'info') {
+      const alertContainer = document.querySelector('.alert-container');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type} alert-dismissible fade show`;
+      alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      alertContainer.appendChild(alert);
+      
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+
+    // Link Add FAQ button to chatbot_builder.html
+    document.getElementById('addFaqBtn').addEventListener('click', function() {
+      window.location.href = '/static/chatbot_builder.html';
+    });
+
+    // Original functionality maintained with enhancements
     async function fetchProfile() {
       try {
-        const response = await fetch('/api/users/profile', { method: 'GET', credentials: 'include' });
+        const response = await authenticatedFetch('/api/users/profile');
         const data = await response.json();
         if (data.user) {
           displayUser(data.user);
           populateForm(data.user);
+          updateSubscriptionInfo(data.user);
         } else {
           document.getElementById("dashboardDisplay").innerText = JSON.stringify(data, null, 2);
         }
       } catch (err) {
         document.getElementById("dashboardDisplay").innerText = "Error fetching profile: " + err;
+        showAlert('Error fetching profile data', 'danger');
       }
     }
     
     function displayUser(u) {
       const dashDiv = document.getElementById("dashboardDisplay");
+      if (!dashDiv) return;
+
       let logoHtml = "";
       if (u.company_logo) {
-        logoHtml = `<img src="${u.company_logo}" class="company-logo" alt="Logo">`;
+        logoHtml = `<img src="${u.company_logo}" alt="Logo" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; float: right; margin-left: 1rem;" class="company-logo-trigger">`;
       }
+      
       dashDiv.innerHTML = `
-        <h2>User & Company Details</h2>
-        ${logoHtml}
-        <p><strong>Name:</strong> ${u.user_name || 'N/A'}</p>
-        <p><strong>Email:</strong> ${u.user_email || 'N/A'}</p>
-        <p><strong>Phone:</strong> ${u.user_phone || 'N/A'}</p>
-        <p><strong>Company ID:</strong> ${u.company_id || 'N/A'}</p>
-        <p><strong>Company Name:</strong> ${u.company_name || 'N/A'}</p>
-        <p><strong>Company Phone:</strong> ${u.company_phone || 'N/A'}</p>
-        <p><strong>Business Address:</strong> ${u.business_address || 'N/A'}</p>
-        <p><strong>Company Website:</strong> ${u.company_website || 'N/A'}</p>
-        <p><strong>Niche:</strong> ${u.niche || 'N/A'}</p>
-        <p><strong>Subscription Plan:</strong> ${u.subscription_plan || 'N/A'}</p>
+        <div class="card mb-0" style="border: none; background-color: transparent; box-shadow: none;">
+          <div class="card-body p-0">
+            ${logoHtml}
+            <h4 class="mb-3">${u.company_name || 'Your Company'}</h4>
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong><i class="fas fa-user"></i> Name:</strong> ${u.user_name || 'N/A'}</p>
+                <p><strong><i class="fas fa-envelope"></i> Email:</strong> ${u.user_email || 'N/A'}</p>
+                <p><strong><i class="fas fa-phone"></i> Phone:</strong> ${u.user_phone || 'N/A'}</p>
+                <p><strong><i class="fas fa-id-card"></i> Company ID:</strong> ${u.company_id || 'N/A'}</p>
+              </div>
+              <div class="col-md-6">
+                <p><strong><i class="fas fa-building"></i> Company Phone:</strong> ${u.company_phone || 'N/A'}</p>
+                <p><strong><i class="fas fa-map-marker-alt"></i> Address:</strong> ${u.business_address || 'N/A'}</p>
+                <p><strong><i class="fas fa-globe"></i> Website:</strong> ${u.company_website ? `<a href="${u.company_website}" target="_blank">${u.company_website}</a>` : 'N/A'}</p>
+                <p><strong><i class="fas fa-tag"></i> Niche:</strong> ${u.niche || 'N/A'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       `;
-  
+      
+      // Update sidebar with company info
+      updateSidebarCompanyInfo(u);
+      
+      // Add click handler for company logo dropdown if logo exists
+      const logoElement = document.querySelector('.company-logo-trigger');
+      if (logoElement) {
+        const logoDropdownMenu = document.createElement('div');
+        logoDropdownMenu.className = 'logo-dropdown-menu';
+        logoDropdownMenu.style.display = 'none';
+        logoDropdownMenu.style.position = 'absolute';
+        logoDropdownMenu.style.top = '110px';
+        logoDropdownMenu.style.right = '20px';
+        logoDropdownMenu.style.backgroundColor = 'white';
+        logoDropdownMenu.style.boxShadow = 'var(--box-shadow)';
+        logoDropdownMenu.style.borderRadius = 'var(--border-radius)';
+        logoDropdownMenu.style.padding = '0.5rem 0';
+        logoDropdownMenu.style.minWidth = '200px';
+        logoDropdownMenu.style.zIndex = '1000';
+        
+        logoDropdownMenu.innerHTML = `
+          <a href="/static/profile.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+            <i class="fas fa-user-circle"></i> Manage Profile
+          </a>
+          <a href="/static/admin.html" style="display: block; padding: 0.5rem 1rem; color: var(--gray-700);">
+            <i class="fas fa-cog"></i> Settings
+          </a>
+          <div style="height: 1px; background-color: var(--gray-200); margin: 0.5rem 0;"></div>
+          <a href="#" id="logoLogoutBtn" style="display: block; padding: 0.5rem 1rem; color: var(--danger-color);">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </a>
+        `;
+        
+        document.querySelector('.main-content').appendChild(logoDropdownMenu);
+        
+        logoElement.addEventListener('click', function() {
+          logoDropdownMenu.style.display = logoDropdownMenu.style.display === 'none' ? 'block' : 'none';
+        });
+        
+        document.addEventListener('click', function(event) {
+          if (!logoElement.contains(event.target) && !logoDropdownMenu.contains(event.target)) {
+            logoDropdownMenu.style.display = 'none';
+          }
+        });
+      }
+    }
+    
+    function updateSubscriptionInfo(user) {
       const expiryElement = document.getElementById("subscriptionExpiry");
-      if (u.subscription_expires_at) {
-        const expiryDate = new Date(u.subscription_expires_at);
-        expiryElement.textContent = expiryDate.toLocaleDateString();
+      const planWidget = document.getElementById("subscriptionPlanWidget");
+      const expiryWidget = document.getElementById("subscriptionExpiryWidget");
+      const satisfactionRate = document.getElementById("satisfactionRate");
+      
+      // Set placeholders until we get real data
+      planWidget.textContent = "Loading...";
+      expiryElement.textContent = "Loading...";
+      expiryWidget.textContent = "Loading...";
+      satisfactionRate.textContent = "-";
+      
+      // Immediately fetch detailed subscription info
+      fetchSubscriptionDetails();
+    }
+    
+    // Fetch detailed subscription information
+    async function fetchSubscriptionDetails() {
+      try {
+        const response = await fetch('/api/subscriptions/details', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        console.log('Subscription details response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Subscription details full response:', data);
+          
+          if (data.success === false) {
+            console.error('Error in subscription response:', data.error);
+            setSubscriptionFallbackValues();
+            return;
+          }
+          
+          // Update the dashboard widgets with subscription data
+          updateDashboardWithSubscriptionData(data);
+        } else {
+          // Don't redirect to login on failure, just use fallback values
+          console.error('Failed to fetch subscription details:', response.statusText);
+          setSubscriptionFallbackValues();
+        }
+      } catch (err) {
+        console.error('Error fetching subscription details:', err);
+        setSubscriptionFallbackValues();
+      }
+    }
+    
+    // Function to update the dashboard with subscription data
+    function updateDashboardWithSubscriptionData(data) {
+      // Update plan display
+      const planWidget = document.getElementById("subscriptionPlanWidget");
+      if (data.subscription && data.subscription.plan_display_name) {
+        planWidget.textContent = data.subscription.plan_display_name;
+      } else {
+        planWidget.textContent = "Free";
+      }
+      
+      // Update expiry info if available
+      const expiryElement = document.getElementById("subscriptionExpiry");
+      const expiryWidget = document.getElementById("subscriptionExpiryWidget");
+      
+      if (data.subscription && data.subscription.expires_at) {
+        const expiryDate = new Date(data.subscription.expires_at);
+        const formattedDate = expiryDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short', 
+          day: 'numeric'
+        });
+        
+        expiryElement.textContent = formattedDate;
+        
+        if (data.subscription.days_remaining > 0) {
+          expiryWidget.textContent = `Expires in ${data.subscription.days_remaining} days`;
+        } else {
+          expiryWidget.textContent = "Subscription expired";
+        }
       } else {
         expiryElement.textContent = "Not available";
+        expiryWidget.textContent = "No active subscription";
       }
-  
-      if (!u.subscription_plan || u.subscription_plan === "N/A" || u.subscription_plan === "free_trial") {
-        dashDiv.innerHTML += `
-          <div style="margin-top: 1.5rem; padding: 1rem; background: #f0f0ff; border-radius: 8px;">
-            <h3>Become a Pro User</h3>
-            <p>Enjoy unlimited benefits, advanced features, and dedicated support.
-               Upgrade your plan now to unlock everything we have to offer!</p>
-            <a href="/static/pricing.html">
-              <button style="padding: 0.8rem 1.5rem; font-weight: bold; background-color: #6366f1; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
-                Go to Pricing
-              </button>
-            </a>
+      
+      // Update subscription status section with limits and usage
+      const subscriptionStatus = document.getElementById("subscriptionStatus");
+      
+      let progressPercentage = 0;
+      let chatbotsUsed = 0;
+      let chatbotsLimit = 'Unlimited';
+      let messagesUsed = 0;
+      let messagesLimit = 'Unlimited';
+      
+      if (data.usage) {
+        chatbotsUsed = data.usage.chatbots || 0;
+        messagesUsed = data.usage.messages || 0;
+      }
+      
+      if (data.limits) {
+        chatbotsLimit = data.limits.chatbot || 'Unlimited';
+        messagesLimit = data.limits.api_access || 'Unlimited';
+        
+        // Calculate progress percentage
+        if (chatbotsLimit !== 'Unlimited' && chatbotsUsed > 0) {
+          progressPercentage = Math.min(Math.round((chatbotsUsed / chatbotsLimit) * 100), 100);
+        }
+      }
+      
+      subscriptionStatus.innerHTML = `
+        <p>Your current subscription expires on: <strong>${expiryElement.textContent}</strong></p>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <small>Chatbots: ${chatbotsUsed} / ${chatbotsLimit}</small>
+            <small>Messages: ${messagesUsed} / ${messagesLimit}</small>
           </div>
-        `;
+          <div class="progress mb-1" style="height: 10px; background-color: var(--gray-200); border-radius: 10px; overflow: hidden;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: ${progressPercentage}%; height: 100%;"></div>
+          </div>
+        </div>
+        <a href="/static/pricing.html" class="btn btn-outline-primary btn-block mt-3">
+          <i class="fas fa-sync-alt"></i> Manage Subscription
+        </a>
+      `;
+      
+      // Display appropriate warning based on subscription status
+      if (data.subscription) {
+        let shouldShowWarning = false;
+        let warningMessage = '';
+        
+        if (data.subscription.status !== 'active') {
+          shouldShowWarning = true;
+          warningMessage = 'Your subscription is inactive.';
+        } else if (data.subscription.days_remaining < 0) {
+          shouldShowWarning = true;
+          warningMessage = 'Your subscription has expired.';
+        } else if (data.subscription.days_remaining < 7) {
+          shouldShowWarning = true;
+          warningMessage = 'Your subscription will expire soon.';
+        } else if (data.subscription.plan === 'free' || data.subscription.plan === 'free_trial') {
+          shouldShowWarning = true;
+          warningMessage = 'You are using a free plan.';
+        }
+        
+        if (shouldShowWarning) {
+          subscriptionStatus.innerHTML += `
+            <div class="alert alert-warning mt-3">
+              <i class="fas fa-exclamation-triangle"></i> ${warningMessage} Upgrade to continue using premium features.
+            </div>
+          `;
+        }
       }
+    }
+    
+    // Set fallback values if we can't fetch subscription data
+    function setSubscriptionFallbackValues() {
+      const planWidget = document.getElementById("subscriptionPlanWidget");
+      const expiryElement = document.getElementById("subscriptionExpiry");
+      const expiryWidget = document.getElementById("subscriptionExpiryWidget");
+      
+      planWidget.textContent = "Free";
+      expiryElement.textContent = "Not available";
+      expiryWidget.textContent = "No subscription data";
+      
+      const subscriptionStatus = document.getElementById("subscriptionStatus");
+      subscriptionStatus.innerHTML = `
+        <p>Your current subscription: <strong>Free Plan</strong></p>
+        <div class="mb-3">
+          <div class="progress mb-1" style="height: 10px; background-color: var(--gray-200); border-radius: 10px; overflow: hidden;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: 0%; height: 100%;"></div>
+          </div>
+        </div>
+        <a href="/static/pricing.html" class="btn btn-outline-primary btn-block mt-3">
+          <i class="fas fa-sync-alt"></i> Upgrade Subscription
+        </a>
+        <div class="alert alert-warning mt-3">
+          <i class="fas fa-exclamation-triangle"></i> You are using a free plan. Upgrade to access premium features.
+        </div>
+      `;
     }
     
     function populateForm(u) {
@@ -331,13 +1335,17 @@
           body: JSON.stringify(payload)
         });
         const data = await response.json();
-        document.getElementById('updateResult').innerText = JSON.stringify(data, null, 2);
         if (data.user) {
           displayUser(data.user);
           populateForm(data.user);
+          showAlert('Profile updated successfully!', 'success');
+        } else {
+          showAlert('Error updating profile', 'danger');
         }
+        document.getElementById('updateResult').innerText = JSON.stringify(data, null, 2);
       } catch (err) {
         document.getElementById('updateResult').innerText = "Error: " + err;
+        showAlert('Error: ' + err, 'danger');
       }
     });
     
@@ -352,20 +1360,2751 @@
           body: formData
         });
         const data = await response.json();
-        document.getElementById('uploadLogoResult').innerText = JSON.stringify(data, null, 2);
         if (data.user) {
           displayUser(data.user);
           populateForm(data.user);
+          showAlert('Logo uploaded successfully!', 'success');
+        } else {
+          showAlert('Error uploading logo', 'danger');
         }
+        document.getElementById('uploadLogoResult').innerText = JSON.stringify(data, null, 2);
       } catch (err) {
         document.getElementById('uploadLogoResult').innerText = "Error: " + err;
+        showAlert('Error: ' + err, 'danger');
       }
     });
     
-    (async function initDashboard() {
-      if (!(await checkAuth())) return;
-      fetchProfile();
-    })();
+    // Fetch metrics from the server
+    async function fetchMetrics() {
+  try {
+    console.log('Fetching dashboard metrics...');
+    
+    // Try the primary chat metrics endpoint first
+    const response = await fetch('/api/metrics/chat/dashboard', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    console.log('Metrics API response status:', response.status);
+    
+    if (!response.ok) {
+      console.error(`Error fetching metrics: ${response.status} ${response.statusText}`);
+      // Try to read the error response
+      try {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+      } catch (e) {
+        console.error('Could not read error response');
+      }
+      
+      // If metrics endpoint fails, try the chatbot info endpoint as fallback
+      console.log('Trying fallback endpoint: /api/chatbot/info');
+      const fallbackResponse = await fetch('/api/chatbot/info', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (fallbackResponse.ok) {
+        console.log('Fallback endpoint succeeded');
+        const fallbackData = await fallbackResponse.json();
+        
+        // Process the fallback data to extract chatbots
+        if (fallbackData && fallbackData.success !== false) {
+          console.log('Processing fallback data', fallbackData);
+          
+          let chatbotData = null;
+          
+          // Check different data structures
+          if (fallbackData.data && fallbackData.data.chatbots) {
+            chatbotData = {
+              success: true,
+              chatbots: fallbackData.data.chatbots,
+              satisfaction_rate: 0,
+              total_chatbots: fallbackData.data.chatbots.length,
+              total_conversations: 0
+            };
+          } else if (fallbackData.chatbots) {
+            chatbotData = {
+              success: true,
+              chatbots: fallbackData.chatbots,
+              satisfaction_rate: 0,
+              total_chatbots: fallbackData.chatbots.length,
+              total_conversations: 0
+            };
+          } else if (fallbackData.chatbot) {
+            // If there's a single chatbot object, convert it to an array
+            chatbotData = {
+              success: true,
+              chatbots: [fallbackData.chatbot],
+              satisfaction_rate: 0,
+              total_chatbots: 1,
+              total_conversations: 0
+            };
+          }
+          
+          if (chatbotData) {
+            console.log('Using chatbot data from fallback endpoint:', chatbotData);
+            
+            // Update dashboard with this data
+            document.getElementById('totalChatbots').textContent = chatbotData.total_chatbots || '0';
+            document.getElementById('totalConversations').textContent = chatbotData.total_conversations || '0';
+            document.getElementById('satisfactionRate').textContent = '0%';
+            
+            updateChatbotTable(chatbotData.chatbots || []);
+            return;
+          }
+        }
+      }
+      
+      // Try another fallback - the getAll endpoint
+      console.log('Trying second fallback: /api/chatbot/getAll');
+      try {
+        const getAllResponse = await fetch('/api/chatbot/getAll', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (getAllResponse.ok) {
+          const getAllData = await getAllResponse.json();
+          console.log('GetAll response:', getAllData);
+          
+          if (Array.isArray(getAllData)) {
+            // The endpoint returned a direct array of chatbots
+            const chatbotData = {
+              success: true,
+              chatbots: getAllData,
+              satisfaction_rate: 0,
+              total_chatbots: getAllData.length,
+              total_conversations: 0
+            };
+            
+            // Update dashboard with this data
+            document.getElementById('totalChatbots').textContent = chatbotData.total_chatbots || '0';
+            document.getElementById('totalConversations').textContent = chatbotData.total_conversations || '0';
+            document.getElementById('satisfactionRate').textContent = '0%';
+            
+            updateChatbotTable(chatbotData.chatbots || []);
+            return;
+          } else if (getAllData.chatbots || (getAllData.data && getAllData.data.chatbots)) {
+            // Standard response format
+            const chatbots = getAllData.chatbots || getAllData.data.chatbots || [];
+            document.getElementById('totalChatbots').textContent = chatbots.length || '0';
+            document.getElementById('totalConversations').textContent = '0';
+            document.getElementById('satisfactionRate').textContent = '0%';
+            
+            updateChatbotTable(chatbots);
+            return;
+          }
+        }
+      } catch (getAllError) {
+        console.error('Error with getAll fallback:', getAllError);
+      }
+      
+      // If all attempts failed, use fallback values
+      console.log('All API attempts failed, using fallback values');
+      setMetricsFallbackValues();
+      return;
+    }
+        
+        const data = await response.json();
+        console.log('Metrics full response:', data);
+        
+        // Debug chatbot data specifically
+        if (data.chatbots) {
+          console.log('Chatbots found in response:', data.chatbots.length);
+          console.log('First chatbot data:', data.chatbots[0]);
+        } else {
+          console.error('No chatbots array in the response');
+        }
+        
+        if (!data.success) {
+          console.error('Failed to fetch metrics:', data.error || 'Unknown error');
+          setMetricsFallbackValues();
+          return;
+        }
+        
+        // Update the dashboard with chat metrics
+        document.getElementById('totalChatbots').textContent = data.total_chatbots || '0';
+        document.getElementById('totalConversations').textContent = data.total_conversations || (data.metrics ? data.metrics.total_conversations : '0');
+        
+        // Update satisfaction rate from API
+        const satisfactionElement = document.getElementById('satisfactionRate');
+        if (data.satisfaction_rate !== undefined) {
+          satisfactionElement.textContent = `${data.satisfaction_rate}%`;
+        } else {
+          satisfactionElement.textContent = "0%";
+        }
+        
+        // Debug the chatbots data before updating table
+        console.log('About to update chatbot table with:', data.chatbots || []);
+        
+        // Update chatbot table if data is available
+        updateChatbotTable(data.chatbots || []);
+        
+        // Update charts if needed
+        updateCharts(data);
+        
+        // Update user info in header
+        updateUserInfo();
+        
+      } catch (err) {
+        console.error('Error in fetchMetrics:', err);
+        setMetricsFallbackValues();
+      }
+    }
+    
+    // Set fallback values if we can't fetch metrics
+    function setMetricsFallbackValues() {
+      // Set default text values
+      const totalChatbots = document.getElementById('totalChatbots');
+      if (totalChatbots) totalChatbots.textContent = '0';
+      
+      const totalConversations = document.getElementById('totalConversations');
+      if (totalConversations) totalConversations.textContent = '0';
+      
+      const satisfactionRate = document.getElementById('satisfactionRate');
+      if (satisfactionRate) satisfactionRate.textContent = '0%';
+      
+      const chatbotTable = document.getElementById('chatbotTable');
+      if (chatbotTable) chatbotTable.innerHTML = '<tr><td colspan="5" class="text-center">No chatbots found</td></tr>';
+      
+      // Update charts with empty data if they exist
+      if (window.conversationsChart && window.conversationsChart.data && window.conversationsChart.data.datasets) {
+        window.conversationsChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        window.conversationsChart.update();
+      }
+      
+      if (window.performanceChart && window.performanceChart.data && window.performanceChart.data.datasets) {
+        window.performanceChart.data.datasets[0].data = [0, 0, 0, 0];
+        window.performanceChart.update();
+      }
+    }
+    
+    // Function to update the chatbot table with data
+    function updateChatbotTable(chatbots) {
+      const tableBody = document.getElementById('chatbotTable');
+      
+      if (!tableBody) {
+        console.error('Could not find chatbotTable element in the DOM');
+        return;
+      }
+      
+      console.log('updateChatbotTable called with:', chatbots);
+      
+      // Check data type and structure
+      if (!Array.isArray(chatbots)) {
+        console.error('chatbots is not an array. Type:', typeof chatbots, 'Value:', chatbots);
+        const errorMsg = `Error: Expected array but got ${typeof chatbots}`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center">${errorMsg}</td></tr>`;
+        return;
+      }
+      
+      if (chatbots.length === 0) {
+        console.warn('No chatbots found in array');
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No chatbots found</td></tr>';
+        return;
+      }
+      
+      let tableHtml = '';
+      
+      chatbots.forEach((chatbot, index) => {
+        console.log(`Processing chatbot ${index}:`, chatbot);
+        
+        // Check if chatbot has required fields
+        if (!chatbot || typeof chatbot !== 'object') {
+          console.error(`Chatbot ${index} is not a valid object:`, chatbot);
+          return;
+        }
+        
+        // Get chatbot name with fallbacks for different API formats
+        const botName = chatbot.bot_name || chatbot.name || 'Untitled Chatbot';
+        // Get chatbot ID with fallbacks
+        const botId = chatbot.id || chatbot.chatbot_id || chatbot._id || index;
+        
+        const satisfactionRateFormatted = typeof chatbot.satisfaction_rate === 'number' 
+          ? `${chatbot.satisfaction_rate.toFixed(1)}%` 
+          : 'N/A';
+          
+        tableHtml += `
+          <tr>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="avatar-sm bg-light rounded-circle text-center mr-2" style="width: 32px; height: 32px; line-height: 32px; margin-right: 10px;">
+                  <i class="fas fa-robot text-primary"></i>
+                </div>
+                <div>
+                  <h6 class="mb-0">${botName}</h6>
+                  <small class="text-muted">ID: ${botId}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge badge-soft-info p-2 font-size-12">v${chatbot.version || 1}</span>
+            </td>
+            <td>
+              <div class="font-size-13">${chatbot.total_messages || 0}</div>
+              <small class="text-muted">Total</small>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="progress flex-grow-1" style="height: 6px; width: 80px; background-color: var(--gray-200); border-radius: 10px; overflow: hidden; margin-right: 10px;">
+                  <div class="progress-bar bg-success" role="progressbar" style="width: ${chatbot.satisfaction_rate || 0}%; height: 100%;"></div>
+                </div>
+                <span class="font-size-13">${satisfactionRateFormatted}</span>
+              </div>
+            </td>
+            <td>
+              <div class="btn-group">
+                <a href="/static/test.html?chatbot=${botId}" class="btn btn-sm btn-primary mr-1" title="Test Chatbot">
+                  <i class="fas fa-vial"></i>
+                </a>
+                <a href="/static/chatbot_builder.html?edit=${botId}" class="btn btn-sm btn-info mr-1" title="Edit Chatbot">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <button class="btn btn-sm btn-danger delete-chatbot" data-id="${botId}" data-name="${botName}" title="Delete Chatbot">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      
+      if (tableHtml === '') {
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Error processing chatbots data</td></tr>';
+        return;
+      }
+      
+      tableBody.innerHTML = tableHtml;
+      console.log('Chatbot table updated successfully');
+      
+      // Attach event listeners to delete buttons
+      attachChatbotDeleteHandlers();
+    }
+    
+    // Function to handle chatbot deletion
+    function attachChatbotDeleteHandlers() {
+      document.querySelectorAll('.delete-chatbot').forEach(button => {
+        button.addEventListener('click', function() {
+          const chatbotId = this.getAttribute('data-id');
+          const chatbotName = this.getAttribute('data-name');
+          
+          if (confirm(`Are you sure you want to delete the chatbot "${chatbotName}"? This will delete all associated FAQs and information.`)) {
+            deleteChatbot(chatbotId);
+          }
+        });
+      });
+    }
+    
+    // Function to delete a chatbot
+    async function deleteChatbot(chatbotId) {
+      try {
+        console.log(`Attempting to delete chatbot with ID: ${chatbotId}`);
+        
+        // Use authenticatedFetch which has proper authentication handling
+        const response = await authenticatedFetch(`/api/chatbot/${chatbotId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log(`Delete response status: ${response.status}`);
+        
+        if (response.ok) {
+          try {
+            const data = await response.json();
+            console.log('Delete response data:', data);
+            showAlert(data.message || 'Chatbot deleted successfully!', 'success');
+          } catch (e) {
+            console.log('Could not parse JSON response, but operation was successful');
+            showAlert('Chatbot deleted successfully!', 'success');
+          }
+          
+          // Refresh the chatbot list and metrics
+          fetchMetrics();
+          return;
+        }
+        
+        // If the request was not ok, try to get error details
+        try {
+          const errorData = await response.json();
+          console.error('Error response data:', errorData);
+          showAlert('Error deleting chatbot: ' + (errorData.error || errorData.message || 'Unknown error'), 'danger');
+        } catch (e) {
+          // If we can't parse the JSON, try to get the text
+          const errorText = await response.text();
+          console.error('Error response text:', errorText);
+          showAlert(`Error deleting chatbot: Server returned ${response.status}`, 'danger');
+        }
+      } catch (err) {
+        console.error('Error deleting chatbot:', err);
+        showAlert('Error deleting chatbot: ' + err, 'danger');
+      }
+    }
+    
+    // Helper to get cookie
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+    
+    function updateCharts(metrics) {
+      // Update the conversations chart with real data if available
+      if (metrics.monthly_conversations && window.conversationsChart) {
+        window.conversationsChart.data.datasets[0].data = metrics.monthly_conversations;
+        window.conversationsChart.update();
+      }
+      
+      // Update the performance chart with real data if available
+      if (metrics.performance_data && window.performanceChart) {
+        window.performanceChart.data.datasets[0].data = [
+          metrics.performance_data.excellent || 0,
+          metrics.performance_data.good || 0,
+          metrics.performance_data.average || 0,
+          metrics.performance_data.poor || 0
+        ];
+        window.performanceChart.update();
+      }
+    }
+    
+    // Function to update user info in header
+    async function updateUserInfo() {
+      try {
+        const response = await fetch('/api/users/profile', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch user profile');
+        }
+        
+        const data = await response.json();
+        if (data.user) {
+          const user = data.user;
+          document.querySelector('.user-name').textContent = user.user_name || 'User';
+          document.querySelector('.user-role').textContent = user.role || 'Member';
+          
+          // Update avatar with fallback to default if no logo
+          const avatarImg = document.querySelector('.user-avatar');
+          if (user.company_logo) {
+            avatarImg.src = user.company_logo;
+          } else {
+            avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_name || 'User')}&background=random`;
+          }
+        }
+      } catch (err) {
+        console.error('Error updating user info:', err);
+      }
+    }
+    
+    // Toggle the user dropdown menu
+    document.querySelector('.user-info').addEventListener('click', function() {
+      const dropdownMenu = document.querySelector('.user-dropdown-menu');
+      dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    // Close the dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const userInfo = document.querySelector('.user-info');
+      const dropdownMenu = document.querySelector('.user-dropdown-menu');
+      
+      if (!userInfo.contains(event.target) && !dropdownMenu.contains(event.target)) {
+        dropdownMenu.style.display = 'none';
+      }
+    });
+    
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      logout();
+    });
+    
+    document.getElementById('dropdownLogoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      logout();
+    });
+    
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', async function() {
+      try {
+        // Initialize charts first to prevent any errors
+        initCharts();
+        
+        // Check authentication first
+        const user = await checkAuth();
+        if (!user) {
+          window.location.href = '/static/login.html';
+          return;
+        }
+        
+        // If authenticated, proceed with dashboard initialization
+        displayUser(user);
+        populateForm(user);
+        updateSubscriptionInfo(user);
+        
+        // Add refresh button handler
+        const refreshBtn = document.getElementById('refreshChatbots');
+        if (refreshBtn) {
+          refreshBtn.addEventListener('click', async function() {
+            showAlert('Refreshing chatbot data...', 'info');
+            await fetchMetrics();
+            showAlert('Chatbot data refreshed', 'success');
+          });
+        }
+        
+        // Fetch metrics and other data
+        await fetchMetrics();
+        
+        // Refresh metrics every 30 seconds
+        setInterval(fetchMetrics, 30000);
+
+        // Add event listeners after elements are created
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          logout();
+        });
+        
+        document.getElementById('dropdownLogoutBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          logout();
+        });
+
+        // Only add logoLogoutBtn event listener if the element exists
+        const logoLogoutBtn = document.getElementById('logoLogoutBtn');
+        if (logoLogoutBtn) {
+          logoLogoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+          });
+        }
+      } catch (err) {
+        console.error('Error initializing dashboard:', err);
+        showAlert('Error initializing dashboard', 'danger');
+        window.location.href = '/static/login.html';
+      }
+    });
+    
+    // Initialize charts with default data
+    function initCharts() {
+      try {
+        // Initialize conversations chart
+        const conversationsCtx = document.getElementById('conversationsChart').getContext('2d');
+        window.conversationsChart = new Chart(conversationsCtx, {
+          type: 'line',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+              label: 'Conversations',
+              data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              backgroundColor: 'rgba(67, 97, 238, 0.2)',
+              borderColor: 'rgba(67, 97, 238, 1)',
+              borderWidth: 2,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0
+                }
+              }
+            }
+          }
+        });
+        
+        // Initialize performance chart
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        window.performanceChart = new Chart(performanceCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Excellent', 'Good', 'Average', 'Poor'],
+            datasets: [{
+              data: [0, 0, 0, 0],
+              backgroundColor: [
+                'rgba(52, 191, 163, 0.7)',
+                'rgba(67, 97, 238, 0.7)',
+                'rgba(255, 193, 7, 0.7)',
+                'rgba(220, 53, 69, 0.7)'
+              ],
+              borderColor: [
+                'rgba(52, 191, 163, 1)',
+                'rgba(67, 97, 238, 1)',
+                'rgba(255, 193, 7, 1)',
+                'rgba(220, 53, 69, 1)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Error initializing charts:', err);
+      }
+    }
+
+    // Support Modal Functions
+    document.getElementById('supportButton').addEventListener('click', function() {
+      const supportModal = new bootstrap.Modal(document.getElementById('supportModal'));
+      supportModal.show();
+    });
+
+    // Close button is automatically handled by Bootstrap via data-bs-dismiss="modal"
+    // No need for the old code that was manually removing the 'show' class
+
+    // Bootstrap automatically handles the modal closing with data-bs-dismiss="modal"
+
+    document.getElementById('submitTicketBtn').addEventListener('click', async function() {
+      console.log('DEBUG: Starting submitTicketBtn click handler');
+      
+      const form = document.getElementById('supportTicketForm');
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const formData = new FormData();
+      
+      // Get form values and log them
+      const subject = document.getElementById('ticketSubject').value;
+      const topic = document.getElementById('ticketTopic').value;
+      const details = document.getElementById('ticketDetails').value;
+      
+      console.log('DEBUG: Form values:');
+      console.log('DEBUG: subject =', subject);
+      console.log('DEBUG: topic =', topic);
+      console.log('DEBUG: details =', details);
+      
+      formData.append('subject', subject);
+      formData.append('topic', topic);
+      formData.append('details', details);
+      
+      const mediaFile = document.getElementById('ticketMedia').files[0];
+      if (mediaFile) {
+        console.log('DEBUG: Media file:');
+        console.log('DEBUG: name =', mediaFile.name);
+        console.log('DEBUG: size =', mediaFile.size);
+        console.log('DEBUG: type =', mediaFile.type);
+        formData.append('media', mediaFile);
+      }
+
+      try {
+        console.log('DEBUG: Submitting ticket to API');
+        const response = await fetch('/api/support/tickets', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        });
+
+        console.log('DEBUG: API response status:', response.status);
+        const data = await response.json();
+        console.log('DEBUG: API response data:', data);
+        
+        if (data.success) {
+          showAlert('Ticket submitted successfully!', 'success');
+          document.getElementById('supportModal').classList.remove('show');
+          form.reset();
+          fetchTickets(); // Refresh tickets table
+        } else {
+          showAlert('Error submitting ticket: ' + (data.error || 'Unknown error'), 'danger');
+        }
+      } catch (err) {
+        console.error('DEBUG: Error submitting ticket:', err);
+        showAlert('Error submitting ticket: ' + err, 'danger');
+      }
+    });
+
+    // FAQ Functions
+    async function fetchFAQs() {
+      try {
+        const response = await fetch('/api/chatbot/info', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch FAQs');
+        }
+
+        const data = await response.json();
+        
+        // Handle different API response formats
+        let faqs = [];
+        if (data.success && data.chatbot && data.chatbot.knowledge_base && data.chatbot.knowledge_base.faqs) {
+          faqs = data.chatbot.knowledge_base.faqs;
+        } else if (data.status === 'success' && data.data && data.data.knowledge_base && data.data.knowledge_base.faqs) {
+          faqs = data.data.knowledge_base.faqs;
+        }
+        
+        updateFAQTable(faqs);
+        window.faqs = faqs;
+        attachFaqEventHandlers();
+      } catch (err) {
+        console.error('Error fetching FAQs:', err);
+        document.getElementById('faqTable').innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center">Error loading FAQs</td>
+          </tr>
+        `;
+      }
+    }
+
+    function updateFAQTable(faqs) {
+      const tableBody = document.getElementById('faqTable');
+      
+      if (!faqs || faqs.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center">No FAQs found</td>
+          </tr>
+        `;
+        return;
+      }
+
+      let tableHtml = '';
+      faqs.forEach(faq => {
+        tableHtml += `
+          <tr>
+            <td>${faq.question}</td>
+            <td>${faq.answer}</td>
+            <td>${faq.category}</td>
+            <td>
+              <div class="btn-group">
+                <button class="btn btn-sm btn-danger delete-faq" data-id="${faq.id}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      tableBody.innerHTML = tableHtml;
+    }
+
+    // Attach event listeners for edit and delete FAQ buttons
+    function attachFaqEventHandlers() {
+      document.querySelectorAll('.edit-faq').forEach(button => {
+        button.addEventListener('click', function() {
+          console.log('Edit FAQ button clicked');
+          const id = this.getAttribute('data-id');
+          console.log('FAQ ID:', id);
+          const faq = window.faqs.find(f => f.id == id);
+          console.log('Found FAQ:', faq);
+          if (faq) openEditFaqModal(faq);
+        });
+      });
+      document.querySelectorAll('.delete-faq').forEach(button => {
+        button.addEventListener('click', async function() {
+          const id = this.getAttribute('data-id');
+          if (!confirm('Are you sure you want to delete this FAQ?')) return;
+          try {
+            const response = await fetch(`/api/chatbot/info/faqs/${id}`, {
+              method: 'DELETE',
+              credentials: 'include'
+            });
+            const data = await response.json();
+            if (data.success) {
+              showAlert('FAQ deleted successfully!', 'success');
+              fetchFAQs();
+            } else {
+              showAlert('Error deleting FAQ: ' + (data.error || 'Unknown error'), 'danger');
+            }
+          } catch (err) {
+            showAlert('Error deleting FAQ: ' + err, 'danger');
+          }
+        });
+      });
+    }
+
+    // Open edit FAQ modal
+    function openEditFaqModal(faq) {
+      console.log('Opening edit FAQ modal for:', faq);
+      document.getElementById('editFaqId').value = faq.id;
+      document.getElementById('editFaqQuestion').value = faq.question;
+      document.getElementById('editFaqAnswer').value = faq.answer;
+      document.getElementById('editFaqCategory').value = faq.category;
+      console.log('Modal form filled with data');
+      try {
+        console.log('Bootstrap available:', !!window.bootstrap);
+        console.log('Modal element exists:', !!document.getElementById('editFaqModal'));
+        const modalEl = document.getElementById('editFaqModal');
+        console.log('Modal element:', modalEl);
+        // If Bootstrap is not available, try to make the modal visible manually
+        if (!window.bootstrap) {
+          modalEl.classList.add('show');
+          modalEl.style.display = 'block';
+          document.body.classList.add('modal-open');
+          const backdrop = document.createElement('div');
+          backdrop.className = 'modal-backdrop fade show';
+          document.body.appendChild(backdrop);
+          console.log('Manually showing modal because Bootstrap is not available');
+          return;
+        }
+        const modal = new bootstrap.Modal(modalEl);
+        console.log('Modal instance created');
+        modal.show();
+        console.log('Modal show() called');
+      } catch (err) {
+        console.error('Error showing modal:', err);
+        alert('Could not open the edit modal. Please check the console for details.');
+      }
+    }
+
+    // Handle edit FAQ form submission
+    document.getElementById('editFaqForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('editFaqId').value;
+      const payload = {
+        question: document.getElementById('editFaqQuestion').value,
+        answer: document.getElementById('editFaqAnswer').value,
+        category: document.getElementById('editFaqCategory').value
+      };
+      try {
+        const response = await fetch(`/api/chatbot/info/faqs/${id}`, {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAlert('FAQ updated successfully!', 'success');
+          bootstrap.Modal.getInstance(document.getElementById('editFaqModal')).hide();
+          fetchFAQs();
+        } else {
+          showAlert('Error updating FAQ: ' + (data.error || 'Unknown error'), 'danger');
+        }
+      } catch (err) {
+        showAlert('Error updating FAQ: ' + err, 'danger');
+      }
+    });
+
+    // Tickets Functions
+    async function fetchTickets() {
+      try {
+        console.log('DEBUG: Starting fetchTickets() function');
+        
+        const response = await fetch('/api/support/tickets', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        console.log('DEBUG: API response status:', response.status);
+        if (!response.ok) {
+          throw new Error('Failed to fetch tickets');
+        }
+
+        const data = await response.json();
+        console.log('DEBUG: API tickets data:', data);
+        
+        // Log individual ticket fields
+        if (data.tickets && data.tickets.length > 0) {
+          console.log('DEBUG: First ticket from API:', data.tickets[0]);
+          console.log('DEBUG: First ticket keys:', Object.keys(data.tickets[0]));
+          Object.keys(data.tickets[0]).forEach(key => {
+            console.log(`DEBUG: First ticket['${key}'] =`, data.tickets[0][key]);
+          });
+        }
+        
+        updateTicketsTable(data.tickets || []);
+      } catch (err) {
+        console.error('DEBUG: Error fetching tickets:', err);
+        document.getElementById('ticketsTable').innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center">Error loading tickets</td>
+          </tr>
+        `;
+      }
+    }
+
+    function updateTicketsTable(tickets) {
+      const tableBody = document.getElementById('ticketsTable');
+      
+      if (!tickets || tickets.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center">No tickets found</td>
+          </tr>
+        `;
+        return;
+      }
+
+      let tableHtml = '';
+      tickets.forEach(ticket => {
+        tableHtml += `
+          <tr>
+            <td>${ticket.ticket_number || 'N/A'}</td>
+            <td>${ticket.subject || 'N/A'}</td>
+            <td>${ticket.topic || 'N/A'}</td>
+            <td>
+              <span class="badge ${getStatusBadgeClass(ticket.status)}">
+                ${ticket.status || 'N/A'}
+              </span>
+            </td>
+            <td>${ticket.created_at ? new Date(ticket.created_at).toLocaleString() : 'N/A'}</td>
+            <td>
+              ${ticket.remarks ? 
+                `<button class="btn btn-sm btn-info" onclick="showTicketRemarks(${ticket.id}, '${ticket.remarks.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">
+                  <i class="fas fa-eye"></i>
+                </button>` 
+                : 'N/A'}
+            </td>
+            <td>
+              ${ticket.media_url ? `
+                <a href="${ticket.media_url}" target="_blank" class="btn btn-sm btn-info">
+                  <i class="fas fa-paperclip"></i>
+                </a>
+              ` : ''}
+            </td>
+            <td>
+              <button class="btn btn-sm btn-info" onclick="viewTicketDetails(${ticket.id})">
+                <i class="fas fa-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tableBody.innerHTML = tableHtml;
+    }
+
+    function getStatusBadgeClass(status) {
+      switch(status?.toLowerCase()) {
+        case 'open': return 'bg-primary';
+        case 'in_progress': return 'bg-warning';
+        case 'resolved': return 'bg-success';
+        case 'closed': return 'bg-secondary';
+        default: return 'bg-secondary';
+      }
+    }
+
+    // Add function to show ticket remarks in a popup
+    function showTicketRemarks(ticketId, remarks) {
+      // Create a simple modal to display remarks
+      const modalHtml = `
+        <div class="modal fade" id="remarksModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Admin Remarks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="p-3 bg-light rounded">
+                  <p class="mb-0">${remarks}</p>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Remove existing modal if any
+      const existingModal = document.getElementById('remarksModal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      // Add new modal to body
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      
+      // Initialize and show the modal
+      const modalElement = document.getElementById('remarksModal');
+      const modal = new bootstrap.Modal(modalElement);
+      
+      // Add event listener for modal close
+      modalElement.addEventListener('hidden.bs.modal', function () {
+        modalElement.remove();
+      });
+      
+      modal.show();
+    }
+
+    // Initialize FAQ and Tickets data
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchFAQs();
+      fetchTickets();
+    });
+
+    // Function to load chats for the Chat Analysis section
+    async function loadChatAnalysisData() {
+      try {
+        // First update the counters with loading state
+        document.getElementById('totalChats').textContent = '...';
+        document.getElementById('totalBookings').textContent = '...';
+        document.getElementById('totalComplaints').textContent = '...';
+        document.getElementById('potentialClients').textContent = '...';
+        
+        // Get filter values
+        const chatType = document.getElementById('chatTypeFilter').value;
+        const dateRange = document.getElementById('dateRangeFilter').value;
+        const searchQuery = document.getElementById('searchChats').value;
+        
+        // Fetch chat analysis data from the server
+        const response = await authenticatedFetch('/api/metrics/chat/analysis', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            chatType: chatType,
+            dateRange: dateRange,
+            searchQuery: searchQuery
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to load chat analysis: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Update counters
+        document.getElementById('totalChats').textContent = data.totalChats || '0';
+        document.getElementById('totalBookings').textContent = data.totalBookings || '0';
+        document.getElementById('totalComplaints').textContent = data.totalComplaints || '0';
+        document.getElementById('potentialClients').textContent = data.potentialClients || '0';
+        document.getElementById('totalChatsCount').textContent = data.chats?.length || '0';
+        
+        // Populate the chat table
+        const tableBody = document.getElementById('chatTableBody');
+        tableBody.innerHTML = '';
+        
+        if (data.chats && data.chats.length > 0) {
+          data.chats.forEach(chat => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${chat.id}</td>
+              <td>${new Date(chat.timestamp).toLocaleString()}</td>
+              <td><span class="badge ${getChatTypeBadgeClass(chat.type)}">${chat.type}</span></td>
+              <td>${chat.customer || 'Anonymous'}</td>
+              <td>${chat.preview}</td>
+              <td><span class="badge ${getStatusBadgeClass(chat.status)}">${chat.status}</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary view-chat-btn" data-chat-id="${chat.id}">View</button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+          
+          // Add event listeners to view buttons
+          document.querySelectorAll('.view-chat-btn').forEach(button => {
+            button.addEventListener('click', () => {
+              const chatId = button.getAttribute('data-chat-id');
+              openChatDetail(chatId);
+            });
+          });
+        } else {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center">No chat data found</td>
+            </tr>
+          `;
+        }
+        
+      } catch (error) {
+        console.error('Error loading chat analysis data:', error);
+        showAlert('Failed to load chat analysis data', 'danger');
+        
+        // Reset counters
+        document.getElementById('totalChats').textContent = '0';
+        document.getElementById('totalBookings').textContent = '0';
+        document.getElementById('totalComplaints').textContent = '0';
+        document.getElementById('potentialClients').textContent = '0';
+      }
+    }
+    
+    // Helper function to get badge class for chat type
+    function getChatTypeBadgeClass(type) {
+      switch(type?.toLowerCase()) {
+        case 'booking': return 'bg-success';
+        case 'complaint': return 'bg-danger';
+        case 'potential': return 'bg-warning';
+        case 'general': return 'bg-info';
+        default: return 'bg-secondary';
+      }
+    }
+    
+    // Helper function to get badge class for status
+    function getStatusBadgeClass(status) {
+      switch(status?.toLowerCase()) {
+        case 'completed':
+        case 'confirmed': return 'bg-success';
+        case 'pending': return 'bg-warning';
+        case 'cancelled': return 'bg-danger';
+        case 'open': return 'bg-primary';
+        default: return 'bg-secondary';
+      }
+    }
+    
+    // Function to open chat detail modal
+    async function openChatDetail(chatId) {
+      try {
+        // Show loading state
+        const modal = new bootstrap.Modal(document.getElementById('chatDetailModal'));
+        modal.show();
+        
+        document.getElementById('chatDetailId').textContent = 'Loading...';
+        document.getElementById('chatDetailDate').textContent = '';
+        document.getElementById('chatDetailType').textContent = '';
+        document.getElementById('chatDetailStatus').textContent = '';
+        document.getElementById('customerName').textContent = '';
+        document.getElementById('customerEmail').textContent = '';
+        document.getElementById('customerPhone').textContent = '';
+        document.getElementById('chatMessagesContainer').innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        
+        // Fetch chat detail data
+        const response = await authenticatedFetch(`/api/metrics/chat/${chatId}/detail`, {
+          method: 'GET'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to load chat detail: ${response.status}`);
+        }
+        
+        const chat = await response.json();
+        
+        // Update modal with chat details
+        document.getElementById('chatDetailId').textContent = chat.id;
+        document.getElementById('chatDetailDate').textContent = new Date(chat.timestamp).toLocaleString();
+        document.getElementById('chatDetailType').textContent = chat.type;
+        document.getElementById('chatDetailStatus').textContent = chat.status;
+        
+        // Update customer info if available
+        if (chat.customer) {
+          document.getElementById('customerName').textContent = chat.customer.name || 'N/A';
+          document.getElementById('customerEmail').textContent = chat.customer.email || 'N/A';
+          document.getElementById('customerPhone').textContent = chat.customer.phone || 'N/A';
+        } else {
+          document.getElementById('customerName').textContent = 'Anonymous';
+          document.getElementById('customerEmail').textContent = 'N/A';
+          document.getElementById('customerPhone').textContent = 'N/A';
+        }
+        
+        // Populate chat messages
+        const messagesContainer = document.getElementById('chatMessagesContainer');
+        messagesContainer.innerHTML = '';
+        
+        if (chat.messages && chat.messages.length > 0) {
+          chat.messages.forEach(message => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.sender === 'user' ? 'user-message' : 'bot-message'}`;
+            messageDiv.innerHTML = `
+              <div class="message-content">
+                <div class="message-meta">
+                  <span class="message-sender">${message.sender === 'user' ? 'Customer' : 'Chatbot'}</span>
+                  <span class="message-time">${new Date(message.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div class="message-text">${message.message}</div>
+              </div>
+            `;
+            messagesContainer.appendChild(messageDiv);
+          });
+        } else {
+          messagesContainer.innerHTML = '<div class="text-center">No messages found</div>';
+        }
+        
+      } catch (error) {
+        console.error('Error loading chat detail:', error);
+        document.getElementById('chatMessagesContainer').innerHTML = '<div class="text-center text-danger">Failed to load chat details</div>';
+      }
+    }
+    
+    // Add event listener for Apply Filters button
+    document.addEventListener('DOMContentLoaded', function() {
+      const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+      if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', loadChatAnalysisData);
+      }
+    });
+
+    // Function to handle section navigation
+    document.addEventListener('DOMContentLoaded', function() {
+      const sectionLinks = document.querySelectorAll('.sidebar-link[data-section]');
+      
+      sectionLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          const sectionName = this.getAttribute('data-section');
+          
+          // Check for restrictions based on user role
+          if (window.adminInfo && window.adminInfo.role) {
+            const role = window.adminInfo.role;
+            let hasAccess = true;
+            
+            if (role === 'support' && sectionName !== 'dashboard' && sectionName !== 'support') {
+              hasAccess = false;
+            } else if (role === 'accounts' && sectionName !== 'dashboard' && sectionName !== 'payments') {
+              hasAccess = false;
+            } else if (role === 'backend' && sectionName !== 'dashboard' && sectionName !== 'apis') {
+              hasAccess = false;
+            }
+            
+            if (!hasAccess) {
+              console.log('Access denied to section:', sectionName);
+              showAlert('You do not have permission to access this section', 'danger');
+              return;
+            }
+          }
+          
+          // Update active state
+          document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Hide all sections
+          document.querySelectorAll('.section').forEach(section => {
+            section.style.display = 'none';
+          });
+          
+          // Show selected section
+          const selectedSection = document.getElementById(`${sectionName}-section`);
+          if (selectedSection) {
+            selectedSection.style.display = 'block';
+            
+            // Load section data if needed
+            if (sectionName === 'chat-analysis') {
+              loadChatAnalysisData();
+            }
+          }
+        });
+      });
+    });
+
+    // Add this function to update the sidebar with company info
+    function updateSidebarCompanyInfo(user) {
+      const sidebarLogo = document.getElementById('sidebarLogo');
+      const sidebarCompanyName = document.getElementById('sidebarCompanyName');
+      
+      if (user.company_logo) {
+        sidebarLogo.src = user.company_logo;
+      } else if (user.company_name) {
+        sidebarLogo.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.company_name)}&background=random`;
+      }
+      
+      sidebarCompanyName.textContent = user.company_name || 'Company Admin';
+    }
+
+    // Add this function to properly show ticket details modal
+    function viewTicketDetails(ticketId) {
+      // Add extensive debugging
+      console.log(`DEBUG: Starting viewTicketDetails for ticket ${ticketId}`);
+      
+      // First, clean up any existing modals
+      const existingModal = document.getElementById('ticketDetailsModal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      // Remove any lingering backdrops
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => backdrop.remove());
+      
+      // Reset body classes
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('padding-right');
+
+      // Add modal-specific styling to ensure it's visible and clickable
+      const modalStyle = document.createElement('style');
+      modalStyle.id = 'ticket-modal-style';
+      modalStyle.textContent = `
+        .modal-backdrop {
+          z-index: 1040 !important;
+          background-color: rgba(0, 0, 0, 0.5) !important;
+        }
+        .modal {
+          z-index: 1050 !important;
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          outline: 0;
+        }
+        .modal.show {
+          display: block !important;
+        }
+        .modal-dialog {
+          position: relative;
+          width: auto;
+          margin: 1.75rem auto;
+          pointer-events: all;
+          max-width: 500px;
+        }
+        .modal-content {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          pointer-events: auto;
+          background-color: #fff;
+          border-radius: 0.3rem;
+          outline: 0;
+          box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .modal-dialog-centered {
+          display: flex;
+          align-items: center;
+          min-height: calc(100% - 3.5rem);
+        }
+      `;
+      document.head.appendChild(modalStyle);
+
+      fetch(`/api/support/tickets/${ticketId}`)
+        .then(response => {
+          console.log(`DEBUG: Fetch response status: ${response.status}`);
+          if (!response.ok) {
+            throw new Error(`Request failed with status ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log(`DEBUG: Full fetch response data:`, data);
+          
+          // Check if data is wrapped in a ticket property or direct
+          const ticket = data.ticket || data;
+          console.log(`DEBUG: Extracted ticket object:`, ticket);
+          
+          // Log all ticket properties
+          console.log(`DEBUG: All ticket keys:`, Object.keys(ticket));
+          
+          // Log each ticket property value
+          Object.keys(ticket).forEach(key => {
+            console.log(`DEBUG: Ticket['${key}'] =`, ticket[key]);
+          });
+          
+          // Make sure we have the ticket data in the expected format
+          // The API might return either {ticket: {...}} or just {...}
+          if (!ticket || typeof ticket !== 'object') {
+            throw new Error('Invalid ticket data received');
+          }
+          
+          // Create debug info for display in modal - will be hidden in production
+          const debugInfo = `            <div style="font-size: 10px; color: #999; margin-bottom: 10px; border: 1px solid #eee; padding: 5px;">
+              DEBUG INFO:<br>
+              Keys: ${Object.keys(ticket).join(', ')}<br>
+              ${Object.keys(ticket).map(key => `${key}: ${JSON.stringify(ticket[key])}`).join('<br>')}
+            </div>
+          `;
+          
+          // Create the modal HTML with fallback values for missing data
+          const modalHtml = `
+            <div class="modal fade" id="ticketDetailsModal" tabindex="-1" role="dialog" aria-labelledby="ticketDetailsModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="ticketDetailsModalLabel">Ticket Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeTicketModalBtn"></button>
+                  </div>
+                  <div class="modal-body">
+                    ${debugInfo}
+                    <div class="mb-3">
+                      <strong>Ticket ID:</strong> ${ticket.ticket_number || ticket.id || 'N/A'}
+                    </div>
+                    <div class="mb-3">
+                      <strong>Subject:</strong> ${ticket.subject || 'N/A'}
+                    </div>
+                    <div class="mb-3">
+                      <strong>Status:</strong> 
+                      <span class="badge ${getStatusBadgeClass(ticket.status || 'N/A')}">${ticket.status || 'N/A'}</span>
+                    </div>
+                    <div class="mb-3">
+                      <strong>Created:</strong> ${ticket.created_at ? new Date(ticket.created_at).toLocaleString() : 'N/A'}
+                    </div>
+                    <div class="mb-3">
+                      <strong>Topic:</strong> ${ticket.topic || 'N/A'}
+                    </div>
+                    <div class="mb-3">
+                      <strong>Details:</strong>
+                      <p class="mt-2">${ticket.details || 'N/A'}</p>
+                    </div>
+                    ${ticket.remarks ? `
+                    <div class="mb-3">
+                      <strong>Admin Remarks:</strong>
+                      <div class="p-3 bg-light rounded mt-2">
+                        <p class="mb-0">${ticket.remarks}</p>
+                      </div>
+                    </div>
+                    ` : ''}
+                    ${ticket.media_url ? `
+                    <div class="mb-3">
+                      <strong>Media Attachment:</strong>
+                      <div class="mt-2">
+                        <a href="${ticket.media_url}" target="_blank" class="btn btn-sm btn-info">
+                          <i class="fas fa-paperclip"></i> View Attachment
+                        </a>
+                      </div>
+                    </div>
+                    ` : ''}
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeTicketModal()" id="closeTicketModalFooterBtn">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          // Add modal to the DOM
+          document.body.insertAdjacentHTML('beforeend', modalHtml);
+          
+          // Get modal element
+          const modalElement = document.getElementById('ticketDetailsModal');
+          
+          // Add additional close button event handlers for safety
+          document.getElementById('closeTicketModalBtn').addEventListener('click', closeTicketModal);
+          document.getElementById('closeTicketModalFooterBtn').addEventListener('click', closeTicketModal);
+          
+          // Add click event to close when backdrop is clicked
+          modalElement.addEventListener('click', function(event) {
+            // Close the modal if the backdrop is clicked (not the modal content)
+            if (event.target === modalElement) {
+              closeTicketModal();
+            }
+          });
+          
+          // Initialize modal
+          const modal = new bootstrap.Modal(modalElement, {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+          });
+          
+          // Add event listener for hidden.bs.modal event
+          modalElement.addEventListener('hidden.bs.modal', function() {
+            closeTicketModal();
+          });
+          
+          // Show the modal
+          modal.show();
+        })
+        .catch(error => {
+          console.error('Error fetching ticket details:', error);
+          alert('Failed to load ticket details: ' + error.message);
+        });
+    }
+
+    // Helper function to close the ticket modal and clean up
+    function closeTicketModal() {
+      // Get the modal element
+      const modalElement = document.getElementById('ticketDetailsModal');
+      
+      // Try to hide the modal using Bootstrap
+      if (modalElement) {
+        // Try to get the Bootstrap modal instance and hide it
+        try {
+          const modalInstance = bootstrap.Modal.getInstance(modalElement);
+          if (modalInstance) {
+            modalInstance.hide();
+          }
+        } catch (error) {
+          console.error('Error hiding modal:', error);
+        }
+        
+        // Remove the modal element directly
+        modalElement.remove();
+      }
+      
+      // Remove any lingering backdrops
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => backdrop.remove());
+      
+      // Remove modal-specific style
+      const modalStyle = document.getElementById('ticket-modal-style');
+      if (modalStyle) {
+        modalStyle.remove();
+      }
+      
+      // Reset body classes and styles
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('padding-right');
+      
+      // Force refresh modal placement
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+      }, 100);
+    }
+
+    // Script Generator Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      // Ensure the modal is fully interactive
+      function fixModalInteractivity() {
+        // Remove any old modal styles that might interfere
+        const oldStyles = document.querySelectorAll('[id$="-modal-style"]');
+        oldStyles.forEach(style => style.remove());
+        
+        // Remove any stale backdrops
+        const staleBackdrops = document.querySelectorAll('.modal-backdrop:not(.show)');
+        staleBackdrops.forEach(backdrop => backdrop.remove());
+        
+        // Make script generator modal interactive
+        const sgModal = document.getElementById('scriptGeneratorModal');
+        if (sgModal) {
+          // Force fix z-index and pointer events
+          sgModal.style.zIndex = '1050';
+          // Apply event listener to prevent event bubbling
+          sgModal.addEventListener('click', function(e) {
+            if (e.target === sgModal) {
+              e.stopPropagation();
+            }
+          }, true);
+          
+          // Fix inputs
+          const inputs = sgModal.querySelectorAll('input, select, button, textarea, .form-control');
+          inputs.forEach(input => {
+            input.style.pointerEvents = 'all';
+            input.style.position = 'relative';
+            input.style.zIndex = '1052';
+          });
+          
+          // Ensure form is clickable
+          const form = sgModal.querySelector('form');
+          if (form) {
+            form.style.pointerEvents = 'all';
+            form.style.position = 'relative';
+            form.style.zIndex = '1051';
+          }
+        }
+      }
+      
+      // Fix modal before it shows
+      const btnOpen = document.getElementById('generateScriptBtn');
+      if (btnOpen) {
+        btnOpen.addEventListener('click', function() {
+          setTimeout(fixModalInteractivity, 50);
+        });
+      }
+      
+      // Make sure the close button works
+      const closeScriptModalBtn = document.getElementById('closeScriptModalBtn');
+      if (closeScriptModalBtn) {
+        closeScriptModalBtn.addEventListener('click', function() {
+          const modal = bootstrap.Modal.getInstance(document.getElementById('scriptGeneratorModal'));
+          if (modal) {
+            modal.hide();
+          }
+        });
+      }
+      
+      // Run fix now
+      fixModalInteractivity();
+      
+      const websiteStackSelect = document.getElementById('websiteStack');
+      const websiteUrlInput = document.getElementById('websiteUrl');
+      const chatbotSelect = document.getElementById('chatbotSelect');
+      const buttonPositionSelect = document.getElementById('buttonPosition');
+      const buttonTextInput = document.getElementById('buttonText');
+      const buttonIconInput = document.getElementById('buttonIcon');
+      const widgetTitleInput = document.getElementById('widgetTitle');
+      const primaryColorInput = document.getElementById('primaryColor');
+      const wordpressInstructions = document.getElementById('wordpressInstructions');
+      const generatedScriptContainer = document.getElementById('generatedScriptContainer');
+      const generatedScript = document.getElementById('generatedScript');
+      const generateCodeBtn = document.getElementById('generateCodeBtn');
+      const copyBtn = document.getElementById('copyScriptBtn');
+      const resetBtn = document.getElementById('startOverBtn');
+
+      // Store company info and API key
+      let currentCompanyId = null;
+      let currentApiKey = null;
+
+      // Helper function for authentication on fetch requests
+      function authenticatedFetch(url, options = {}) {
+        // Add default headers if not provided
+        const headers = options.headers || {};
+        return fetch(url, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            ...headers
+          },
+          credentials: 'include'
+        });
+      }
+
+      // Function to fetch current company ID and API key
+      async function fetchCompanyInfo() {
+        try {
+          // First get user profile to get company ID
+          const response = await authenticatedFetch('/api/users/profile');
+          const data = await response.json();
+          if (data.user && data.user.company_id) {
+            currentCompanyId = data.user.company_id;
+            console.log('Current company ID:', currentCompanyId);
+            
+            // Check if we have a cached API key in session storage first
+            const cachedApiKey = sessionStorage.getItem('company_api_key');
+            if (cachedApiKey) {
+              console.log('Using cached API key from session storage');
+              currentApiKey = cachedApiKey;
+              return { companyId: currentCompanyId, apiKey: cachedApiKey };
+            }
+            
+            // Try multiple API endpoints to get the API key
+            let apiKey = null;
+            let errorMessages = [];
+            
+            // Endpoint 1: Try the new dedicated endpoint first
+            try {
+              console.log('Trying to fetch API key from /api/get-api-key');
+              const keyResponse = await authenticatedFetch('/api/get-api-key');
+              if (keyResponse.ok) {
+                const keyData = await keyResponse.json();
+                if (keyData.success && keyData.api_key) {
+                  apiKey = keyData.api_key;
+                  console.log('API key fetched successfully from dedicated endpoint');
+                } else {
+                  errorMessages.push('Dedicated endpoint returned success=false or no API key');
+                }
+              } else {
+                errorMessages.push(`Dedicated endpoint returned status ${keyResponse.status}`);
+              }
+            } catch (err) {
+              errorMessages.push(`Error with dedicated endpoint: ${err.message}`);
+            }
+            
+            // Endpoint 2: Try the standard endpoint if first one failed
+            if (!apiKey) {
+              try {
+                console.log('Trying to fetch API key from /api/company/api-key');
+                const keyResponse = await authenticatedFetch('/api/company/api-key');
+                if (keyResponse.ok) {
+                  const keyData = await keyResponse.json();
+                  if (keyData.success && keyData.api_key) {
+                    apiKey = keyData.api_key;
+                    console.log('API key fetched successfully from standard endpoint');
+                  } else {
+                    errorMessages.push('Standard endpoint returned success=false or no API key');
+                  }
+                } else {
+                  errorMessages.push(`Standard endpoint returned status ${keyResponse.status}`);
+                }
+              } catch (err) {
+                errorMessages.push(`Error with standard endpoint: ${err.message}`);
+              }
+            }
+            
+            // Endpoint 3: Try the users blueprint endpoint if previous ones failed
+            if (!apiKey) {
+              try {
+                console.log('Trying to fetch API key from /api/users/company/api-key');
+                const keyResponse3 = await authenticatedFetch('/api/users/company/api-key');
+                if (keyResponse3.ok) {
+                  const keyData3 = await keyResponse3.json();
+                  if (keyData3.success && keyData3.api_key) {
+                    apiKey = keyData3.api_key;
+                    console.log('API key fetched successfully from users endpoint');
+                  } else {
+                    errorMessages.push('Users endpoint returned success=false or no API key');
+                  }
+                } else {
+                  errorMessages.push(`Users endpoint returned status ${keyResponse3.status}`);
+                }
+              } catch (err) {
+                errorMessages.push(`Error with users endpoint: ${err.message}`);
+              }
+            }
+            
+            // Endpoint 4: Try the chatbot blueprint endpoint if previous ones failed
+            if (!apiKey) {
+              try {
+                console.log('Trying to fetch API key from /api/chatbot/company/api-key');
+                const keyResponse4 = await authenticatedFetch('/api/chatbot/company/api-key');
+                if (keyResponse4.ok) {
+                  const keyData4 = await keyResponse4.json();
+                  if (keyData4.success && keyData4.api_key) {
+                    apiKey = keyData4.api_key;
+                    console.log('API key fetched successfully from chatbot endpoint');
+                  } else {
+                    errorMessages.push('Chatbot endpoint returned success=false or no API key');
+                  }
+                } else {
+                  errorMessages.push(`Chatbot endpoint returned status ${keyResponse4.status}`);
+                }
+              } catch (err) {
+                errorMessages.push(`Error with chatbot endpoint: ${err.message}`);
+              }
+            }
+            
+            // Endpoint 5: Try a direct company lookup as last resort
+            if (!apiKey) {
+              try {
+                console.log('Trying to fetch company details to get API key');
+                const companyResponse = await authenticatedFetch(`/api/admin/companies/${currentCompanyId}`);
+                if (companyResponse.ok) {
+                  const companyData = await companyResponse.json();
+                  if (companyData.company && companyData.company.api_key) {
+                    apiKey = companyData.company.api_key;
+                    console.log('API key fetched successfully from company details');
+                  } else {
+                    errorMessages.push('Company details endpoint returned no API key');
+                  }
+                } else {
+                  errorMessages.push(`Company details endpoint returned status ${companyResponse.status}`);
+                }
+              } catch (err) {
+                errorMessages.push(`Error with company details endpoint: ${err.message}`);
+              }
+            }
+            
+            // If we found an API key, store it and return it
+            if (apiKey) {
+              currentApiKey = apiKey;
+              console.log('API key retrieved successfully');
+              // Store API key in session storage for future use
+              sessionStorage.setItem('company_api_key', apiKey);
+              return { companyId: currentCompanyId, apiKey: apiKey };
+            }
+            
+            // If we got here, we couldn't find an API key
+            console.warn('No API key found after trying all endpoints');
+            console.error('Error messages:', errorMessages);
+            return { companyId: currentCompanyId, apiKey: null, errors: errorMessages };
+          } else {
+            console.error('Company ID not found in profile data');
+            return { companyId: null, apiKey: null };
+          }
+        } catch (err) {
+          console.error('Error fetching company info:', err);
+          return { companyId: null, apiKey: null };
+        }
+      }
+
+      // Set a default option immediately
+      chatbotSelect.innerHTML = '<option value="" disabled selected>Loading chatbots...</option>';
+      
+      // Flag to track if chatbots have been loaded
+      let chatbotsFetched = false;
+      
+      // Make sure the modal buttons have proper events
+      document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
+        button.addEventListener('click', function() {
+          const modalElement = this.closest('.modal');
+          if (modalElement) {
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+              modal.hide();
+            }
+          }
+        });
+      });
+      
+      // Function to extract metrics from the page
+      function getMetricsFromPage() {
+        try {
+          // Try various ways to get metrics data
+          const satisfactionRate = document.getElementById('satisfactionRate');
+          if (satisfactionRate && satisfactionRate.dataset && satisfactionRate.dataset.metrics) {
+            return JSON.parse(satisfactionRate.dataset.metrics);
+          }
+          
+          // Try getting from any global variables
+          if (window.dashboardMetrics) {
+            return window.dashboardMetrics;
+          }
+        } catch (e) {
+          console.error('Error getting metrics from page:', e);
+        }
+        return null;
+      }
+      
+      // Check if we can get metrics data from the dashboard directly
+      const extractExistingChatbots = () => {
+        try {
+          // Try to get chatbot data from metrics section if it's already loaded
+          const metricsData = getMetricsFromPage();
+          if (metricsData && metricsData.chatbots && metricsData.chatbots.length > 0) {
+            console.log('Using existing metrics data for chatbots');
+            chatbotsFetched = true;
+            
+            chatbotSelect.innerHTML = '<option value="" disabled selected>Select a chatbot</option>';
+            metricsData.chatbots.forEach(bot => {
+              console.log('Adding existing chatbot:', bot);
+              const opt = document.createElement('option');
+              opt.value = bot.id || '';
+              opt.textContent = bot.name || 'Chatbot ' + (bot.id || '');
+              chatbotSelect.appendChild(opt);
+            });
+            return true;
+          }
+        } catch (e) {
+          console.error('Error extracting existing chatbots:', e);
+        }
+        return false;
+      };
+      
+      // Try to get existing chatbots first
+      if (!extractExistingChatbots()) {
+        console.log('No existing chatbot data found, will fetch from API');
+      }
+      
+      // Listen for metrics loaded event 
+      document.addEventListener('metrics-loaded', function(e) {
+        console.log('Metrics loaded event received');
+        if (!chatbotsFetched && e.detail && e.detail.metrics) {
+          const metricsData = e.detail.metrics;
+          // First check the top-level chatbots array
+          if (e.detail.chatbots && e.detail.chatbots.length > 0) {
+            console.log('Using chatbots array from top level in event:', e.detail.chatbots.length);
+            chatbotsFetched = true;
+            
+            chatbotSelect.innerHTML = '<option value="" disabled selected>Select a chatbot</option>';
+            e.detail.chatbots.forEach(bot => {
+              console.log('Adding chatbot from event top level:', bot);
+              const opt = document.createElement('option');
+              opt.value = bot.id || '';
+              opt.textContent = bot.bot_name || bot.name || 'Chatbot ' + (bot.id || '');
+              chatbotSelect.appendChild(opt);
+            });
+          }
+          // Then check nested in metrics
+          else if (metricsData.chatbots && metricsData.chatbots.length > 0) {
+            console.log('Using metrics from event for chatbots');
+            chatbotsFetched = true;
+            
+            chatbotSelect.innerHTML = '<option value="" disabled selected>Select a chatbot</option>';
+            metricsData.chatbots.forEach(bot => {
+              console.log('Adding chatbot from event metrics:', bot);
+              const opt = document.createElement('option');
+              opt.value = bot.id || '';
+              opt.textContent = bot.bot_name || bot.name || 'Chatbot ' + (bot.id || '');
+              chatbotSelect.appendChild(opt);
+            });
+          }
+          // Finally check chatbot_stats as fallback
+          else if (metricsData.chatbot_stats) {
+            console.log('Using chatbot_stats from event metrics');
+            chatbotsFetched = true;
+            
+            chatbotSelect.innerHTML = '<option value="" disabled selected>Select a chatbot</option>';
+            const botStats = Object.values(metricsData.chatbot_stats);
+            botStats.forEach(bot => {
+              console.log('Adding chatbot from chatbot_stats:', bot);
+              const opt = document.createElement('option');
+              opt.value = bot.id || '';
+              opt.textContent = bot.name || 'Chatbot ' + (bot.id || '');
+              chatbotSelect.appendChild(opt);
+            });
+          }
+        }
+      });
+      
+      // Handle fallback in case API doesn't respond
+      setTimeout(() => {
+        if (!chatbotsFetched && chatbotSelect.options.length <= 1) {
+          console.log('No chatbots received after timeout, adding fallback option');
+          chatbotSelect.innerHTML = '<option value="" disabled selected>Select a chatbot</option>';
+          const defaultOpt = document.createElement('option');
+          defaultOpt.value = 'default1';
+          defaultOpt.textContent = 'Sample Chatbot';
+          chatbotSelect.appendChild(defaultOpt);
+        }
+      }, 3000);
+
+      // Fetch chatbots from metrics API - looks like /api/chatbots doesn't exist
+      console.log('Fetching chatbots from metrics API');
+      authenticatedFetch('/api/metrics/dashboard')
+      .then(res => {
+        console.log('Metrics API response status:', res.status);
+        if (!res.ok) {
+          throw new Error(`Metrics API returned ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        chatbotsFetched = true;
+        console.log('Metrics data received:', data);
+        console.log('Data structure:', Object.keys(data).join(', '));
+        
+        // Store metrics data for possible future use
+        window.dashboardMetrics = data;
+        
+        // Dispatch event that metrics are loaded
+        document.dispatchEvent(new CustomEvent('metrics-loaded', { 
+          detail: data  // Pass the entire response
+        }));
+        
+        chatbotSelect.innerHTML = '<option value="" disabled selected>Select a chatbot</option>';
+        
+        // First try to get from top-level chatbots array (new API structure)
+        let chatbots = data.chatbots || [];
+        
+        // If no chatbots found at top level, try metrics.chatbots
+        if (chatbots.length === 0 && data.metrics && data.metrics.chatbots) {
+          console.log('Using chatbots from metrics object');
+          chatbots = data.metrics.chatbots;
+        }
+        
+        // If still no chatbots, try chatbot_stats as last resort
+        if (chatbots.length === 0 && data.metrics && data.metrics.chatbot_stats) {
+          console.log('Using chatbot_stats from metrics object');
+          chatbots = Object.values(data.metrics.chatbot_stats);
+        }
+        
+        console.log('Chatbots found:', chatbots.length);
+        
+        if (chatbots.length === 0) {
+          console.log('No chatbots found in metrics data. Please create a chatbot first.');
+          chatbotSelect.innerHTML = '<option value="" disabled selected>No chatbots available</option>';
+          // Add a default option so users can proceed
+          const defaultOpt = document.createElement('option');
+          defaultOpt.value = 'default1';
+          defaultOpt.textContent = 'Sample Chatbot';
+          chatbotSelect.appendChild(defaultOpt);
+          return;
+        }
+        
+        chatbots.forEach(bot => {
+          console.log('Adding chatbot to select:', bot);
+          const opt = document.createElement('option');
+          // The metrics API might use different field names
+          opt.value = bot.id || bot.chatbot_id || '';
+          opt.textContent = bot.bot_name || bot.name || 'Chatbot ' + (bot.id || '');
+          chatbotSelect.appendChild(opt);
+        });
+      })
+      .catch(err => {
+        chatbotsFetched = true;
+        console.error('Error fetching metrics data:', err);
+        // Update dropdown with error message
+        chatbotSelect.innerHTML = '<option value="" disabled selected>Error loading chatbots</option>';
+        // Add a default option so users can still proceed
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = 'default1';
+        defaultOpt.textContent = 'Default Chatbot';
+        chatbotSelect.appendChild(defaultOpt);
+      });
+
+      // Pre-fetch company info when the page loads
+      fetchCompanyInfo().then(info => {
+        console.log('Pre-fetched company info:', info);
+      });
+
+      // Setup close button event handler for scriptGeneratorModal
+      document.getElementById('closeScriptModalBtn').addEventListener('click', function() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('scriptGeneratorModal'));
+        if (modal) {
+          modal.hide();
+        }
+      });
+      
+      // Generate embed code or instructions  
+      generateCodeBtn.addEventListener('click', async function() {
+        const stack = websiteStackSelect.value;
+        const url = websiteUrlInput.value.trim();
+        const botId = chatbotSelect.value;
+        if (!stack || !url || !botId) {
+          alert('Please select a website stack, chatbot, and enter your website URL.');
+          return;
+        }
+        
+        // Use a proper ID even with fallback options
+        const finalBotId = botId.startsWith('fallback') || botId.startsWith('demo') || botId.startsWith('default') 
+                          ? 'demo-bot-12345' // Use a consistent ID for fallback cases
+                          : botId;
+        
+        // Define the server URL based on the current environment
+        const serverUrl = window.location.origin; // This will be the base URL of the current site
+        console.log('Using server URL:', serverUrl);
+        
+        // Get/refresh company info
+        const companyInfo = await fetchCompanyInfo();
+        const companyId = companyInfo.companyId || 'COMPANY_ID_REQUIRED';
+        const apiKey = companyInfo.apiKey || 'API_KEY_REQUIRED';
+        
+        // Fetch company profile to include logoUrl in embed
+        let logoUrl = '';
+        try {
+          const profileRes = await authenticatedFetch('/api/users/profile');
+          const profileJson = await profileRes.json();
+          if (profileJson.user && profileJson.user.company_logo) {
+            logoUrl = profileJson.user.company_logo;
+          }
+        } catch (err) {
+          console.error('Error fetching company profile for logo URL:', err);
+        }
+        
+        // Check if API key is valid
+        if (apiKey === 'API_KEY_REQUIRED' || !apiKey) {
+          console.warn('No API key found for this company');
+          
+          // Show API key input modal
+          const apiKeyModal = new bootstrap.Modal(document.getElementById('apiKeyInputModal'));
+          apiKeyModal.show();
+          
+          // Return early - the modal will handle the rest
+          return;
+        }
+        
+        let code = '';
+        if (stack === 'html') {
+          // Use split tags to avoid closing parent script
+          code += '<!-- Chatbot Widget Start -->';
+          code += '\n<scr' + 'ipt src="' + serverUrl + '/static/chatbot-embed-direct-new.js"></scr' + 'ipt>';
+          code += '\n<scr' + 'ipt>';
+          code += '\n  initChatbot({';
+          code += '\n    chatbotId: "' + finalBotId + '",';
+          code += '\n    companyId: "' + companyId + '",';
+          code += '\n    apiKey: "' + apiKey + '",';
+          code += '\n    serverUrl: "' + serverUrl + '",';
+          code += '\n    websiteUrl: "' + url + '",';
+          code += '\n    buttonPosition: "' + buttonPositionSelect.value + '",';
+          code += '\n    buttonText: "' + buttonTextInput.value + '",';
+          code += '\n    buttonIcon: "' + buttonIconInput.value + '",';
+          code += '\n    widgetTitle: "' + widgetTitleInput.value + '",';
+          code += '\n    logoUrl: "' + logoUrl + '",';
+          code += '\n    primaryColor: "' + primaryColorInput.value + '"';
+          code += '\n  });';
+          code += '\n</scr' + 'ipt>';
+          code += '\n<!-- Chatbot Widget End -->';
+          wordpressInstructions.style.display = 'none';
+        } else {
+          // WordPress instructions
+          const lines = [];
+          lines.push('// WordPress plugin usage:');
+          lines.push('1. Download plugin from https://app.movergpt.com/static/embed/chatbot-wordpress-plugin.zip');
+          lines.push('2. Upload & activate in WordPress admin');
+          lines.push('3. Go to Settings > Chatbot Settings and enter:');
+          lines.push('   - Chatbot ID: ' + finalBotId);
+          lines.push('   - Company ID: ' + companyId);
+          lines.push('   - API Key: ' + apiKey);
+          lines.push('   - Server URL: https://app.movergpt.com');
+          code = lines.join('\n');
+          wordpressInstructions.style.display = 'block';
+        }
+        
+        // Clear previous warnings
+        const existingWarnings = generatedScriptContainer.querySelectorAll('.api-key-warning');
+        existingWarnings.forEach(el => el.remove());
+        
+        // Add warning if API key is missing
+        if (apiKey === 'API_KEY_REQUIRED') {
+          const warningDiv = document.createElement('div');
+          warningDiv.className = 'alert alert-warning mt-3 mb-3 api-key-warning';
+          warningDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <strong>Please contact support.</strong> Your API key is not valid. An administrator needs to generate an API key for your company from the admin dashboard.';
+          generatedScriptContainer.prepend(warningDiv);
+        }
+        
+        generatedScript.textContent = code;
+        generatedScriptContainer.style.display = 'block';
+        copyBtn.style.display = 'inline-block';
+        resetBtn.style.display = 'inline-block';
+      });
+
+      // Copy to clipboard
+      copyBtn.addEventListener('click', function() {
+        navigator.clipboard.writeText(generatedScript.textContent)
+          .then(() => {
+            showAlert('Script copied to clipboard!', 'success');
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
+          })
+          .catch(err => {
+            console.error('Failed to copy:', err);
+            showAlert('Could not copy to clipboard. Please select the code and copy manually.', 'danger');
+          });
+      });
+
+      // Reset generator
+      resetBtn.addEventListener('click', function() {
+        websiteStackSelect.value = 'html';
+        websiteUrlInput.value = '';
+        chatbotSelect.value = '';
+        buttonPositionSelect.value = 'bottom-right';
+        buttonTextInput.value = 'Chat with us';
+        buttonIconInput.value = '💬';
+        widgetTitleInput.value = 'Chat Support';
+        primaryColorInput.value = '#4361ee';
+        generatedScriptContainer.style.display = 'none';
+        copyBtn.style.display = 'none';
+        resetBtn.style.display = 'none';
+        wordpressInstructions.style.display = 'none';
+        
+        // Remove any warnings
+        const existingWarnings = generatedScriptContainer.querySelectorAll('.api-key-warning');
+        existingWarnings.forEach(el => el.remove());
+      });
+    });
+    
+    // Handle manual API key entry
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if we have a saved API key
+      const savedApiKey = localStorage.getItem('company_api_key');
+      if (savedApiKey) {
+        console.log('Found saved API key in local storage');
+        // Store in session storage for the fetchCompanyInfo function to use
+        sessionStorage.setItem('company_api_key', savedApiKey);
+      }
+      
+      // Handle the save API key button
+      const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+      if (saveApiKeyBtn) {
+        saveApiKeyBtn.addEventListener('click', function() {
+          const apiKeyInput = document.getElementById('manualApiKeyInput');
+          const rememberCheckbox = document.getElementById('rememberApiKey');
+          
+          if (apiKeyInput && apiKeyInput.value) {
+            const apiKey = apiKeyInput.value.trim();
+            
+            // Validate API key format (should start with sk_)
+            if (!apiKey.startsWith('sk_')) {
+              showAlert('API key should start with "sk_"', 'warning');
+              return;
+            }
+            
+            // Save to session storage for immediate use
+            sessionStorage.setItem('company_api_key', apiKey);
+            
+            // Save to local storage if remember is checked
+            if (rememberCheckbox && rememberCheckbox.checked) {
+              localStorage.setItem('company_api_key', apiKey);
+              console.log('API key saved to local storage');
+            }
+            
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('apiKeyInputModal'));
+            if (modal) {
+              modal.hide();
+            }
+            
+            // Show success message
+            showAlert('API key saved successfully', 'success');
+            
+            // Trigger the generate script button again
+            setTimeout(() => {
+              document.getElementById('generateCodeBtn').click();
+            }, 500);
+          } else {
+            showAlert('Please enter a valid API key', 'danger');
+          }
+        });
+      }
+    });
+
+    // Find the API key for the company
+    async function fetchCompanyInfo() {
+        console.log("Current company ID:", currentCompanyId);
+        
+        const errorMessages = [];
+        let apiKey = null;
+        
+        // Try each endpoint in sequence until we get a successful response
+        try {
+            // Try the dedicated endpoint first (/api/get-api-key)
+            console.log("Trying to fetch API key from /api/get-api-key");
+            const dedicatedResponse = await authenticatedFetch('/api/get-api-key');
+            
+            if (dedicatedResponse.ok) {
+                const data = await dedicatedResponse.json();
+                if (data.success && data.api_key) {
+                    apiKey = data.api_key;
+                    return { companyId: currentCompanyId, apiKey };
+                } else {
+                    errorMessages.push("Dedicated endpoint returned no API key");
+                }
+            } else {
+                errorMessages.push(`Dedicated endpoint returned status ${dedicatedResponse.status}`);
+            }
+            
+            // Try the new api_keys module endpoint (/api/keys/get)
+            console.log("Trying to fetch API key from /api/keys/get");
+            const keysResponse = await authenticatedFetch('/api/keys/get');
+            
+            if (keysResponse.ok) {
+                const data = await keysResponse.json();
+                if (data.success && data.api_key) {
+                    apiKey = data.api_key;
+                    return { companyId: currentCompanyId, apiKey };
+                } else {
+                    errorMessages.push("Keys endpoint returned no API key");
+                }
+            } else {
+                errorMessages.push(`Keys endpoint returned status ${keysResponse.status}`);
+            }
+            
+            // Try the standard endpoint (/api/company/api-key)
+            console.log("Trying to fetch API key from /api/company/api-key");
+            const standardResponse = await authenticatedFetch('/api/company/api-key');
+            
+            if (standardResponse.ok) {
+                const data = await standardResponse.json();
+                if (data.success && data.api_key) {
+                    apiKey = data.api_key;
+                    return { companyId: currentCompanyId, apiKey };
+                } else {
+                    errorMessages.push("Standard endpoint returned no API key");
+                }
+            } else {
+                errorMessages.push(`Standard endpoint returned status ${standardResponse.status}`);
+            }
+            
+            // Try the users endpoint (/api/users/company/api-key)
+            console.log("Trying to fetch API key from /api/users/company/api-key");
+            const usersResponse = await authenticatedFetch('/api/users/company/api-key');
+            
+            if (usersResponse.ok) {
+                const data = await usersResponse.json();
+                if (data.success && data.api_key) {
+                    apiKey = data.api_key;
+                    return { companyId: currentCompanyId, apiKey };
+                } else {
+                    errorMessages.push("Users endpoint returned no API key");
+                }
+            } else {
+                errorMessages.push(`Users endpoint returned status ${usersResponse.status}`);
+            }
+            
+            // Try the chatbot endpoint (/api/chatbot/company/api-key)
+            console.log("Trying to fetch API key from /api/chatbot/company/api-key");
+            const chatbotResponse = await authenticatedFetch('/api/chatbot/company/api-key');
+            
+            if (chatbotResponse.ok) {
+                const data = await chatbotResponse.json();
+                if (data.success && data.api_key) {
+                    apiKey = data.api_key;
+                    return { companyId: currentCompanyId, apiKey };
+                } else {
+                    errorMessages.push("Chatbot endpoint returned no API key");
+                }
+            } else {
+                errorMessages.push(`Chatbot endpoint returned status ${chatbotResponse.status}`);
+            }
+            
+            // If all endpoints failed, try to create a new API key
+            console.log("All API key endpoints failed. Trying to create a new API key.");
+            const createResponse = await authenticatedFetch('/api/keys/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (createResponse.ok) {
+                const data = await createResponse.json();
+                if (data.success && data.api_key) {
+                    apiKey = data.api_key;
+                    console.log("Successfully created new API key");
+                    return { companyId: currentCompanyId, apiKey };
+                } else {
+                    errorMessages.push("Create endpoint returned no API key");
+                }
+            } else {
+                errorMessages.push(`Create endpoint returned status ${createResponse.status}`);
+            }
+            
+            // Try to get company details as a last resort
+            console.log("Trying to fetch company details to get API key");
+            const companyResponse = await authenticatedFetch(`/api/companies/${currentCompanyId}`);
+            
+            if (companyResponse.ok) {
+                const data = await companyResponse.json();
+                if (data.api_key) {
+                    apiKey = data.api_key;
+                    return { companyId: currentCompanyId, apiKey };
+                } else {
+                    errorMessages.push("Company details endpoint returned no API key");
+                }
+            } else {
+                errorMessages.push(`Company details endpoint returned status ${companyResponse.status}`);
+            }
+            
+            // If we still don't have an API key, return null
+            console.log("No API key found after trying all endpoints");
+            console.log("Error messages:", errorMessages);
+            return { companyId: currentCompanyId, apiKey: null, errors: errorMessages };
+        } catch (error) {
+            console.error("Error fetching company info:", error);
+            return { companyId: currentCompanyId, apiKey: null, error };
+        }
+    }
+
+    // Function to create a new API key
+    async function createApiKey() {
+        try {
+            const response = await authenticatedFetch('/api/users/create-api-key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ company_id: currentCompanyId })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.api_key) {
+                    // Update the UI with the new API key
+                    const apiKeySection = document.querySelector('#apiKeySection');
+                    if (apiKeySection) {
+                        apiKeySection.innerHTML = `
+                            <div class="alert alert-success">
+                                <h5>API Key Created Successfully!</h5>
+                                <p>Your new API key: <code>${data.api_key}</code></p>
+                                <p>Use this key to integrate the chatbot with your website.</p>
+                            </div>
+                        `;
+                    }
+                    
+                    // Also update the script code snippet if it exists
+                    updateChatbotScriptExample(data.api_key);
+                    
+                    return data.api_key;
+                } else {
+                    showAlert('Error creating API key: ' + (data.error || 'Unknown error'), 'danger');
+                }
+            } else {
+                const errorData = await response.json();
+                showAlert('Error creating API key: ' + (errorData.error || `Status ${response.status}`), 'danger');
+            }
+        } catch (error) {
+            showAlert('Exception while creating API key: ' + error.message, 'danger');
+        }
+        
+        return null;
+    }
+
+    // Update the chatbot script example with the API key
+    function updateChatbotScriptExample(apiKey) {
+        const scriptExample = document.getElementById('chatbotScriptExample');
+        if (scriptExample) {
+            const scriptTemplate = `
+<script src="https://your-chatbot-domain.com/static/assets/chatbot-embed.js"><\/script>
+<script>
+    initChatbot({
+        apiKey: "${apiKey}",
+        companyId: ${currentCompanyId},
+        position: "bottom-right",
+        welcomeMessage: "Hello! How can I help you today!"
+    });
+<\/script>`;
+            
+            scriptExample.textContent = scriptTemplate;
+        }
+    }
+  </script>
+  
+  <!-- API Key Input Modal -->
+  <div class="modal fade" id="apiKeyInputModal" tabindex="-1" aria-labelledby="apiKeyInputModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="apiKeyInputModalLabel">Enter Your API Key</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            We couldn't retrieve your API key automatically. Please enter the API key that was generated for your company in the admin dashboard.
+          </div>
+          <div class="mb-3">
+            <label for="manualApiKeyInput" class="form-label">API Key</label>
+            <input type="text" class="form-control" id="manualApiKeyInput" placeholder="sk_...">
+            <div class="form-text">Your API key starts with 'sk_' and was provided when your account was set up.</div>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="rememberApiKey" checked>
+            <label class="form-check-label" for="rememberApiKey">
+              Remember this API key for future sessions
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveApiKeyBtn">Save & Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Detail Modal -->
+  <div class="modal fade" id="chatDetailModal" tabindex="-1" aria-labelledby="chatDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="chatDetailModalLabel">Chat Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="card-title">Chat Information</h6>
+                  <p><strong>ID:</strong> <span id="chatDetailId"></span></p>
+                  <p><strong>Date:</strong> <span id="chatDetailDate"></span></p>
+                  <p><strong>Type:</strong> <span id="chatDetailType"></span></p>
+                  <p><strong>Status:</strong> <span id="chatDetailStatus"></span></p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="card-title">Customer Information</h6>
+                  <p><strong>Name:</strong> <span id="customerName"></span></p>
+                  <p><strong>Email:</strong> <span id="customerEmail"></span></p>
+                  <p><strong>Phone:</strong> <span id="customerPhone"></span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title">Conversation</h6>
+              <div class="chat-messages" id="chatMessagesContainer">
+                <!-- Chat messages will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveNoteBtn">Save Notes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Generator Modal -->
+  <div class="modal fade" id="scriptGeneratorModal" tabindex="-1" role="dialog" aria-labelledby="scriptGeneratorModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="scriptGeneratorModalTitle">Generate Embed Script</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="closeScriptGeneratorModal">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="embedScriptCode">Copy and paste this code into your website:</label>
+            <textarea id="embedScriptCode" class="form-control" rows="8" readonly></textarea>
+          </div>
+          <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            Add this code to any page where you want the calculator to appear. The calculator will be displayed inside a container with the ID "moving-cost-calculator-container".
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" id="closeScriptGeneratorModalBtn">Close</button>
+          <button type="button" class="btn btn-primary" id="copyEmbedScript">
+            <i class="fas fa-copy me-1"></i> Copy Code
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Moving Quote Requests Modal -->
+  <div class="modal fade" id="quoteRequestsModal" tabindex="-1" role="dialog" aria-labelledby="quoteRequestsModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="quoteRequestsModalTitle">All Quote Requests</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="closeQuoteRequestsModal">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Origin</th>
+                  <th>Destination</th>
+                  <th>Move Size</th>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="allQuoteRequestsTable">
+                <tr>
+                  <td colspan="9" class="text-center">Loading quote requests...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" id="closeQuoteRequestsModalBtn">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Move Calculator JavaScript Code -->
+  <script>
+    // Existing JavaScript code...
+    
+    // Add Move Calculator JavaScript Code
+    document.addEventListener('DOMContentLoaded', function() {
+      // Hide moving calculator section by default
+      const movingCalculatorSection = document.querySelector('.moving-calculator-section');
+      if (movingCalculatorSection) {
+        movingCalculatorSection.style.display = 'none';
+      }
+      
+      // Check if company is a moving company
+      function checkIfMovingCompany() {
+        fetch('/api/companies/moving-parameters', {
+          method: 'GET',
+          credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Show moving calculator section if company has moving parameters
+            if (movingCalculatorSection) {
+              movingCalculatorSection.style.display = 'flex';
+              loadQuoteRequests();
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error checking moving company status:', error);
+        });
+      }
+      
+      // Execute the check when page is loaded
+      checkIfMovingCompany();
+      
+      // Load quote requests
+      function loadQuoteRequests() {
+        fetch('/api/companies/moving-quote-requests', {
+          method: 'GET',
+          credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.quotes) {
+            renderQuoteRequests(data.quotes.slice(0, 5), 'quoteRequestsTable');
+            renderQuoteRequests(data.quotes, 'allQuoteRequestsTable');
+          } else {
+            document.getElementById('quoteRequestsTable').innerHTML = 
+              '<tr><td colspan="6" class="text-center">No quote requests found</td></tr>';
+            document.getElementById('allQuoteRequestsTable').innerHTML = 
+              '<tr><td colspan="9" class="text-center">No quote requests found</td></tr>';
+          }
+        })
+        .catch(error => {
+          console.error('Error loading quote requests:', error);
+          document.getElementById('quoteRequestsTable').innerHTML = 
+            '<tr><td colspan="6" class="text-center">Error loading quote requests</td></tr>';
+          document.getElementById('allQuoteRequestsTable').innerHTML = 
+            '<tr><td colspan="9" class="text-center">Error loading quote requests</td></tr>';
+        });
+      }
+      
+      // Render quote requests to table
+      function renderQuoteRequests(quotes, tableId) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        
+        if (quotes.length === 0) {
+          table.innerHTML = `<tr><td colspan="${tableId === 'quoteRequestsTable' ? '6' : '9'}" class="text-center">No quote requests found</td></tr>`;
+          return;
+        }
+        
+        let html = '';
+        quotes.forEach(quote => {
+          const date = new Date(quote.move_date).toLocaleDateString();
+          const amount = `$${quote.total_cost.toFixed(2)}`;
+          
+          if (tableId === 'quoteRequestsTable') {
+            html += `
+              <tr>
+                <td>${quote.customer_name}</td>
+                <td>${quote.origin.split(',')[0]}</td>
+                <td>${quote.destination.split(',')[0]}</td>
+                <td>${date}</td>
+                <td>${amount}</td>
+                <td><span class="badge bg-${getStatusBadgeClass(quote.status)}">${quote.status}</span></td>
+              </tr>
+            `;
+          } else {
+            html += `
+              <tr>
+                <td>${quote.customer_name}</td>
+                <td>${quote.customer_email}</td>
+                <td>${quote.customer_phone}</td>
+                <td>${quote.origin.split(',')[0]}</td>
+                <td>${quote.destination.split(',')[0]}</td>
+                <td>${quote.move_size}</td>
+                <td>${date}</td>
+                <td>${amount}</td>
+                <td><span class="badge bg-${getStatusBadgeClass(quote.status)}">${quote.status}</span></td>
+              </tr>
+            `;
+          }
+        });
+        
+        table.innerHTML = html;
+      }
+      
+      // Get badge class based on status
+      function getStatusBadgeClass(status) {
+        switch (status) {
+          case 'new':
+            return 'primary';
+          case 'contacted':
+            return 'info';
+          case 'confirmed':
+            return 'success';
+          case 'canceled':
+            return 'danger';
+          default:
+            return 'secondary';
+        }
+      }
+      
+      // Generate calculator embed script
+      function generateCalculatorScript() {
+        fetch('/api/companies/moving-calculator-script', {
+          method: 'GET',
+          credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const scriptTextarea = document.getElementById('embedScriptCode');
+            if (scriptTextarea) {
+              scriptTextarea.value = data.script;
+              
+              // Show the modal using Bootstrap's Modal API
+              const modalElement = document.getElementById('scriptGeneratorModal');
+              const modal = new bootstrap.Modal(modalElement);
+              modal.show();
+            }
+          } else {
+            showAlert('Failed to generate script: ' + data.error, 'danger');
+          }
+        })
+        .catch(error => {
+          console.error('Error generating calculator script:', error);
+          showAlert('Failed to generate script: ' + error.message, 'danger');
+        });
+      }
+      
+      // Generate embed script
+      const generateScriptBtn = document.getElementById('generateCalculatorScript');
+      if (generateScriptBtn) {
+        generateScriptBtn.addEventListener('click', generateCalculatorScript);
+      }
+      
+      // View all quote requests
+      const viewAllQuotesBtn = document.getElementById('viewAllQuotes');
+      if (viewAllQuotesBtn) {
+        viewAllQuotesBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          // Show modal using Bootstrap's Modal API
+          const modalElement = document.getElementById('quoteRequestsModal');
+          const modal = new bootstrap.Modal(modalElement);
+          modal.show();
+        });
+      }
+      
+      // Test calculator
+      const testCalculatorBtn = document.getElementById('testCalculator');
+      if (testCalculatorBtn) {
+        testCalculatorBtn.addEventListener('click', function() {
+          window.open('/static/cost_calculator.html', '_blank');
+        });
+      }
+      
+      // Close modals
+      const closeButtons = document.querySelectorAll('[data-dismiss="modal"], .close');
+      closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const modalElement = this.closest('.modal');
+          if (modalElement) {
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+              modal.hide();
+            } else {
+              // Fallback for modals not initialized with Bootstrap
+              modalElement.classList.remove('show');
+              modalElement.style.display = 'none';
+            }
+          }
+        });
+      });
+      
+      // Handle specific modal close buttons
+      document.getElementById('closeScriptGeneratorModalBtn')?.addEventListener('click', function() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('scriptGeneratorModal'));
+        if (modal) modal.hide();
+      });
+      
+      document.getElementById('closeQuoteRequestsModalBtn')?.addEventListener('click', function() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('quoteRequestsModal'));
+        if (modal) modal.hide();
+      });
+      
+      // Copy embed script
+      const copyScriptBtn = document.getElementById('copyEmbedScript');
+      if (copyScriptBtn) {
+        copyScriptBtn.addEventListener('click', function() {
+          const scriptTextarea = document.getElementById('embedScriptCode');
+          if (scriptTextarea) {
+            scriptTextarea.select();
+            document.execCommand('copy');
+            showAlert('Script copied to clipboard!', 'success');
+          }
+        });
+      }
+      
+      // Show alerts
+      function showAlert(message, type) {
+        const alertContainer = document.querySelector('.alert-container');
+        
+        if (alertContainer) {
+          const alert = document.createElement('div');
+          alert.className = `alert alert-${type} alert-dismissible fade show`;
+          alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          `;
+          
+          alertContainer.appendChild(alert);
+          
+          // Auto-dismiss after 5 seconds
+          setTimeout(() => {
+            alert.classList.remove('show');
+            setTimeout(() => {
+              alertContainer.removeChild(alert);
+            }, 300);
+          }, 5000);
+        }
+      }
+      
+      // Check if company is a moving company when page loads
+      checkIfMovingCompany();
+    });
   </script>
 </body>
 </html>

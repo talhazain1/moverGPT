@@ -58,41 +58,62 @@
 
     <script src="js/auth.js"></script>
     <script>
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth().then(admin => {
+                if (admin) {
+                    // Already logged in, redirect to dashboard
+                    const redirectHash = localStorage.getItem('redirectHash') || '';
+                    localStorage.removeItem('redirectHash'); // Clear it after use
+                    window.location.href = '/admin/dashboard.html' + redirectHash;
+                }
+            }).catch(error => {
+                console.error('Auth check error:', error);
+            });
+
+            // Handle hash-based navigation
+            const currentHash = window.location.hash;
+            if (currentHash) {
+                // Store the hash to use after login
+                localStorage.setItem('redirectHash', currentHash);
+            }
+        });
+
+        // Form submission
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('errorMessage');
+            const errorElement = document.getElementById('errorMessage');
             const submitButton = document.getElementById('submitButton');
             
-            // Clear previous error
-            errorMessage.style.display = 'none';
-            errorMessage.textContent = '';
-            
-            // Disable submit button
-            submitButton.disabled = true;
-            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Signing in...';
+            // Display the error message element
+            errorElement.style.display = 'block';
             
             try {
-                const success = await login(email, password);
-                if (success) {
-                    window.location.href = '/admin/dashboard.html';
+                // Disable button and show loading state
+                submitButton.disabled = true;
+                submitButton.innerHTML = 'Signing in...';
+                errorElement.textContent = '';
+                
+                const admin = await login(email, password);
+                if (admin) {
+                    // Login successful
+                    console.log('Login successful, redirecting to dashboard');
+                    const redirectHash = localStorage.getItem('redirectHash') || '';
+                    localStorage.removeItem('redirectHash'); // Clear it after use
+                    window.location.href = '/admin/dashboard.html' + redirectHash;
+                } else {
+                    errorElement.textContent = 'Login failed. Please check your credentials.';
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = 'Sign in';
                 }
             } catch (error) {
-                errorMessage.textContent = error.message || 'Login failed. Please try again.';
-                errorMessage.style.display = 'block';
-            } finally {
-                // Re-enable submit button
+                console.error('Login error:', error);
+                errorElement.textContent = 'An error occurred during login. Please try again.';
                 submitButton.disabled = false;
                 submitButton.innerHTML = 'Sign in';
-            }
-        });
-
-        // Check if already authenticated
-        checkAuth().then(isAuthenticated => {
-            if (isAuthenticated) {
-                window.location.href = '/admin/dashboard';
             }
         });
     </script>

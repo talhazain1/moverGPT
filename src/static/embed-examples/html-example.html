@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot Embed Example - HTML/CSS</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    h1 {
+      color: #4361ee;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .code-block {
+      background-color: #f5f5f5;
+      border-left: 4px solid #4361ee;
+      padding: 15px;
+      margin-bottom: 30px;
+      overflow-x: auto;
+      font-family: monospace;
+    }
+    
+    .steps {
+      margin-bottom: 30px;
+    }
+    
+    .step {
+      margin-bottom: 20px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .step h3 {
+      margin-top: 0;
+      color: #4361ee;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Chatbot Embed Example - HTML/CSS</h1>
+    
+    <p>This page demonstrates how to embed the chatbot on your website. The chatbot is already active on this page - look for the chat button in the bottom right corner!</p>
+    
+    <!-- Add token input form -->
+    <div class="step" id="token-form">
+      <h3>Authentication</h3>
+      <p>Please enter your access token to initialize the chatbot:</p>
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <input type="text" id="access-token" placeholder="Enter your access token" style="flex: 1; padding: 10px; border: 1px solid #dee2e6; border-radius: 4px;">
+        <button onclick="initializeChatbot()" style="padding: 10px 20px; background-color: #4361ee; color: white; border: none; border-radius: 4px; cursor: pointer;">Initialize Chatbot</button>
+      </div>
+      <div id="token-status" style="color: #dc3545; display: none;"></div>
+    </div>
+    
+    <div class="steps">
+      <h2>How to Embed the Chatbot on Your Website</h2>
+      
+      <div class="step">
+        <h3>Step 1: Include the Chatbot Script</h3>
+        <p>Add the following script tag to your website, just before the closing <code>&lt;/body&gt;</code> tag:</p>
+        <div class="code-block">
+          &lt;script src="https://127.0.0.1:5006/static/chatbot-embed.js"&gt;&lt;/script&gt;
+        </div>
+      </div>
+      
+      <div class="step">
+        <h3>Step 2: Initialize the Chatbot</h3>
+        <p>Add the following script to initialize the chatbot with your configuration:</p>
+        <div class="code-block">
+          &lt;script&gt;
+            document.addEventListener('DOMContentLoaded', function() {
+              initChatbotWidget({
+                chatbotId: 'YOUR_CHATBOT_ID',
+                serverUrl: 'https://your-server-address.com',
+                position: 'bottom-right',
+                buttonIcon: '💬',
+                buttonText: 'Chat with us',
+                widgetTitle: 'Your Chatbot',
+                primaryColor: '#4361ee',
+                textColor: '#343a40',
+                widgetWidth: '350px',
+                widgetHeight: '500px',
+                autoOpen: false
+              });
+            });
+          &lt;/script&gt;
+        </div>
+        <p>Replace <code>YOUR_CHATBOT_ID</code> with the actual ID of your chatbot and <code>https://your-server-address.com</code> with your server address.</p>
+      </div>
+      
+      <div class="step">
+        <h3>Step 3: Customization Options</h3>
+        <p>You can customize the appearance and behavior of the chatbot by modifying the configuration options:</p>
+        <ul>
+          <li><strong>chatbotId</strong>: The ID of your chatbot on the server</li>
+          <li><strong>serverUrl</strong>: The URL of your server where the chatbot API is hosted</li>
+          <li><strong>position</strong>: Where to place the chatbot button ('bottom-right', 'bottom-left', 'top-right', 'top-left')</li>
+          <li><strong>buttonIcon</strong>: Icon to display on the chat button (emoji or HTML)</li>
+          <li><strong>buttonText</strong>: Text displayed on the chat button</li>
+          <li><strong>widgetTitle</strong>: The title shown at the top of the chat widget</li>
+          <li><strong>primaryColor</strong>: The main color for the widget (buttons, header, etc.)</li>
+          <li><strong>textColor</strong>: The color for text content</li>
+          <li><strong>widgetWidth</strong>: The width of the chat widget</li>
+          <li><strong>widgetHeight</strong>: The height of the chat widget</li>
+          <li><strong>autoOpen</strong>: Whether to automatically open the chat widget when the page loads</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Include the chatbot embed script -->
+  <script src="../chatbot-embed.js"></script>
+  
+  <!-- Initialize the chatbot with sample configuration -->
+  <script>
+    // Check for existing token on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const savedToken = localStorage.getItem('chatbot_access_token');
+      if (savedToken) {
+        document.getElementById('access-token').value = savedToken;
+        initializeChatbot();
+      }
+    });
+
+    function initializeChatbot() {
+      const token = document.getElementById('access-token').value.trim();
+      if (!token) {
+        document.getElementById('token-status').style.display = 'block';
+        document.getElementById('token-status').textContent = 'Please enter a valid access token';
+        return;
+      }
+
+      // Store token
+      localStorage.setItem('chatbot_access_token', token);
+      
+      // Hide the token form
+      document.getElementById('token-form').style.display = 'none';
+      
+      initChatbotWidget({
+        chatbotId: '1', // Replace with your actual chatbot ID
+        serverUrl: window.location.origin,
+        position: 'bottom-right',
+        buttonIcon: '💬',
+        buttonText: 'Chat with us',
+        widgetTitle: 'Demo Chatbot',
+        primaryColor: '#4361ee',
+        textColor: '#343a40',
+        widgetWidth: '350px',
+        widgetHeight: '500px',
+        autoOpen: false,
+        accessToken: token
+      });
+    }
+
+    // Add error handling for token expiration
+    window.addEventListener('chatbotError', function(e) {
+      if (e.detail.error === 'Invalid or expired token') {
+        // Show token form again
+        document.getElementById('token-form').style.display = 'block';
+        document.getElementById('token-status').style.display = 'block';
+        document.getElementById('token-status').textContent = 'Your token has expired. Please enter a new token.';
+        localStorage.removeItem('chatbot_access_token');
+      }
+    });
+  </script>
+</body>
+</html> 

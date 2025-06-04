@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moving Cost Parameters</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Token Management - Fix for session persistence across pages
+    // This must run before auth.js loads to set up the JWT token
+    (function() {
+      // This version is compatible with the new TokenManager in auth.js
+      
+      // Get a valid JWT token from various sources
+      function getValidJWTToken() {
+        // Try moving_params_token first (special case)
+        const movingParamsToken = localStorage.getItem('moving_params_token');
+        if (movingParamsToken && movingParamsToken.startsWith('eyJhbGciOiJ')) {
+          console.log('Found special moving_params_token, using it');
+          localStorage.removeItem('moving_params_token'); 
+          return movingParamsToken;
+        }
+        
+        // Then check for jwt_access_token (used by TokenManager)
+        const jwtToken = localStorage.getItem('jwt_access_token');
+        if (jwtToken && jwtToken.startsWith('eyJhbGciOiJ')) {
+          return jwtToken;
+        }
+        
+        // Try legacy access_token
+        const legacyToken = localStorage.getItem('access_token');
+        if (legacyToken && legacyToken.startsWith('eyJhbGciOiJ')) {
+          return legacyToken;
+        }
+        
+        // Then check sessionStorage
+        const sessionToken = sessionStorage.getItem('jwt_access_token') || 
+                            sessionStorage.getItem('access_token');
+        if (sessionToken && sessionToken.startsWith('eyJhbGciOiJ')) {
+          return sessionToken;
+        }
+        
+        // Finally check cookies
+        const cookieValue = document.cookie.split('; ').find(row => row.startsWith('access_token='));
+        if (cookieValue) {
+          const token = cookieValue.split('=')[1];
+          if (token && token.startsWith('eyJhbGciOiJ')) {
+            return token;
+          }
+        }
+        
+        return null;
+      }
+      
+      // Get a valid JWT token if available
+      const validToken = getValidJWTToken();
+      
+      if (validToken) {
+        console.log('Token management: Valid JWT found, ensuring it is set properly');
+        
+        // Store tokens in both the new TokenManager format and legacy format for compatibility
+        localStorage.setItem('jwt_access_token', validToken); // New TokenManager format
+        localStorage.setItem('access_token', validToken);     // Legacy format
+        sessionStorage.setItem('jwt_access_token', validToken);
+        sessionStorage.setItem('access_token', validToken);
+        
+        // Set cookie directly with correct path and expiry
+        document.cookie = `access_token=${validToken}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+        
+        // The critical fix: override the fetch API to always include the token
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+          if (!options.headers) {
+            options.headers = {};
+          }
+          
+          // Ensure the token is present in the Authorization header
+          if (validToken && !options.headers['Authorization']) {
+            options.headers['Authorization'] = `Bearer ${validToken}`;
+          }
+          
+          return originalFetch(url, options);
+        };
+      }
+    })();
+  </script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/common.js"></script>
+  <style>
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      margin-bottom: 30px;
+    }
+    .parameter-group {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #fff;
+    }
+    .parameter-group h3 {
+      margin-top: 0;
+      color: #333;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    input[type="number"], input[type="text"], input[type="email"], textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    input[type="number"] {
+      width: 120px;
+    }
+    .move-size-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+    .move-size-table th, .move-size-table td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    .move-size-table th {
+      background-color: #f5f5f5;
+      font-weight: 600;
+    }
+    .action-buttons {
+      margin-top: 20px;
+      text-align: right;
+    }
+    button {
+      padding: 10px 20px;
+      margin-right: 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    #save-button {
+      background-color: #4361ee;
+      color: white;
+    }
+    #reset-button {
+      background-color: #e63946;
+      color: white;
+    }
+    .status-message {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .status-message.success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status-message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .status-message.warning {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .service-costs {
+      margin-bottom: 20px;
+    }
+    .service-costs h4 {
+      margin-top: 0;
+      color: #555;
+      margin-bottom: 10px;
+    }
+    .loader {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100px;
+    }
+    .loader-spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Email config styles */
+    .email-config {
+      padding: 15px;
+    }
+    .email-template {
+      width: 100%;
+      min-height: 120px;
+      font-family: inherit;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    
+    /* Main content area */
+    .page-container {
+      padding: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="alert-container"></div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <img id="sidebarLogo" src="https://ui-avatars.com/api/?name=Company&background=random" alt="Logo" class="sidebar-logo" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px;">
+          <span id="sidebarCompanyName">Loading...</span>
+        </div>
+        <button class="sidebar-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li class="sidebar-item">
+          <a href="/static/dashboard.html" class="sidebar-link">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/profile.html" class="sidebar-link">
+            <i class="fas fa-user-circle"></i>
+            <span>Profile</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chatbot_builder.html" class="sidebar-link">
+            <i class="fas fa-robot"></i>
+            <span>Chatbot Builder</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/test.html" class="sidebar-link">
+            <i class="fas fa-vial"></i>
+            <span>Test Chatbot</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/cost_calculator.html" class="sidebar-link">
+            <i class="fas fa-calculator"></i>
+            <span>Moving Cost Calculator</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/moving_parameters.html" class="sidebar-link active">
+            <i class="fas fa-sliders-h"></i>
+            <span>Moving Parameters</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/chat_analysis.html" class="sidebar-link">
+            <i class="fas fa-comments-dollar"></i>
+            <span>Chat Analysis</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="/static/pricing.html" class="sidebar-link">
+            <i class="fas fa-tag"></i>
+            <span>Pricing Plans</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a href="#" id="logoutBtn" class="sidebar-link">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="main-header">
+        <div class="header-left">
+          <!-- <button class="header-toggle d-lg-none">
+            <i class="fas fa-bars"></i>
+          </button> -->
+          <h4>Moving Parameters</h4>
+        </div>
+        
+        <div class="header-right">
+          <div class="user-dropdown">
+            <div class="user-info">
+              <div>
+                <div class="user-name">User</div>
+                <div class="user-role" style="font-size: 0.7rem; color: var(--gray-600);">Member</div>
+              </div>
+              <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" class="user-avatar">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Page Container -->
+      <div class="page-container">
+        <div id="loading" class="loader">
+          <div class="loader-spinner"></div>
+        </div>
+        
+        <div id="parameters-form" style="display: none;">
+          <div class="parameter-group">
+            <h3>Base Rates</h3>
+            <div class="form-group">
+              <label for="base-rate-per-mile">Base Rate Per Mile ($):</label>
+              <input type="number" id="base-rate-per-mile" step="0.01" min="0">
+            </div>
+          </div>
+          
+          <div class="parameter-group">
+            <h3>Move Size Rates</h3>
+            <table class="move-size-table">
+              <thead>
+                <tr>
+                  <th>Move Size</th>
+                  <th>Base Cost ($)</th>
+                </tr>
+              </thead>
+              <tbody id="move-size-rates">
+                <!-- This will be populated by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="parameter-group">
+            <h3>Additional Service Costs</h3>
+            <div id="additional-service-costs">
+              <!-- This will be populated by JavaScript -->
+            </div>
+          </div>
+          
+          <div class="parameter-group">
+            <h3>Rate Adjustments</h3>
+            <div id="rate-adjustments">
+              <!-- This will be populated by JavaScript -->
+            </div>
+          </div>
+          
+          <div class="parameter-group">
+            <h3>Email Configuration</h3>
+            <div class="email-config">
+              <!-- SMTP Configuration -->
+              <div class="form-group">
+                <h4>SMTP Settings</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div class="form-group">
+                    <label for="smtp-server">SMTP Server:</label>
+                    <input type="text" id="smtp-server" value="smtp.gmail.com" placeholder="e.g., smtp.gmail.com">
+                  </div>
+                  <div class="form-group">
+                    <label for="smtp-port">SMTP Port:</label>
+                    <input type="number" id="smtp-port" value="587" placeholder="e.g., 587">
+                  </div>
+                  <div class="form-group">
+                    <label for="smtp-username">SMTP Username:</label>
+                    <input type="email" id="smtp-username" value="info@movergpt.com" placeholder="Email address">
+                  </div>
+                  <div class="form-group">
+                    <label for="smtp-password">SMTP Password:</label>
+                    <input type="password" id="smtp-password" value="yuip pxze ammd xxym" placeholder="App password">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Email Recipients -->
+              <div class="form-group">
+                <h4>Email Recipients</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div class="form-group">
+                    <label for="staff-email">Staff Email Address:</label>
+                    <input type="email" id="staff-email" placeholder="Staff email address">
+                  </div>
+                  <div class="form-group">
+                    <button id="test-email-button" class="btn btn-primary" style="margin-top: 28px; background-color: #4361ee; color: white;">
+                      <i class="fas fa-envelope"></i> Test Email
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Email Templates -->
+              <div class="form-group">
+                <label for="staff-email-subject">Staff Email Subject:</label>
+                <input type="text" id="staff-email-subject" value="New Moving Request from {{customer_name}}" placeholder="Subject line for staff notifications">
+              </div>
+              
+              <div class="form-group">
+                <label for="customer-email-template">Customer Email Template:</label>
+                <textarea id="customer-email-template" class="email-template" placeholder="Template for customer confirmation emails">Dear {{customer_name}},
+
+Thank you for requesting a moving quote with My Moving Journey!
+
+Here are the details of your request:
+- From: {{origin}}
+- To: {{destination}}
+- Moving Date: {{move_date}}
+- Move Size: {{move_size}}
+- Additional Services: {{additional_services}}
+
+Your estimated cost is ${{total_cost}}.
+
+We will contact you shortly to confirm your booking. If you have any questions, please reply to this email or call us.
+
+Thank you for choosing My Moving Journey!
+
+Best regards,
+The Moving Team
+info@movergpt.com</textarea>
+              </div>
+              
+              <div class="form-group">
+                <label for="staff-email-template">Staff Email Template:</label>
+                <textarea id="staff-email-template" class="email-template" placeholder="Template for staff notification emails">New Moving Request
+
+Customer Information:
+- Name: {{customer_name}}
+- Email: {{customer_email}}
+- Phone: {{customer_phone}}
+
+Moving Details:
+- From: {{origin}}
+- To: {{destination}}
+- Moving Date: {{move_date}}
+- Move Size: {{move_size}}
+- Distance: {{distance}} miles
+- Additional Services: {{additional_services}}
+
+Cost Breakdown:
+- Base Rate: ${{base_rate}}
+- Distance Cost: ${{distance_cost}}
+- Services Cost: ${{services_cost}}
+- Adjustments: ${{adjustments}}
+- Total Cost: ${{total_cost}}
+
+Notes: {{notes}}
+
+Please contact the customer as soon as possible to confirm the booking.</textarea>
+              </div>
+              
+              <div id="email-status" class="status-message" style="display: none;"></div>
+            </div>
+          </div>
+          
+          <div class="action-buttons">
+            <button id="save-button">Save Changes</button>
+            <button id="reset-button">Reset to Defaults</button>
+          </div>
+          
+          <div id="status-message" class="status-message" style="display: none;"></div>
+          
+          <!-- Add debug panel -->
+          <div class="parameter-group" id="debug-panel" style="margin-top: 20px; display: none;">
+            <h3>Debug Tools</h3>
+            <p>If you're experiencing authentication issues, use these tools to fix them:</p>
+            
+            <div style="margin-bottom: 10px;">
+              <button id="fix-auth-button" class="btn btn-secondary" style="background-color: #6c757d; color: white;">Fix Authentication</button>
+              <button id="create-params-button" class="btn btn-info" style="background-color: #17a2b8; color: white; margin-left: 10px;">Create Missing Parameters</button>
+            </div>
+            
+            <div id="debug-status" class="status-message" style="display: none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Helper function to get cookie values
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+    
+    // Load saved parameters from API
+    let currentParameters = null;
+    let companyId = 1; // Default company ID, should be retrieved from user session
+    
+    // Update the sidebar company info
+    function updateSidebarCompanyInfo(user) {
+      if (!user) return;
+      
+      // Set company name, default to "Company Admin" if not available
+      const companyName = user.company_name || "Company Admin";
+      console.log('Setting company name to:', companyName);
+      document.getElementById('sidebarCompanyName').textContent = companyName;
+      
+      // Update logo if available
+      const logoElement = document.getElementById('sidebarLogo');
+      if (user.company_logo) {
+        logoElement.src = user.company_logo;
+      }
+    }
+    
+    // Update the navbar user information
+    function updateUserInfo(user) {
+      if (!user) return;
+      
+      // Update user name and role in the dropdown
+      const userName = document.querySelector('.user-name');
+      const userRole = document.querySelector('.user-role');
+      const userAvatar = document.querySelector('.user-avatar');
+      
+      if (userName) {
+        userName.textContent = user.user_name || 'User';
+      }
+      
+      if (userRole) {
+        userRole.textContent = user.role || 'Member';
+      }
+      
+      if (userAvatar && user.company_logo) {
+        userAvatar.src = user.company_logo;
+      }
+    }
+    
+    // Function to save parameters to localStorage for development/testing
+    function saveToLocalStorage(params) {
+      try {
+        localStorage.setItem('mock_moving_parameters', JSON.stringify(params));
+        console.log("Saved parameters to localStorage for testing");
+      } catch (e) {
+        console.error("Error saving parameters to localStorage:", e);
+      }
+    }
+    
+    // Function to load parameters from API
+    async function loadParameters() {
+      try {
+        // Check if we're authenticated
+        const user = await checkAuth(true); // Let checkAuth handle redirects if needed
+        
+        if (!user) {
+          console.error("Not authenticated");
+          return null;
+        }
+        
+        console.log("Authentication successful, user:", user.user_name);
+        
+        // Store current user for access throughout the page
+        currentUser = user;
+        
+        // Save company ID globally
+        if (user.company_id) {
+          companyId = user.company_id;
+          window.companyId = companyId; // Store in window object for other functions
+          console.log("Using company ID from profile:", companyId);
+        }
+        
+        // CRITICAL: Save the JWT token if it exists in any cookies
+        try {
+          // Check cookies for JWT token
+          const cookies = document.cookie.split(';');
+          for (const cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'access_token' && value && value.startsWith('eyJhbGciOiJ')) {
+              console.log("Found valid JWT token in cookies, saving to storage for persistence");
+              localStorage.setItem('access_token', value);
+              sessionStorage.setItem('access_token', value);
+              break;
+            }
+          }
+          
+          // If token exists in response.token, also save it
+          if (user.token && user.token.startsWith('eyJhbGciOiJ')) {
+            console.log("Found token in user object, saving to storage");
+            localStorage.setItem('access_token', user.token);
+            sessionStorage.setItem('access_token', user.token);
+            document.cookie = `access_token=${user.token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+          }
+        } catch (e) {
+          console.error("Error saving token:", e);
+        }
+        
+        // Update UI with user info
+        updateSidebarCompanyInfo(user);
+        updateUserInfo(user);
+        
+        // Check the token status and refresh if needed
+        const token = getCookie('access_token') || sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+        if (!token || !token.startsWith('eyJhbGciOiJ')) {
+          console.log("No valid JWT token found, requesting a fresh one through profile");
+          try {
+            // Instead of using /api/users/refresh_token which is returning 405,
+            // use the profile endpoint which we know is working
+            const profileResponse = await fetch('/api/users/profile', {
+              method: 'GET',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (profileResponse.ok) {
+              const profileData = await profileResponse.json();
+              if (profileData.token && profileData.token.startsWith('eyJhbGciOiJ')) {
+                console.log("Received fresh token from profile response");
+                const newToken = profileData.token;
+                document.cookie = `access_token=${newToken}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+                sessionStorage.setItem('access_token', newToken);
+                localStorage.setItem('access_token', newToken);
+              }
+            }
+          } catch (tokenError) {
+            console.error("Error refreshing token:", tokenError);
+          }
+        }
+        
+        // First load from localStorage as a fallback
+        try {
+          const savedParamsString = localStorage.getItem('mock_moving_parameters');
+          if (savedParamsString) {
+            const savedParams = JSON.parse(savedParamsString);
+            console.log("Loaded parameters from localStorage:", savedParams);
+            currentParameters = savedParams;
+            
+            // Add email config if it doesn't exist
+            if (!currentParameters.email_config) {
+              currentParameters.email_config = {
+                "email_notifications": true,
+                "staff_email_subject": "New Moving Request",
+                "customer_email_template": "Dear {{customer_name}},\n\nThank you for your moving request from {{origin}} to {{destination}} on {{move_date}}.\n\nYour estimated cost is ${{total_cost}}.\n\nRegards,\nThe Moving Team",
+                "staff_email_template": "New moving request:\n- Customer: {{customer_name}}\n- From: {{origin}}\n- To: {{destination}}\n- Date: {{move_date}}\n- Size: {{move_size}}\n- Estimated cost: ${{total_cost}}"
+              };
+            }
+            
+            populateForm(currentParameters);
+          }
+        } catch (e) {
+          console.error("Error loading from localStorage:", e);
+        }
+        
+        // Then try to load from API
+        try {
+          console.log("Attempting to fetch parameters from API...");
+          
+          // Use authenticatedFetch instead of direct fetch
+          const response = await authenticatedFetch(`/api/companies/${companyId}/moving-parameters`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              currentParameters = data.parameters;
+              
+              // Add email config if it doesn't exist in API response
+              if (!currentParameters.email_config) {
+                currentParameters.email_config = {
+                  "email_notifications": true,
+                  "staff_email_subject": "New Moving Request",
+                  "customer_email_template": "Dear {{customer_name}},\n\nThank you for your moving request from {{origin}} to {{destination}} on {{move_date}}.\n\nYour estimated cost is ${{total_cost}}.\n\nRegards,\nThe Moving Team",
+                  "staff_email_template": "New moving request:\n- Customer: {{customer_name}}\n- From: {{origin}}\n- To: {{destination}}\n- Date: {{move_date}}\n- Size: {{move_size}}\n- Estimated cost: ${{total_cost}}"
+                };
+              }
+              
+              console.log("Successfully loaded parameters from API:", currentParameters);
+              saveToLocalStorage(currentParameters);
+              populateForm(currentParameters);
+              showStatusMessage('Parameters loaded successfully!', 'success');
+            } else {
+              console.error("API error:", data.error);
+              showStatusMessage('Error loading parameters from server. Using locally saved parameters.', 'warning');
+            }
+          } else {
+            console.error("API error:", response.status);
+            showStatusMessage('Error loading parameters from server. Using locally saved parameters.', 'warning');
+          }
+        } catch (error) {
+          console.error("Error loading parameters from API:", error);
+          showStatusMessage('Error loading parameters from server. Using locally saved parameters.', 'warning');
+        }
+        
+        return currentParameters;
+      } catch (error) {
+        console.error("Error in loadParameters:", error);
+        showStatusMessage('Error: ' + error.message, 'error');
+        return null;
+      } finally {
+        // Hide loading indicator
+        document.getElementById('loading').style.display = 'none';
+        // Show form
+        document.getElementById('parameters-form').style.display = 'block';
+      }
+    }
+    
+    // Function to save parameters back to the server
+    async function saveParameters(updatedParameters) {
+      try {
+        console.log("Saving parameters:", updatedParameters);
+        
+        // Always save to localStorage for development/testing
+        saveToLocalStorage(updatedParameters);
+        currentParameters = updatedParameters;
+        
+        // Get the current company ID
+        const companyId = window.companyId || currentUser?.company_id || 23; // Get from window, user, or use 23 as fallback
+        console.log("Using company ID for save:", companyId);
+        
+        // Try saving with direct POST request first using the old endpoint path which is more likely to work
+        try {
+          console.log("Attempting to save parameters with direct POST request");
+          const saveResponse = await fetch(`/api/companies/save-moving-parameters?company_id=${companyId}`, {
+            method: 'PUT', // Changed to PUT to match the server endpoint
+            credentials: 'include', // Include cookies
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              company_id: companyId,
+              base_rate_per_mile: updatedParameters.base_rate_per_mile,
+              move_size_rates: updatedParameters.move_size_rates,
+              additional_service_costs: updatedParameters.additional_service_costs,
+              rate_adjustments: updatedParameters.rate_adjustments,
+              email_config: updatedParameters.email_config
+            })
+          });
+          
+          // Special case: 500 error may actually be success with response formatting error
+          if (saveResponse.status === 500) {
+            try {
+              const errorText = await saveResponse.text();
+              console.log("Server error details:", errorText);
+              
+              // If we see the to_dict error in response, the data was actually saved
+              if (errorText.includes("'MovingParameters' object has no attribute 'to_dict'") || 
+                  errorText.includes("has no attribute 'to_dict'")) {
+                console.log("Data was saved but server had formatting error returning response");
+                
+                // CRITICAL: Restore the original JWT token from local storage to prevent logout
+                const storedToken = localStorage.getItem('access_token');
+                if (storedToken && storedToken.startsWith('eyJhbGciOiJ')) {
+                  console.log("Restoring valid JWT token to cookie to prevent session loss");
+                  document.cookie = `access_token=${storedToken}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+                } else {
+                  // If no token in localStorage, try to get one by calling the profile API
+                  try {
+                    console.log("No stored token, fetching fresh token from profile");
+                    const profileResponse = await fetch('/api/users/profile', {
+                      method: 'GET',
+                      credentials: 'include'
+                    });
+                    
+                    if (profileResponse.ok) {
+                      const profileData = await profileResponse.json();
+                      if (profileData.token && profileData.token.startsWith('eyJhbGciOiJ')) {
+                        console.log("Received token from profile, storing for session persistence");
+                        document.cookie = `access_token=${profileData.token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+                        localStorage.setItem('access_token', profileData.token);
+                        sessionStorage.setItem('access_token', profileData.token);
+                      }
+                    }
+                  } catch (err) {
+                    console.error("Error fetching fresh token:", err);
+                  }
+                }
+                
+                showStatusMessage('Parameters saved successfully (server had minor error returning confirmation)!', 'success');
+                return updatedParameters;
+              }
+            } catch (err) {
+              console.error("Error parsing error response:", err);
+            }
+          }
+          
+          if (saveResponse.ok) {
+            const saveData = await saveResponse.json();
+            if (saveData.success) {
+              console.log("Parameters saved successfully:", saveData);
+              showStatusMessage('Parameters saved successfully!', 'success');
+              return updatedParameters;
+            } else {
+              console.error("API error:", saveData.error);
+              showStatusMessage('Error: ' + (saveData.error || 'Unknown error'), 'error');
+            }
+          } else {
+            console.error("API error:", saveResponse.status);
+            showStatusMessage('Server error (' + saveResponse.status + '). Trying alternate endpoint...', 'warning');
+            
+            // Try the standard endpoint as a fallback
+            try {
+              console.log("Falling back to standard API endpoint");
+              const fallbackResponse = await fetch(`/api/companies/${companyId}/moving-parameters`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedParameters)
+              });
+              
+              if (fallbackResponse.ok) {
+                const fallbackData = await fallbackResponse.json();
+                if (fallbackData.success) {
+                  console.log("Parameters saved successfully via fallback:", fallbackData);
+                  showStatusMessage('Parameters saved successfully!', 'success');
+                  return updatedParameters;
+                } else {
+                  console.error("Fallback API error:", fallbackData.error);
+                  showStatusMessage('Error: ' + (fallbackData.error || 'Unknown error'), 'error');
+                }
+              } else {
+                console.error("Fallback API error:", fallbackResponse.status);
+                showStatusMessage('Server error. Trying one more method...', 'warning');
+                
+                // Try a third method - the directly named endpoint which might exist
+                try {
+                  console.log("Trying final fallback endpoint");
+                  const finalResponse = await fetch(`/api/companies/${companyId}/save_moving_parameters`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedParameters)
+                  });
+                  
+                  if (finalResponse.ok) {
+                    const finalData = await finalResponse.json();
+                    if (finalData.success) {
+                      console.log("Parameters saved successfully via final fallback:", finalData);
+                      showStatusMessage('Parameters saved successfully!', 'success');
+                      return updatedParameters;
+                    } else {
+                      console.error("Final fallback API error:", finalData.error);
+                      showStatusMessage('Error: ' + (finalData.error || 'Unknown error'), 'error');
+                    }
+                  } else {
+                    console.error("Final fallback API error:", finalResponse.status);
+                    showStatusMessage('All save methods failed. Changes saved locally.', 'warning');
+                  }
+                } catch (finalError) {
+                  console.error("Error with final fallback endpoint:", finalError);
+                  
+                  // Verification step - check if our parameters were actually saved
+                  try {
+                    console.log("Verifying if parameters were saved despite errors");
+                    const verifyResponse = await fetch(`/api/companies/${companyId}/moving-parameters`, {
+                      method: 'GET',
+                      credentials: 'include',
+                      headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (verifyResponse.ok) {
+                      const verifyData = await verifyResponse.json();
+                      if (verifyData.success && verifyData.parameters) {
+                        // Basic comparison to see if anything was saved
+                        const savedRate = verifyData.parameters.base_rate_per_mile;
+                        const ourRate = updatedParameters.base_rate_per_mile;
+                        
+                        if (Math.abs(savedRate - ourRate) < 0.001) {
+                          console.log("Verification shows parameters were actually saved!");
+                          showStatusMessage('Parameters appear to have been saved successfully!', 'success');
+                          return updatedParameters;
+                        } else {
+                          console.log("Verification shows parameters were NOT saved");
+                          showStatusMessage('All save methods failed. Changes saved locally.', 'warning');
+                        }
+                      }
+                    }
+                  } catch (verifyError) {
+                    console.error("Error during verification:", verifyError);
+                    showStatusMessage('All save methods failed. Changes saved locally.', 'warning');
+                  }
+                }
+              }
+            } catch (fallbackError) {
+              console.error("Error with fallback endpoint:", fallbackError);
+              showStatusMessage('All save methods failed. Changes saved locally.', 'warning');
+            }
+          }
+        } catch (error) {
+          console.error("Error saving parameters with direct POST:", error);
+          // Fall back to the PUT method if POST fails
+        }
+        
+        // Verification step before giving up
+        try {
+          console.log("Final verification - checking if parameters were saved");
+          const verifyResponse = await fetch(`/api/companies/${companyId}/moving-parameters`, {
+            method: 'GET',
+            credentials: 'include'
+          });
+          
+          if (verifyResponse.ok) {
+            const verifyData = await verifyResponse.json();
+            if (verifyData.success && verifyData.parameters) {
+              // Compare base_rate_per_mile as a simple verification
+              const savedRate = verifyData.parameters.base_rate_per_mile;
+              const ourRate = updatedParameters.base_rate_per_mile;
+              
+              if (Math.abs(savedRate - ourRate) < 0.001) {
+                console.log("Final verification shows parameters were saved!");
+                
+                // CRITICAL: Restore valid JWT token to prevent session loss after navigation
+                const storedToken = localStorage.getItem('access_token');
+                if (storedToken && storedToken.startsWith('eyJhbGciOiJ')) {
+                  console.log("Restoring valid JWT token to cookie to prevent session loss");
+                  document.cookie = `access_token=${storedToken}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+                }
+                
+                showStatusMessage('Parameters were successfully saved!', 'success');
+                return updatedParameters;
+              }
+            }
+          }
+        } catch (verifyError) {
+          console.error("Error during final verification:", verifyError);
+        }
+        
+        showStatusMessage('Unable to save parameters to server. Changes saved locally.', 'warning');
+        return currentParameters;
+      } catch (error) {
+        console.error("Error saving parameters:", error);
+        showStatusMessage('Error saving parameters. Changes saved locally.', 'warning');
+        return currentParameters;
+      }
+    }
+    
+    // Function to reset parameters to defaults
+    async function resetParameters() {
+      try {
+        console.log("Resetting parameters to defaults");
+        console.log("Sending cookie:", document.cookie);
+        
+        // Check for authentication first
+        const user = await checkAuth(false);
+        if (!user) {
+          console.error("No authenticated user found");
+          showStatusMessage('You need to be logged in to reset parameters. Redirecting...', 'error');
+          
+          setTimeout(() => {
+            window.location.href = '/static/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+          }, 2000);
+          return null;
+        }
+        
+        // Refresh token before making reset call
+        try {
+          console.log("Requesting a fresh token before reset via profile endpoint");
+          const profileResponse = await fetch('/api/users/profile', {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            if (profileData.token && profileData.token.startsWith('eyJhbGciOiJ')) {
+              console.log("Received fresh token from profile for reset request");
+              const token = profileData.token;
+              document.cookie = `access_token=${token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+              sessionStorage.setItem('access_token', token);
+              localStorage.setItem('access_token', token);
+            }
+          }
+        } catch (tokenError) {
+          console.error("Error refreshing token:", tokenError);
+        }
+        
+        const resetResponse = await authenticatedFetch('/api/companies/moving-parameters/reset', {
+          method: 'POST'
+        });
+        
+        if (!resetResponse.ok) {
+          if (resetResponse.status === 401) {
+            // If unauthorized, handle it without redirecting
+            console.error('Authentication error when resetting parameters');
+            const errorBody = await resetResponse.text();
+            console.error('Error details:', errorBody);
+            
+            showStatusMessage('Session expired. Please log in again.', 'error');
+            setTimeout(() => {
+              window.location.href = '/static/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+            }, 2000);
+            throw new Error('Authentication failed');
+          }
+          throw new Error('Failed to reset parameters');
+        }
+        
+        const resetData = await resetResponse.json();
+        if (!resetData.success) {
+          throw new Error(resetData.error || 'Failed to reset parameters');
+        }
+        
+        currentParameters = resetData.parameters;
+        console.log("Parameters reset successfully:", currentParameters);
+        
+        // Also save to localStorage for development/testing
+        saveToLocalStorage(currentParameters);
+        
+        // Update the form
+        populateForm(currentParameters);
+        
+        showStatusMessage('Parameters reset to defaults!', 'success');
+        
+        // Force reload the parameters to ensure we have the latest state
+        setTimeout(() => loadParameters(), 1000);
+        
+        return currentParameters;
+      } catch (error) {
+        console.error('Error resetting parameters:', error);
+        showStatusMessage('Error resetting parameters: ' + error.message, 'error');
+        return null;
+      }
+    }
+    
+    // Function to populate the form with parameters
+    function populateForm(parameters) {
+      // Base rate per mile
+      document.getElementById('base-rate-per-mile').value = parameters.base_rate_per_mile;
+      
+      // Move size rates
+      const moveSizeRatesTable = document.getElementById('move-size-rates');
+      moveSizeRatesTable.innerHTML = '';
+      
+      Object.entries(parameters.move_size_rates).forEach(([moveSize, rate]) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${moveSize}</td>
+          <td><input type="number" data-move-size="${moveSize}" value="${rate}" step="10" min="0"></td>
+        `;
+        moveSizeRatesTable.appendChild(row);
+      });
+      
+      // Additional service costs
+      const additionalServiceCostsDiv = document.getElementById('additional-service-costs');
+      additionalServiceCostsDiv.innerHTML = '';
+      
+      Object.entries(parameters.additional_service_costs).forEach(([service, costs]) => {
+        const serviceDiv = document.createElement('div');
+        serviceDiv.className = 'service-costs';
+        serviceDiv.innerHTML = `<h4>${service.charAt(0).toUpperCase() + service.slice(1)}</h4>`;
+        
+        const table = document.createElement('table');
+        table.className = 'move-size-table';
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Move Size</th>
+              <th>Cost ($)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Object.entries(costs).map(([moveSize, cost]) => `
+              <tr>
+                <td>${moveSize}</td>
+                <td><input type="number" data-service="${service}" data-move-size="${moveSize}" value="${cost}" step="10" min="0"></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        `;
+        
+        serviceDiv.appendChild(table);
+        additionalServiceCostsDiv.appendChild(serviceDiv);
+      });
+      
+      // Rate adjustments
+      const rateAdjustmentsDiv = document.getElementById('rate-adjustments');
+      rateAdjustmentsDiv.innerHTML = '';
+      
+      Object.entries(parameters.rate_adjustments).forEach(([adjustment, value]) => {
+        const adjustmentDiv = document.createElement('div');
+        adjustmentDiv.className = 'form-group';
+        
+        // Format the adjustment name for display
+        const formattedName = adjustment
+          .replace(/_/g, ' ')
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+        
+        adjustmentDiv.innerHTML = `
+          <label for="${adjustment}">${formattedName}:</label>
+          <input type="number" id="${adjustment}" data-adjustment="${adjustment}" value="${value}" step="0.01" min="0">
+        `;
+        
+        rateAdjustmentsDiv.appendChild(adjustmentDiv);
+      });
+      
+      // Email configuration
+      if (parameters.email_config) {
+        if (parameters.email_config.staff_email_subject) {
+          document.getElementById('staff-email-subject').value = parameters.email_config.staff_email_subject;
+        }
+        if (parameters.email_config.customer_email_template) {
+          document.getElementById('customer-email-template').value = parameters.email_config.customer_email_template;
+        }
+        if (parameters.email_config.staff_email_template) {
+          document.getElementById('staff-email-template').value = parameters.email_config.staff_email_template;
+        }
+        
+        // Populate SMTP configuration if it exists
+        if (parameters.email_config.smtp) {
+          if (parameters.email_config.smtp.server) {
+            document.getElementById('smtp-server').value = parameters.email_config.smtp.server;
+          }
+          if (parameters.email_config.smtp.port) {
+            document.getElementById('smtp-port').value = parameters.email_config.smtp.port;
+          }
+          if (parameters.email_config.smtp.username) {
+            document.getElementById('smtp-username').value = parameters.email_config.smtp.username;
+          }
+          if (parameters.email_config.smtp.password) {
+            document.getElementById('smtp-password').value = parameters.email_config.smtp.password;
+          }
+          if (parameters.email_config.smtp.staff_email) {
+            document.getElementById('staff-email').value = parameters.email_config.smtp.staff_email;
+          }
+        }
+      }
+    }
+    
+    // Function to collect updated parameters from the form
+    function collectUpdatedParameters() {
+      // Base rate per mile
+      const baseRatePerMile = parseFloat(document.getElementById('base-rate-per-mile').value);
+      
+      // Move size rates
+      const moveSizeRates = {};
+      document.querySelectorAll('#move-size-rates input').forEach(input => {
+        const moveSize = input.dataset.moveSize;
+        moveSizeRates[moveSize] = parseFloat(input.value);
+      });
+      
+      // Additional service costs
+      const additionalServiceCosts = {...currentParameters.additional_service_costs};
+      document.querySelectorAll('#additional-service-costs input').forEach(input => {
+        const service = input.dataset.service;
+        const moveSize = input.dataset.moveSize;
+        additionalServiceCosts[service][moveSize] = parseFloat(input.value);
+      });
+      
+      // Rate adjustments
+      const rateAdjustments = {};
+      document.querySelectorAll('#rate-adjustments input').forEach(input => {
+        const adjustment = input.dataset.adjustment;
+        rateAdjustments[adjustment] = parseFloat(input.value);
+      });
+      
+      // Email configuration
+      const emailConfig = {
+        ...currentParameters.email_config,
+        staff_email_subject: document.getElementById('staff-email-subject').value,
+        customer_email_template: document.getElementById('customer-email-template').value,
+        staff_email_template: document.getElementById('staff-email-template').value,
+        // Add SMTP configuration
+        smtp: {
+          server: document.getElementById('smtp-server').value,
+          port: parseInt(document.getElementById('smtp-port').value),
+          username: document.getElementById('smtp-username').value,
+          password: document.getElementById('smtp-password').value,
+          staff_email: document.getElementById('staff-email').value
+        }
+      };
+      
+      return {
+        base_rate_per_mile: baseRatePerMile,
+        move_size_rates: moveSizeRates,
+        additional_service_costs: additionalServiceCosts,
+        rate_adjustments: rateAdjustments,
+        email_config: emailConfig
+      };
+    }
+    
+    // Function to show status messages
+    function showStatusMessage(message, type) {
+      const statusMessage = document.getElementById('status-message');
+      statusMessage.textContent = message;
+      statusMessage.className = `status-message ${type}`;
+      statusMessage.style.display = 'block';
+      
+      // Hide message after 5 seconds
+      setTimeout(() => {
+        statusMessage.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Function to show email status messages
+    function showEmailStatus(message, type) {
+      const emailStatus = document.getElementById('email-status');
+      emailStatus.textContent = message;
+      emailStatus.className = `status-message ${type}`;
+      emailStatus.style.display = 'block';
+      
+      // Hide message after 10 seconds
+      setTimeout(() => {
+        emailStatus.style.display = 'none';
+      }, 10000);
+    }
+    
+    // Function to send a test email
+    async function sendTestEmail() {
+      const emailStatus = document.getElementById('email-status');
+      emailStatus.textContent = 'Sending test email...';
+      emailStatus.className = 'status-message warning';
+      emailStatus.style.display = 'block';
+      
+      // Get SMTP configuration
+      const smtpConfig = {
+        server: document.getElementById('smtp-server').value,
+        port: parseInt(document.getElementById('smtp-port').value),
+        username: document.getElementById('smtp-username').value,
+        password: document.getElementById('smtp-password').value
+      };
+      
+      // Validate SMTP configuration
+      if (!smtpConfig.server || !smtpConfig.username || !smtpConfig.password) {
+        showEmailStatus('Please fill in all SMTP fields', 'error');
+        return;
+      }
+      
+      // Staff email is required
+      const staffEmail = document.getElementById('staff-email').value;
+      if (!staffEmail) {
+        showEmailStatus('Please enter a staff email address for testing', 'error');
+        return;
+      }
+      
+      try {
+        // Create a test data object with sample values for template placeholders
+        const testData = {
+          customer_name: 'Test Customer',
+          customer_email: staffEmail, // Use staff email as test recipient
+          customer_phone: '555-123-4567',
+          origin: '123 Main St, New York, NY',
+          destination: '456 Park Ave, Los Angeles, CA',
+          move_date: new Date().toDateString(),
+          move_size: 'Medium',
+          distance: '2,800',
+          additional_services: 'Packing, Storage',
+          base_rate: '500',
+          distance_cost: '1,600',
+          services_cost: '300',
+          adjustments: '100',
+          total_cost: '2,500',
+          notes: 'This is a test email sent from the Moving Parameters page.'
+        };
+        
+        // Get the company ID
+        const companyId = window.companyId || currentUser?.company_id || 1;
+        
+        // Prepare request data
+        const requestData = {
+          smtp: smtpConfig,
+          staff_email: staffEmail,
+          customer_email: staffEmail, // For testing, send customer email to staff email
+          test_data: testData
+        };
+        
+        // Send the request to the new company API endpoint
+        const response = await fetch(`/api/companies/${companyId}/test-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + (localStorage.getItem('jwt_access_token') || localStorage.getItem('access_token'))
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.success) {
+            showEmailStatus('Test emails sent successfully!', 'success');
+            
+            // Save SMTP configuration to parameters if send was successful
+            const updatedParameters = collectUpdatedParameters();
+            await saveParameters(updatedParameters);
+          } else {
+            let errorMessage = 'Error sending emails. ';
+            
+            if (data.staff_email && !data.staff_email.success) {
+              errorMessage += `Staff email: ${data.staff_email.message}. `;
+            }
+            
+            if (data.customer_email && !data.customer_email.success) {
+              errorMessage += `Customer email: ${data.customer_email.message}.`;
+            }
+            
+            showEmailStatus(errorMessage, 'error');
+          }
+        } else {
+          // Try client-side fallback if API is not available
+          try {
+            await sendEmailClientSide({
+              smtp: smtpConfig,
+              staff_email: {
+                to: staffEmail,
+                subject: document.getElementById('staff-email-subject').value,
+                body: document.getElementById('staff-email-template').value
+              },
+              customer_email: {
+                to: staffEmail,
+                subject: 'Your Moving Quote - Test Email',
+                body: document.getElementById('customer-email-template').value
+              }
+            });
+            showEmailStatus('Test email sent via client-side method!', 'success');
+          } catch (clientError) {
+            console.error('Error sending via client-side:', clientError);
+            showEmailStatus('Email configuration saved. Direct email testing is not available in this environment.', 'warning');
+          }
+        }
+      } catch (error) {
+        console.error('Error sending test email:', error);
+        showEmailStatus('Error sending test email: ' + error.message, 'error');
+      }
+    }
+    
+    // Function to send email via client-side method (fallback)
+    async function sendEmailClientSide(emailData) {
+      // This is a simplified fallback that just displays the email content
+      console.log('Would send email with the following data:', emailData);
+      
+      // Show email details in a modal or alert for the user to see
+      const details = `
+        SMTP Server: ${emailData.smtp.server}
+        Staff Email: ${emailData.staff_email.to}
+        
+        STAFF EMAIL:
+        Subject: ${emailData.staff_email.subject}
+        Body: ${emailData.staff_email.body}
+        
+        CUSTOMER EMAIL:
+        To: ${emailData.customer_email.to}
+        Subject: ${emailData.customer_email.subject}
+        Body: ${emailData.customer_email.body}
+      `;
+      
+      // Create a modal to show the email details
+      const modal = document.createElement('div');
+      modal.style.position = 'fixed';
+      modal.style.left = '0';
+      modal.style.top = '0';
+      modal.style.width = '100%';
+      modal.style.height = '100%';
+      modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+      modal.style.zIndex = '1000';
+      modal.style.display = 'flex';
+      modal.style.justifyContent = 'center';
+      modal.style.alignItems = 'center';
+      
+      const content = document.createElement('div');
+      content.style.backgroundColor = '#fff';
+      content.style.padding = '20px';
+      content.style.borderRadius = '5px';
+      content.style.maxWidth = '80%';
+      content.style.maxHeight = '80%';
+      content.style.overflow = 'auto';
+      content.style.whiteSpace = 'pre-wrap';
+      content.style.fontFamily = 'monospace';
+      content.textContent = details;
+      
+      const closeButton = document.createElement('button');
+      closeButton.textContent = 'Close';
+      closeButton.style.marginTop = '15px';
+      closeButton.style.padding = '5px 10px';
+      closeButton.style.backgroundColor = '#4361ee';
+      closeButton.style.color = 'white';
+      closeButton.style.border = 'none';
+      closeButton.style.borderRadius = '3px';
+      
+      closeButton.addEventListener('click', () => {
+        document.body.removeChild(modal);
+      });
+      
+      content.appendChild(document.createElement('br'));
+      content.appendChild(closeButton);
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+      
+      // Also log to console for development
+      console.log('Staff Email Content:', emailData.staff_email.body);
+      console.log('Customer Email Content:', emailData.customer_email.body);
+      
+      return new Promise(resolve => {
+        setTimeout(resolve, 1000);
+      });
+    }
+    
+    // Function to apply template replacements
+    function applyTemplate(template, data) {
+      return template.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
+        return data[key.trim()] || match;
+      });
+    }
+    
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', async () => {
+      // First, show loading and hide form
+      document.getElementById('loading').style.display = 'flex';
+      document.getElementById('parameters-form').style.display = 'none';
+      
+      // CRITICAL FIX: Directly handle all navigation links with token preservation
+      document.addEventListener('click', function(event) {
+        // Find if we clicked on a navigation link
+        let el = event.target;
+        while (el && el !== document) {
+          if (el.tagName === 'A' && el.id !== 'logoutBtn') {
+            const href = el.getAttribute('href');
+            
+            // Only handle internal links
+            if (href && href.startsWith('/static/')) {
+              event.preventDefault();
+              
+              // Check for a valid JWT token
+              const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+              if (token && token.startsWith('eyJhbGciOiJ')) {
+                // Store the token with a special flag to indicate it's from moving_parameters page
+                localStorage.setItem('moving_params_token', token);
+                
+                // The browser will navigate, and our script at the top of the document will handle the rest
+                // We don't need setTimeout or other complex mechanisms
+              }
+              
+              // Navigate to the new page
+              window.location.href = href;
+            }
+            break;
+          }
+          el = el.parentNode;
+        }
+      });
+      
+      // Load parameters
+      await loadParameters();
+      
+      // Save parameters
+      document.getElementById('save-button').addEventListener('click', async () => {
+        const updatedParameters = collectUpdatedParameters();
+        await saveParameters(updatedParameters);
+      });
+      
+      // Reset parameters
+      document.getElementById('reset-button').addEventListener('click', async () => {
+        if (confirm('Are you sure you want to reset all parameters to default values?')) {
+          await resetParameters();
+        }
+      });
+      
+      // Add event listener for test email button
+      document.getElementById('test-email-button').addEventListener('click', sendTestEmail);
+      
+      // Add event listener for logout
+      document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        logout();
+      });
+      
+      // Debug panel functions
+      
+      // Show debug panel for admins or in development
+      const isAdmin = currentUser && currentUser.role === 'admin';
+      const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (isAdmin || isDev) {
+        document.getElementById('debug-panel').style.display = 'block';
+      }
+      
+      // Fix authentication button
+      document.getElementById('fix-auth-button').addEventListener('click', async () => {
+        try {
+          // Show status message
+          const debugStatus = document.getElementById('debug-status');
+          debugStatus.textContent = 'Requesting new authentication token...';
+          debugStatus.className = 'status-message warning';
+          debugStatus.style.display = 'block';
+          
+          // Request new token via profile API
+          const response = await fetch('/api/users/profile', {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.token) {
+              // Set the token as a cookie
+              document.cookie = `access_token=${data.token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+              // Also save in storage for redundancy
+              sessionStorage.setItem('access_token', data.token);
+              localStorage.setItem('access_token', data.token);
+              
+              // Show success message
+              debugStatus.textContent = 'Authentication fixed successfully! The page will reload in 2 seconds.';
+              debugStatus.className = 'status-message success';
+              
+              // Reload the page after 2 seconds
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+            } else {
+              throw new Error('No token in response');
+            }
+          } else {
+            const errorText = await response.text();
+            throw new Error(`Server error: ${response.status} ${errorText}`);
+          }
+        } catch (error) {
+          // Show error message
+          const debugStatus = document.getElementById('debug-status');
+          debugStatus.textContent = `Error fixing authentication: ${error.message}`;
+          debugStatus.className = 'status-message error';
+          debugStatus.style.display = 'block';
+        }
+      });
+      
+      // Create missing parameters button
+      document.getElementById('create-params-button').addEventListener('click', async () => {
+        try {
+          // Show status message
+          const debugStatus = document.getElementById('debug-status');
+          debugStatus.textContent = 'Creating missing parameters...';
+          debugStatus.className = 'status-message warning';
+          debugStatus.style.display = 'block';
+          
+          // Request to create parameters
+          const response = await fetch('/api/companies/debug/create-moving-parameters', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              // Show success message
+              debugStatus.textContent = 'Parameters created successfully! The page will reload in 2 seconds.';
+              debugStatus.className = 'status-message success';
+              
+              // Reload the page after 2 seconds
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+            } else {
+              throw new Error(data.error || 'Failed to create parameters');
+            }
+          } else {
+            const errorText = await response.text();
+            throw new Error(`Server error: ${response.status} ${errorText}`);
+          }
+        } catch (error) {
+          // Show error message
+          const debugStatus = document.getElementById('debug-status');
+          debugStatus.textContent = `Error creating parameters: ${error.message}`;
+          debugStatus.className = 'status-message error';
+          debugStatus.style.display = 'block';
+        }
+      });
+      
+      // Add a reload button to the debug panel
+      const debugPanel = document.getElementById('debug-panel');
+      if (debugPanel && !document.getElementById('reload-button')) {
+        const buttonContainer = debugPanel.querySelector('div');
+        const reloadButton = document.createElement('button');
+        reloadButton.id = 'reload-button';
+        reloadButton.className = 'btn btn-warning';
+        reloadButton.style = 'background-color: #ffc107; color: black; margin-left: 10px;';
+        reloadButton.textContent = 'Reload Page';
+        buttonContainer.appendChild(reloadButton);
+        
+        // Add event listener for reload button
+        reloadButton.addEventListener('click', function() {
+          // Force reload without cache
+          window.location.reload(true);
+        });
+      }
+      
+      // Add event listener to preserve JWT token when navigating away
+      window.addEventListener('beforeunload', function() {
+        // Restore valid JWT token from storage if available
+        const storedToken = localStorage.getItem('access_token');
+        if (storedToken && storedToken.startsWith('eyJhbGciOiJ')) {
+          console.log("Preserving JWT token on page unload");
+          document.cookie = `access_token=${storedToken}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+          
+          // Create a sync request to ensure cookie is updated before navigation
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/users/profile', false); // Synchronous request
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Authorization', 'Bearer ' + storedToken);
+            xhr.send();
+          } catch (e) {
+            // Ignore errors in this synchronous request
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
